@@ -13,6 +13,7 @@ The final aim:
 - Users can sign up/in with at least one oauth client (Google, Facebook, Twitter)
 - Runs on PostgreSQL backend.
 - Twitter Boostrap-based design (yawn, but I'm not a designer...)
+- Fully tested (or as much as possible) in front and backend.
 - We can host the whole thing on Heroku/S3.
 
 Of course not all of the above will happen at once, rather incremental steps.

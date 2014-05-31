@@ -13,7 +13,7 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "3000"
+		port = "4000"
 	}
 
 	http.ListenAndServe(":"+port, nil)

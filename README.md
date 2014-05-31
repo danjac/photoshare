@@ -2,7 +2,7 @@ Photoshare is a learning app for Go and Angular.
 
 The final aim:
 
-- User can create posts with multiple photos.
+- User can create posts with photos.
 - User can make posts private/public.
 - Other users can comment on posts.
 - User can switch comments on/off.

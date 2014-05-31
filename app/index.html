@@ -11,15 +11,30 @@
   <link rel="stylesheet" href="css/app.css"/>
 </head>
 <body>
-<div class="container">
-  <ul class="menu">
-    <li><a href="#/view1">view1</a></li>
-    <li><a href="#/view2">view2</a></li>
-  </ul>
+
+<nav class="navbar navbar-inverse" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Photoshare</a>
+        </div>
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+            <li class="active"><a href="#/list">Latest</a></li>
+            <li><a href="#/upload">Upload a photo</a></li>
+        </ul>
+      </div>
+    </div>
+</nav>
+
+ <div class="container-fluid">
   <div ng-view></div>
-
-  <div>Angular seed app: v<span app-version></span></div>
-
+  </div>
   <script src="bower_components/jquery/dist/jquery.min.js"></script>
   <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
   <script src="bower_components/angular/angular.js"></script>
@@ -29,6 +44,6 @@
   <script src="js/controllers.js"></script>
   <script src="js/filters.js"></script>
   <script src="js/directives.js"></script>
-  </div>
+
 </body>
 </html>

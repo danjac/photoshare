@@ -9,8 +9,9 @@ angular.module('photoshare', [
     'photoshare.directives',
     'photoshare.controllers'
 ]).
-    config(['$routeProvider', function ($routeProvider) {
+    config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
         $routeProvider.when('/list', {templateUrl: 'partials/list.html', controller: 'ListCtrl'});
         $routeProvider.when('/upload', {templateUrl: 'partials/upload.html', controller: 'UploadCtrl'});
         $routeProvider.otherwise({redirectTo: '/list'});
+        $locationProvider.html5Mode(true);
     }]);

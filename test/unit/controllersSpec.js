@@ -5,6 +5,15 @@
 describe('controllers', function (){
     beforeEach(module('photoshare.controllers'));
 
+    it('should change active tab on route change', inject(function ($rootScope, $controller, $location) {
+        var scope = $rootScope.$new();
+        var appCtrl = $controller('AppCtrl', { $scope: scope });
+        expect(scope.tabs[0].active).toBe(true);
+        $location.path("/upload");
+        $rootScope.$apply();
+        expect(scope.tabs[1].active).toBe(true);
+    }));
+
     it('should show a list of photos', inject(function ($rootScope, $controller) {
         var scope = $rootScope.$new();
         var listCtrl = $controller('ListCtrl', { $scope: scope });

@@ -12,6 +12,7 @@ angular.module('photoshare', [
     config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
         $routeProvider.when('/list', {templateUrl: 'partials/list.html', controller: 'ListCtrl'});
         $routeProvider.when('/upload', {templateUrl: 'partials/upload.html', controller: 'UploadCtrl'});
+        $routeProvider.when('/login', {templateUrl: 'partials/login.html', controller: 'LoginCtrl'});
         $routeProvider.otherwise({redirectTo: '/list'});
-        $locationProvider.html5Mode(true);
+        //$locationProvider.html5Mode(true);
     }]);

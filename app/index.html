@@ -25,9 +25,10 @@
         </div>
       <div class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
-            <li ng-repeat="tab in tabs" ng-class="{active: tab.active}">
-                <a ng-href="{{tab.url}}">{{tab.label}}</a> 
-            </li>
+            <tab url="#/list">Latest photos</tab>
+            <tab url="#/upload" ng-show="auth.currentUser">Upload a photo</tab>
+            <tab url="#/login" ng-show="!auth.currentUser">Login</tab>
+            <li><a ng-click="logout()" ng-show="auth.currentUser">Logout</a></li>
         </ul>
       </div>
     </div>

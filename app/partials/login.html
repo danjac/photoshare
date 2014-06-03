@@ -1,0 +1,19 @@
+<form role="form" name="form" action="" novalidate>
+    <div class="form-group">
+        <input type="email" 
+               ng-model="loginCreds.email" 
+               required="required"
+               class="form-control" 
+               placeholder="Email address"/>
+    </div>
+
+    <div class="form-group">
+        <input type="password" 
+               ng-model="loginCreds.password" 
+               required="required"
+               class="form-control" 
+               placeholder="Password"/>
+    </div>
+
+    <button ng-click="login()" ng-disabled="form.$invalid">Login</button>
+</form>

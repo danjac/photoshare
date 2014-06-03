@@ -3,6 +3,18 @@
 /* Directives */
 
 angular.module('photoshare.directives', []).
+    directive('filesModel', function () {
+        /* https://github.com/angular/angular.js/issues/1375#issuecomment-21933012 */
+        return {
+            controller: function ($parse, $element, $attrs, $scope) {
+                var exp = $parse($attrs.filesModel);
+                $element.on('change', function () {
+                    exp.assign($scope, this.files);
+                    $scope.$apply();
+                });
+            }
+        };
+    }).
     directive('tab', function () {
 
         function isActive(url, current) {

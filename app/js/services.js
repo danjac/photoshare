@@ -39,11 +39,17 @@ var photos = [
 
 
 angular.module('photoshare.services', [])
-    .service('Authenticator', [function () {
+    .service('Authenticator', ['$q', function ($q) {
 
         function AuthService() {
             this.currentUser = null;
         }
+
+        AuthService.prototype.authenticate = function () {
+            var deferred = $q.defer();
+            deferred.resolve("OK");
+            return deferred.promise;
+        };
 
         AuthService.prototype.isLoggedIn = function () {
             return this.currentUser !== null;

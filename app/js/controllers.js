@@ -19,7 +19,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
     .controller('ListCtrl', ['$scope', 'Photo', function ($scope, Photo) {
         $scope.photos = Photo.query();
     }])
-    .controller('UploadCtrl', ['$scope', '$location', '$http', '$window', '$upload', 'Authenticator', function ($scope, $location, $http, $window, $upload, Authenticator) {
+    .controller('UploadCtrl', ['$scope', '$location', '$http', '$window', 'Authenticator', function ($scope, $location, $http, $window, Authenticator) {
         if (!Authenticator.isLoggedIn()) {
             $location.path("/login");
             return;

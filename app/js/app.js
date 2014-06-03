@@ -4,7 +4,6 @@
 // Declare app level module which depends on filters, and services
 angular.module('photoshare', [
     'ngRoute',
-    'angularFileUpload',
     'photoshare.filters',
     'photoshare.services',
     'photoshare.directives',

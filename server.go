@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/coopernurse/gorp"
+	"github.com/dchest/uniuri"
 	"github.com/gorilla/securecookie"
 	_ "github.com/mattn/go-sqlite3"
-    "github.com/dchest/uniuri"
 	"io"
 	"net/http"
 	"os"
@@ -131,16 +131,16 @@ func addPhoto(w http.ResponseWriter, r *http.Request) {
 
 	title := r.FormValue("title")
 	src, hdr, err := r.FormFile("photo")
-    contentType := hdr.Header["Content-Type"][0]
-    var ext string
+	contentType := hdr.Header["Content-Type"][0]
+	var ext string
 
-    if contentType == "image/png" {
-        ext = ".png"
-    } else {
-        ext = ".jpg" 
-    }
+	if contentType == "image/png" {
+		ext = ".png"
+	} else {
+		ext = ".jpg"
+	}
 
-    filename := uniuri.New() + ext
+	filename := uniuri.New() + ext
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

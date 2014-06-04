@@ -8,6 +8,7 @@ import (
 	"github.com/coopernurse/gorp"
 	"github.com/dchest/uniuri"
 	"github.com/gorilla/securecookie"
+    "github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
 	"io"
 	"net/http"
@@ -291,16 +292,23 @@ func main() {
 	defer db.Close()
 
 	go populateDatabase(db)
+
+    r := mux.NewRouter()
+
+    s := r.PathPrefix("/auth").Subrouter()
+    s.HandleFunc("/", authenticate).Methods("GET")
+    s.HandleFunc("/", login).Methods("POST")
+    s.HandleFunc("/", logout).Methods("DELETE")
+
+    s = r.PathPrefix("/photos").Subrouter()
+    s.HandleFunc("/", getPhotos).Methods("GET")
+    s.HandleFunc("/", addPhoto).Methods("POST")
+
+    r.PathPrefix("/").Handler(http.FileServer(http.Dir("./app/"))) 
+
+	http.Handle("/", r)
+
 	fmt.Println("starting server...")
-
-	// STATIC FILES
-
-	http.HandleFunc("/auth", authenticate)
-	http.HandleFunc("/login", login)
-	http.HandleFunc("/logout", logout)
-	http.HandleFunc("/photos", getPhotos)
-	http.HandleFunc("/add", addPhoto)
-	http.Handle("/", http.FileServer(http.Dir("./app/")))
 
 	port := os.Getenv("PORT")
 	if port == "" {

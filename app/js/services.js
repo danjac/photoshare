@@ -3,7 +3,9 @@
 /* Services */
 
 angular.module('photoshare.services', [])
-    .service('Authenticator', ['$http', '$q', function ($http, $q) {
+    .service('Authenticator', ['$resource', '$q', function ($resource, $q) {
+
+        var AuthResource = $resource("/auth/");
 
         function AuthService() {
             this.currentUser = null;
@@ -12,8 +14,8 @@ angular.module('photoshare.services', [])
 
         AuthService.prototype.authenticate = function () {
             var deferred = $q.defer(), $this = this;
-            $http.get("/auth").then(function (response) {
-                $this.currentUser = response.data;
+            AuthResource.get({}, function (user) {
+                $this.currentUser = user;
                 $this.loggedIn = true;
                 deferred.resolve($this.currentUser);
             });
@@ -21,13 +23,16 @@ angular.module('photoshare.services', [])
         };
 
         AuthService.prototype.isLoggedIn = function () {
-            return this.currentUser !== null;
+            return this.loggedIn;
         };
 
         AuthService.prototype.login = function (email, password) {
             var deferred = $q.defer(), $this = this;
-            $http.post("/login", {email: email, password: password}).then(function (response) {
-                $this.currentUser = response.data;
+            this.currentUser = new AuthResource({
+                email: email,
+                password: password
+            });
+            this.currentUser.$save(function () {
                 $this.loggedIn = true;
                 deferred.resolve($this.currentUser);
             });
@@ -35,26 +40,13 @@ angular.module('photoshare.services', [])
         };
 
         AuthService.prototype.logout = function () {
-            this.currentUser = null;
+            this.currentUser.$delete();
             this.loggedIn = false;
-            $http.post("/logout");
         };
 
         return new AuthService();
     }])
-    .service('Photo', ['$q', '$http', function ($q, $http) {
-
-        var getPhotos = function () {
-            var deferred = $q.defer();
-            $http.get("/photos").then(function (response) {
-                deferred.resolve(response.data);
-            });
-            return deferred.promise;
-        };
-
-        return {
-            query: getPhotos
-        };
-
+    .service('Photo', ['$resource', function ($resource) {
+        return $resource("/photos/");
     }]);
     

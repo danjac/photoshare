@@ -17,23 +17,22 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         };
     }])
     .controller('ListCtrl', ['$scope', 'Photo', function ($scope, Photo) {
-        Photo.query().then(function (photos) {
+        Photo.query().$promise.then(function (photos) {
             $scope.photos = photos;
         });
     }])
-    .controller('UploadCtrl', ['$scope', '$location', '$http', '$window', 'Authenticator', function ($scope, $location, $http, $window, Authenticator) {
+    .controller('UploadCtrl', ['$scope', '$location', '$window', 'Authenticator', 'Photo', function ($scope, $location, $window, Authenticator, Photo) {
         if (!Authenticator.isLoggedIn()) {
-            $location.path("/login");
+            $location.path("#/login");
             return;
         }
-        $scope.newPhoto = {};
+        $scope.newPhoto = new Photo();
         $scope.upload = null;
         $scope.uploadPhoto = function () {
-            $http.post("/add", $scope.newPhoto, function (result) {
-                console.log("RESULT", result);
+            $scope.newPhoto.$save(function () {
+                $scope.newPhoto = new Photo();
+                $location.path("#/list");
             });
-            $scope.newPhoto = {};
-            $location.path("#/list");
         };
 
     }])

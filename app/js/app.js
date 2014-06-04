@@ -4,17 +4,20 @@
 // Declare app level module which depends on filters, and services
 angular.module('photoshare', [
     'ngRoute',
+    'ngResource',
     'photoshare.filters',
     'photoshare.services',
     'photoshare.directives',
     'photoshare.controllers'
 ]).
-    config(['$routeProvider', '$locationProvider', '$httpProvider', function ($routeProvider, $locationProvider, $httpProvider) {
+    config(['$routeProvider', '$locationProvider', '$httpProvider', '$resourceProvider', function ($routeProvider, $locationProvider, $httpProvider, $resourceProvider) {
         $routeProvider.when('/list', {templateUrl: 'partials/list.html', controller: 'ListCtrl'});
         $routeProvider.when('/upload', {templateUrl: 'partials/upload.html', controller: 'UploadCtrl'});
         $routeProvider.when('/login', {templateUrl: 'partials/login.html', controller: 'LoginCtrl'});
         $routeProvider.otherwise({redirectTo: '/list'});
         //$locationProvider.html5Mode(true);
+        //
+        $resourceProvider.defaults.stripTrailingSlashes = false;
 
         $httpProvider.defaults.transformRequest = function (data) {
             if (data === undefined) {

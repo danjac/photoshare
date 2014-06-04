@@ -2,3 +2,5 @@ app/bower_components
 node_modules
 *.swp
 photoshare
+app/uploads
+*.db

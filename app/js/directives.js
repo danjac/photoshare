@@ -10,8 +10,6 @@ angular.module('photoshare.directives', []).
                 var exp = $parse($attrs.filesModel);
                 $element.on('change', function () {
                     exp.assign($scope, this.files);
-
-
                     if ($window.FileReader !== null) {
                         var file = this.files[0],
                             reader = new $window.FileReader();

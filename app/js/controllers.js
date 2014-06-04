@@ -13,11 +13,13 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
         $scope.logout = function () {
             Authenticator.logout();
-            $location.path("/");
+            $location.path("#/list");
         };
     }])
     .controller('ListCtrl', ['$scope', 'Photo', function ($scope, Photo) {
-        $scope.photos = Photo.query();
+        Photo.query().then(function (photos) {
+            $scope.photos = photos;
+        });
     }])
     .controller('UploadCtrl', ['$scope', '$location', '$http', '$window', 'Authenticator', function ($scope, $location, $http, $window, Authenticator) {
         if (!Authenticator.isLoggedIn()) {
@@ -27,21 +29,23 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         $scope.newPhoto = {};
         $scope.upload = null;
         $scope.uploadPhoto = function () {
-            $http.post("/", $scope.newPhoto, function (result) {
+            $http.post("/add", $scope.newPhoto, function (result) {
                 console.log("RESULT", result);
             });
             $scope.newPhoto = {};
-            $location.path("/");
+            $location.path("#/list");
         };
 
     }])
     .controller('LoginCtrl', ['$scope', '$location', 'Authenticator', function ($scope, $location, Authenticator) {
         $scope.loginCreds = {};
         $scope.login = function () {
-            user = Authenticator.login($scope.loginCreds.email, $scope.loginCreds.password);
-            if (user) {
-                $scope.loginCreds = {};
-                $location.path("/");
-            }
+            Authenticator.login($scope.loginCreds.email, $scope.loginCreds.password).then(function (user) {
+                console.log("USER", user);
+                if (user) {
+                    $scope.loginCreds = {};
+                    $location.path("#/list");
+                }
+            });
         };
     }]);

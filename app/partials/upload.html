@@ -14,8 +14,13 @@
         <input type="file" 
                files-model="newPhoto.photo">
     </div>
-    <div ng-show="upload">
-        <img class="thumbnail" ng-src="{{upload.url}}">
+
+    <div class="row" ng-show="upload">
+        <div class="col-xs-6">
+            <div class="thumbnail">
+                <img ng-src="{{upload.url}}">
+            </div>
+        </div>
     </div>
 
     <button class="btn-submit btn" 

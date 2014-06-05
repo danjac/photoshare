@@ -4,27 +4,26 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
 	"encoding/json"
-    "github.com/nfnt/resize"
-    "image"
-    "image/jpeg"
-    "image/png"
 	"fmt"
 	"github.com/coopernurse/gorp"
 	"github.com/dchest/uniuri"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
-    "github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/nfnt/resize"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
-    "strings"
 )
 
-
 const (
-    CookieName = "userid"
-    UploadsDir = "app/uploads"
+	CookieName = "userid"
+	UploadsDir = "app/uploads"
 )
 
 var dbMap *gorp.DbMap
@@ -86,17 +85,17 @@ func populateDatabase(db *sql.DB) {
 	if err := dbMap.CreateTablesIfNotExists(); err != nil {
 		panic(err)
 	}
-    
-    numUsers, err := dbMap.SelectInt("SELECT COUNT(id) FROM users")
-    if err != nil {
-        panic(err)
-    } else if numUsers == 0 {
-        user := &User{Name: "demo", Email: "demo@photoshare.com", IsActive: true}
-        user.SetPassword("demo1")
-        if err := dbMap.Insert(user); err != nil {
-            panic(err)
-        }
-    }
+
+	numUsers, err := dbMap.SelectInt("SELECT COUNT(id) FROM users")
+	if err != nil {
+		panic(err)
+	} else if numUsers == 0 {
+		user := &User{Name: "demo", Email: "demo@photoshare.com", IsActive: true}
+		user.SetPassword("demo1")
+		if err := dbMap.Insert(user); err != nil {
+			panic(err)
+		}
+	}
 
 	fmt.Println("Database ready!")
 
@@ -155,32 +154,31 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	} else if contentType == "image/jpeg" {
 		filename += ".jpg"
 	} else {
-        w.WriteHeader(http.StatusBadRequest)
-        w.Write([]byte("Not a valid image"))
-        return
-    }
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Not a valid image"))
+		return
+	}
 
-    if err := os.MkdirAll(UploadsDir+"/thumbnails", 0777); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(UploadsDir+"/thumbnails", 0777); err != nil && !os.IsExist(err) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-    }
+	}
 
-    // make thumbnail
-    var img image.Image
+	// make thumbnail
+	var img image.Image
 
-    if contentType == "image/png" {
-        img, err = png.Decode(src)
-    } else {
-        img, err = jpeg.Decode(src)
-    }
-
+	if contentType == "image/png" {
+		img, err = png.Decode(src)
+	} else {
+		img, err = jpeg.Decode(src)
+	}
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-    thumb := resize.Resize(300, 0, img, resize.Lanczos3)
+	thumb := resize.Resize(300, 0, img, resize.Lanczos3)
 	dst, err := os.Create(strings.Join([]string{UploadsDir, "thumbnails", filename}, "/"))
 
 	if err != nil {
@@ -190,13 +188,13 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 	defer dst.Close()
 
-    if contentType == "image/png" {
-        png.Encode(dst, thumb)
-    } else if contentType == "image/jpeg" {
-        jpeg.Encode(dst, thumb, nil) 
-    }
+	if contentType == "image/png" {
+		png.Encode(dst, thumb)
+	} else if contentType == "image/jpeg" {
+		jpeg.Encode(dst, thumb, nil)
+	}
 
-    src.Seek(0, 0)
+	src.Seek(0, 0)
 
 	dst, err = os.Create(strings.Join([]string{UploadsDir, filename}, "/"))
 
@@ -268,11 +266,11 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-    if user != nil {
-	    w.WriteHeader(http.StatusOK)
-    } else {
-	    w.WriteHeader(http.StatusNotFound)
-    }
+	if user != nil {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+	}
 	w.Header().Add("content-type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }
@@ -339,18 +337,18 @@ func main() {
 
 	go populateDatabase(db)
 
-    r := mux.NewRouter()
+	r := mux.NewRouter()
 
-    s := r.PathPrefix("/auth").Subrouter()
-    s.HandleFunc("/", authenticate).Methods("GET")
-    s.HandleFunc("/", login).Methods("POST")
-    s.HandleFunc("/", logout).Methods("DELETE")
+	s := r.PathPrefix("/auth").Subrouter()
+	s.HandleFunc("/", authenticate).Methods("GET")
+	s.HandleFunc("/", login).Methods("POST")
+	s.HandleFunc("/", logout).Methods("DELETE")
 
-    s = r.PathPrefix("/photos").Subrouter()
-    s.HandleFunc("/", getPhotos).Methods("GET")
-    s.HandleFunc("/", upload).Methods("POST")
+	s = r.PathPrefix("/photos").Subrouter()
+	s.HandleFunc("/", getPhotos).Methods("GET")
+	s.HandleFunc("/", upload).Methods("POST")
 
-    r.PathPrefix("/").Handler(http.FileServer(http.Dir("./app/"))) 
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./app/")))
 
 	http.Handle("/", r)
 

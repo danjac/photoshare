@@ -49,10 +49,12 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         $scope.login = function () {
             $scope.loginCreds.$save(function () {
                 Authenticator.currentUser = $scope.loginCreds;
-                Authenticator.loggedIn = true;
+                Authenticator.loggedIn = Authenticator.currentUser !== null;
                 //$scope.$emit("login", $scope.loginCreds);
                 $scope.loginCreds = new Authenticator.resource();
-                $location.path("#/list");
+                if (Authenticator.loggedIn) {
+                    $location.path("#/list");
+                }
             });
         };
     }]);

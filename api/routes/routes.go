@@ -109,12 +109,15 @@ func login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user != nil {
-		if err := session.Login(w, user); err != nil {
-			render.Error(w, err)
-			return
-		}
-	}
+	if user == nil {
+        render.Status(w, http.StatusNotFound, "No user found")
+        return
+    }
+
+    if err := session.Login(w, user); err != nil {
+        render.Error(w, err)
+        return
+    }
 
 	render.JSON(w, http.StatusOK, user)
 }

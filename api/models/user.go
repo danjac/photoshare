@@ -44,7 +44,7 @@ func (user *User) Save() error {
 }
 
 func NewUser(name, email, password string) *User {
-	user := &User{Name: name, Email: email}
+	user := &User{Name: name, Email: email, IsActive: true}
 	user.SetPassword(password)
 	return user
 }

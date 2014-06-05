@@ -236,7 +236,6 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	photo := &Photo{Title: title,
-		Photo:   filename,
 		OwnerID: user.ID}
 	if err := dbMap.Insert(photo); err != nil {
 		renderError(w, err)

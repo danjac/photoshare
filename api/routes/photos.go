@@ -42,7 +42,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	photo := &models.Photo{Title: title,
 		OwnerID: user.ID, Photo: filename}
 
-	if result := photo.Validate(); result != nil {
+	if result := photo.Validate(); !result.OK {
 		render.JSON(w, http.StatusBadRequest, result)
 	}
 

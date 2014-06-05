@@ -8,7 +8,7 @@ import (
 
 var dbMap *gorp.DbMap
 
-func populateDatabase(db *sql.DB) error {
+func populateDatabase() error {
 
 	dbMap.AddTableWithName(User{}, "users").SetKeys(true, "ID")
 	dbMap.AddTableWithName(Photo{}, "photos").SetKeys(true, "ID")
@@ -34,8 +34,11 @@ func Init() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	dbMap = &gorp.DbMap{Db: db, Dialect: gorp.SqliteDialect{}}
+
+    if err := populateDatabase(); err != nil {
+        return nil, err
+    }
 
 	return db, nil
 }

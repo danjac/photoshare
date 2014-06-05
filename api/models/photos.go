@@ -43,9 +43,9 @@ func (photo *Photo) Validate() *ValidationResult {
 
 func GetPhotos(pageNum int64) ([]Photo, error) {
 
-    var photos []Photo
+	var photos []Photo
 
-    offset := (pageNum - 1) * pageSize
+	offset := (pageNum - 1) * pageSize
 
 	if _, err := dbMap.Select(&photos, "SELECT * FROM photos ORDER BY created_at DESC LIMIT $1 OFFSET $2", pageSize, offset); err != nil {
 		return photos, err

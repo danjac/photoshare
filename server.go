@@ -2,22 +2,19 @@ package main
 
 import (
 	"fmt"
-	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/routes"
+	"github.com/danjac/photoshare/api"
 	"net/http"
 	"os"
 )
 
 func main() {
-	db, err := models.Init()
-
+	app, err := api.NewApplication()
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	defer app.Shutdown()
 
-	r := routes.Init()
-	http.Handle("/", r)
+	http.Handle("/", app.Handler)
 
 	fmt.Println("starting server...")
 

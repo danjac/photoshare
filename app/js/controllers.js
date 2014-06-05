@@ -7,9 +7,9 @@ var user = null;
 angular.module('photoshare.controllers', ['photoshare.services'])
     .controller('AppCtrl', ['$scope', '$location', 'Authenticator', function ($scope, $location, Authenticator) {
 
-        $scope.auth = {loggedIn: false, currentUser: null};
+        $scope.auth = Authenticator;
 
-        Authenticator.get({}, function (user) {
+        Authenticator.resource.get({}, function (user) {
             $scope.auth.loggedIn = true;
             $scope.auth.currentUser = user;
         });
@@ -21,10 +21,12 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $location.path("#/list");
         };
 
+        /*
         $scope.$on("login", function (event, newUser) {
             $scope.auth.loggedIn = true;
             $scope.auth.currentUser = newUser;
         });
+        */
     }])
     .controller('ListCtrl', ['$scope', 'Photo', function ($scope, Photo) {
         Photo.query().$promise.then(function (photos) {
@@ -43,11 +45,13 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
     }])
     .controller('LoginCtrl', ['$scope', '$location', 'Authenticator', function ($scope, $location, Authenticator) {
-        $scope.loginCreds = new Authenticator();
+        $scope.loginCreds = new Authenticator.resource();
         $scope.login = function () {
             $scope.loginCreds.$save(function () {
-                $scope.$emit("login", $scope.loginCreds);
-                $scope.loginCreds = new Authenticator();
+                Authenticator.currentUser = $scope.loginCreds;
+                Authenticator.loggedIn = true;
+                //$scope.$emit("login", $scope.loginCreds);
+                $scope.loginCreds = new Authenticator.resource();
                 $location.path("#/list");
             });
         };

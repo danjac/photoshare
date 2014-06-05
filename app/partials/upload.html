@@ -15,6 +15,11 @@
                files-model="newPhoto.photo">
     </div>
 
+    <button class="btn-submit btn" 
+            type="submit" 
+            ng-click="uploadPhoto()"
+            ng-disabled="form.$invalid">Upload</button>
+
     <div class="row" ng-show="upload.url">
         <div class="col-xs-6">
             <div class="thumbnail">
@@ -23,9 +28,5 @@
         </div>
     </div>
 
-    <button class="btn-submit btn" 
-            type="submit" 
-            ng-click="uploadPhoto()"
-            ng-disabled="form.$invalid">Upload</button>
 
 </form>

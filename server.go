@@ -15,6 +15,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"strings"
@@ -127,45 +128,31 @@ func getCurrentUser(r *http.Request) (*User, error) {
 	return obj.(*User), nil
 }
 
-func upload(w http.ResponseWriter, r *http.Request) {
+func renderError(w http.ResponseWriter, err error) {
+	http.Error(w, err.Error(), http.StatusInternalServerError)
+}
 
-	user, err := getCurrentUser(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if user == nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("no user found"))
-		return
-	}
+func renderStatus(w http.ResponseWriter, status int, msg string) {
+	w.WriteHeader(status)
+	w.Write([]byte(msg))
+}
 
-	title := r.FormValue("title")
-	src, hdr, err := r.FormFile("photo")
-	contentType := hdr.Header["Content-Type"][0]
-	var ext string
+func renderJSON(w http.ResponseWriter, status int, value interface{}) {
+	w.WriteHeader(status)
+	w.Header().Add("content-type", "application/json")
+	json.NewEncoder(w).Encode(value)
+}
 
-	defer src.Close()
-
-	filename := uniuri.New() + ext
-
-	if contentType == "image/png" {
-		filename += ".png"
-	} else if contentType == "image/jpeg" {
-		filename += ".jpg"
-	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Not a valid image"))
-		return
-	}
-
+func processImage(src multipart.File, filename string, contentType string) error {
 	if err := os.MkdirAll(UploadsDir+"/thumbnails", 0777); err != nil && !os.IsExist(err) {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	// make thumbnail
-	var img image.Image
+	var (
+		img image.Image
+		err error
+	)
 
 	if contentType == "image/png" {
 		img, err = png.Decode(src)
@@ -174,16 +161,14 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
-	thumb := resize.Resize(300, 0, img, resize.Lanczos3)
+	thumb := resize.Thumbnail(300, 300, img, resize.Lanczos3)
 	dst, err := os.Create(strings.Join([]string{UploadsDir, "thumbnails", filename}, "/"))
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	defer dst.Close()
@@ -199,15 +184,51 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	dst, err = os.Create(strings.Join([]string{UploadsDir, filename}, "/"))
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	defer dst.Close()
 
 	_, err = io.Copy(dst, src)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return err
+	}
+
+	return nil
+}
+
+func upload(w http.ResponseWriter, r *http.Request) {
+
+	user, err := getCurrentUser(r)
+	if err != nil {
+		renderError(w, err)
+		return
+	}
+	if user == nil {
+		renderStatus(w, http.StatusUnauthorized, "Not logged in")
+		return
+	}
+
+	title := r.FormValue("title")
+	src, hdr, err := r.FormFile("photo")
+	contentType := hdr.Header["Content-Type"][0]
+
+	defer src.Close()
+
+	filename := uniuri.New()
+
+	if contentType == "image/png" {
+		filename += ".png"
+	} else if contentType == "image/jpeg" {
+		filename += ".jpg"
+	} else {
+		renderStatus(w, http.StatusBadRequest, "Not a valid image")
+		return
+	}
+
+	err = processImage(src, filename, contentType)
+	if err != nil {
+		renderError(w, err)
 		return
 	}
 
@@ -215,47 +236,65 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		Photo:   filename,
 		OwnerID: user.ID}
 	if err := dbMap.Insert(photo); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		renderError(w, err)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Header().Add("content-type", "application/json")
-	json.NewEncoder(w).Encode(photo)
+	renderJSON(w, http.StatusOK, photo)
 }
 
 func getPhotos(w http.ResponseWriter, r *http.Request) {
 
 	var photos []Photo
 	if _, err := dbMap.Select(&photos, "SELECT * FROM photos ORDER BY created_at DESC"); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		renderError(w, err)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Header().Add("content-type", "application/json")
-	json.NewEncoder(w).Encode(photos)
+	renderJSON(w, http.StatusOK, photos)
 }
 
 // this should be DELETE
 func logout(w http.ResponseWriter, r *http.Request) {
 
-	encoded, err := sCookie.Encode(CookieName, 0)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := writeCookie(w, 0); err != nil {
+		renderError(w, err)
 		return
 	}
 
-	cookie := &http.Cookie{
-		Name:  CookieName,
-		Value: encoded,
-		Path:  "/",
+	renderStatus(w, http.StatusOK, "Logged out")
+
+}
+
+func signup(w http.ResponseWriter, r *http.Request) {
+
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+
+	if email == "" || password == "" {
+		renderStatus(w, http.StatusBadRequest, "Missing form info")
+		return
 	}
-	http.SetCookie(w, cookie)
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Logged out"))
+	numUsers, err := dbMap.SelectInt("SELECT COUNT(id) FROM users WHERE email=?", email)
+	if err != nil {
+		renderError(w, err)
+		return
+	}
+	if numUsers > 0 {
+		renderStatus(w, http.StatusBadRequest, "Email already taken")
+		return
+	}
 
+	user := &User{Email: email}
+	user.SetPassword(password)
+	if err := dbMap.Insert(user); err != nil {
+		renderError(w, err)
+		return
+	}
+	if err := writeCookie(w, user.ID); err != nil {
+		renderError(w, err)
+		return
+	}
+	renderJSON(w, http.StatusOK, user)
 }
 
 // return current logged in user, or 401
@@ -263,16 +302,19 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 
 	user, err := getCurrentUser(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		renderError(w, err)
 		return
 	}
+
+	var status int
+
 	if user != nil {
-		w.WriteHeader(http.StatusOK)
+		status = http.StatusOK
 	} else {
-		w.WriteHeader(http.StatusNotFound)
+		status = http.StatusNotFound
 	}
-	w.Header().Add("content-type", "application/json")
-	json.NewEncoder(w).Encode(user)
+
+	renderJSON(w, status, user)
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -281,38 +323,44 @@ func login(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 
 	if email == "" || password == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Email or password empty"))
+		renderStatus(w, http.StatusBadRequest, "Email or password missing")
 		return
 	}
 
 	user := &User{}
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=1 AND email=?", email); err != nil {
 		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("User not found"))
+			renderStatus(w, http.StatusNotFound, "No user found")
 			return
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		renderError(w, err)
 		return
 	}
 
 	if !user.CheckPassword(password) {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid password"))
+		renderStatus(w, http.StatusBadRequest, "Invalid password")
 		return
 	}
 
 	if _, err := json.Marshal(user); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		renderError(w, err)
 		return
 	}
 
-	// write the user ID to the secure cookie
-	encoded, err := sCookie.Encode(CookieName, user.ID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := writeCookie(w, user.ID); err != nil {
+		renderError(w, err)
 		return
+	}
+
+	renderJSON(w, http.StatusOK, user)
+}
+
+func writeCookie(w http.ResponseWriter, userID int) error {
+
+	// write the user ID to the secure cookie
+	encoded, err := sCookie.Encode(CookieName, userID)
+	if err != nil {
+		return err
 	}
 
 	cookie := &http.Cookie{
@@ -321,10 +369,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		Path:  "/",
 	}
 	http.SetCookie(w, cookie)
-
-	w.WriteHeader(http.StatusOK)
-	w.Header().Add("content-type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	return nil
 
 }
 
@@ -347,6 +392,9 @@ func main() {
 	s = r.PathPrefix("/photos").Subrouter()
 	s.HandleFunc("/", getPhotos).Methods("GET")
 	s.HandleFunc("/", upload).Methods("POST")
+
+	s = r.PathPrefix("/user").Subrouter()
+	s.HandleFunc("/", signup).Methods("POST")
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./app/")))
 

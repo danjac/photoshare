@@ -63,7 +63,7 @@ func GetUser(userID int) (*User, error) {
 
 func Authenticate(email string, password string) (*User, error) {
 	user := &User{}
-	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=1 AND email=?", email); err != nil {
+	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}

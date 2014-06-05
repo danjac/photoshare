@@ -3,8 +3,9 @@ package models
 import (
 	"database/sql"
 	"github.com/coopernurse/gorp"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 	"log"
+    "fmt"
 	"os"
 )
 
@@ -29,11 +30,15 @@ func populateDatabase() error {
 }
 
 func Init(dbName, dbUser, dbPassword, dbHost, logPrefix string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "photos.db")
+		db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s",
+		dbUser,
+		dbName,
+        dbPassword))
 	if err != nil {
 		return nil, err
 	}
-	dbMap = &gorp.DbMap{Db: db, Dialect: gorp.SqliteDialect{}}
+
+	dbMap = &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
 
 	dbMap.TraceOn("[sql]", log.New(os.Stdout, logPrefix+":", log.Lmicroseconds))
 

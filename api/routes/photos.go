@@ -6,6 +6,7 @@ import (
 	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/utils"
 	"net/http"
+    "strconv"
 )
 
 func upload(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +58,12 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 func getPhotos(w http.ResponseWriter, r *http.Request) {
 
-	photos, err := models.GetPhotos()
+    pageNum, err := strconv.ParseInt(r.FormValue("page"), 10, 0)
+    if err != nil {
+        pageNum = 1
+    }
+
+	photos, err := models.GetPhotos(pageNum)
 	if err != nil {
 		render.Error(w, err)
 		return

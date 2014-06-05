@@ -40,7 +40,7 @@ func Logout(w http.ResponseWriter) error {
 	return writeSessionCookie(w, 0)
 }
 
-func writeSessionCookie(w http.ResponseWriter, id int) error {
+func writeSessionCookie(w http.ResponseWriter, id int64) error {
 	// write the user ID to the secure cookie
 	encoded, err := sCookie.Encode(CookieName, id)
 	if err != nil {

@@ -5,9 +5,11 @@ import (
 	"time"
 )
 
+const pageSize = 8
+
 type Photo struct {
-	ID        int       `db:"id" json:"id"`
-	OwnerID   int       `db:"owner_id" json:"ownerId"`
+	ID        int64     `db:"id" json:"id"`
+	OwnerID   int64     `db:"owner_id" json:"ownerId"`
 	CreatedAt time.Time `db:"created_at" json:"createdAt"`
 	Title     string    `db:"title" json:"title"`
 	Photo     string    `db:"photo" json:"photo"`
@@ -39,9 +41,13 @@ func (photo *Photo) Validate() *ValidationResult {
 	return result
 }
 
-func GetPhotos() ([]Photo, error) {
-	var photos []Photo
-	if _, err := dbMap.Select(&photos, "SELECT * FROM photos WHERE photo != '' AND photo IS NOT NULL  ORDER BY created_at DESC"); err != nil {
+func GetPhotos(pageNum int64) ([]Photo, error) {
+
+    var photos []Photo
+
+    offset := (pageNum - 1) * pageSize
+
+	if _, err := dbMap.Select(&photos, "SELECT * FROM photos ORDER BY created_at DESC LIMIT $1 OFFSET $2", pageSize, offset); err != nil {
 		return photos, err
 	}
 	return photos, nil

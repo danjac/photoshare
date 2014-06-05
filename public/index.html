@@ -27,7 +27,11 @@
         <ul class="nav navbar-nav">
             <tab url="#/list">Latest photos</tab>
             <tab url="#/upload" ng-show="auth.loggedIn">Upload a photo</tab>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
             <tab url="#/login" ng-show="!auth.loggedIn">Login</tab>
+            <tab url="#/" ng-show="!auth.loggedIn">Signup</tab>
+            <li ng-show="auth.loggedIn"><span class="navbar-text">You are signed in as {{ auth.currentUser.name }}</span></li>
             <li><a ng-click="logout()" ng-show="auth.loggedIn">Logout</a></li>
         </ul>
       </div>
@@ -35,7 +39,6 @@
 </nav>
 
  <div class="container-fluid">
-     <h2 ng-show="auth.loggedIn"><em>You are signed in as {{ auth.currentUser.name }}</em></h2>
   <div ng-view></div>
   </div>
   <script src="bower_components/jquery/dist/jquery.min.js"></script>
@@ -43,6 +46,7 @@
   <script src="bower_components/angular/angular.js"></script>
   <script src="bower_components/angular-route/angular-route.js"></script>
   <script src="bower_components/angular-resource/angular-resource.js"></script>
+  <script src="bower_components/nginfinitescroll/build/ng-infinite-scroll.min.js"></script>
   <script src="js/app.js"></script>
   <script src="js/services.js"></script>
   <script src="js/controllers.js"></script>

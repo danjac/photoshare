@@ -29,9 +29,20 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         */
     }])
     .controller('ListCtrl', ['$scope', 'Photo', function ($scope, Photo) {
-        Photo.query().$promise.then(function (photos) {
-            $scope.photos = photos;
-        });
+        var page = 1, stopScrolling = false;
+        $scope.photos = [];
+        $scope.nextPage = function () {
+            if (!stopScrolling) {
+                Photo.query({page: page}).$promise.then(function (photos) {
+                    $scope.photos = $scope.photos.concat(photos);
+                    if (photos.length < 8) {
+                        stopScrolling = true;
+                    } else {
+                        page += 1;
+                    }
+                });
+            }
+        };
     }])
     .controller('UploadCtrl', ['$scope', '$location', '$window', 'Authenticator', 'Photo', function ($scope, $location, $window, Authenticator, Photo) {
         $scope.newPhoto = new Photo();

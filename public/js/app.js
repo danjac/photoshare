@@ -5,6 +5,7 @@
 angular.module('photoshare', [
     'ngRoute',
     'ngResource',
+    'infinite-scroll',
     'photoshare.filters',
     'photoshare.services',
     'photoshare.directives',

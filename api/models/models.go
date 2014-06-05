@@ -2,28 +2,28 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/coopernurse/gorp"
 	_ "github.com/mattn/go-sqlite3"
-    "fmt"
 )
 
 var dbMap *gorp.DbMap
 
 func populateDatabase() error {
 
-    fmt.Println("Initializing database....")
+	fmt.Println("Initializing database....")
 
 	dbMap.AddTableWithName(User{}, "users").SetKeys(true, "ID")
 	dbMap.AddTableWithName(Photo{}, "photos").SetKeys(true, "ID")
 	if err := dbMap.CreateTablesIfNotExists(); err != nil {
-        return err
+		return err
 	}
 
 	numUsers, err := dbMap.SelectInt("SELECT COUNT(id) FROM users")
 	if err != nil {
 		return err
 	} else if numUsers == 0 {
-        fmt.Println("CREATING DEMO USER")
+		fmt.Println("CREATING DEMO USER")
 		user := NewUser("demo", "demo@photoshare.com", "demo1")
 		if err := user.Save(); err != nil {
 			return err

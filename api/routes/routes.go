@@ -110,14 +110,14 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user == nil {
-        render.Status(w, http.StatusNotFound, "No user found")
-        return
-    }
+		render.Status(w, http.StatusNotFound, "No user found")
+		return
+	}
 
-    if err := session.Login(w, user); err != nil {
-        render.Error(w, err)
-        return
-    }
+	if err := session.Login(w, user); err != nil {
+		render.Error(w, err)
+		return
+	}
 
 	render.JSON(w, http.StatusOK, user)
 }

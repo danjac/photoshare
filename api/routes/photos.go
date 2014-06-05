@@ -44,6 +44,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 	if result := photo.Validate(); !result.OK {
 		render.JSON(w, http.StatusBadRequest, result)
+        return
 	}
 
 	if err := photo.Save(); err != nil {

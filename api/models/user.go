@@ -1,10 +1,10 @@
 package models
 
 import (
-    "time"
-    "database/sql"
 	"code.google.com/p/go.crypto/bcrypt"
+	"database/sql"
 	"github.com/coopernurse/gorp"
+	"time"
 )
 
 type User struct {
@@ -40,15 +40,14 @@ func (user *User) CheckPassword(password string) bool {
 }
 
 func (user *User) Save() error {
-    return dbMap.Insert(user)
+	return dbMap.Insert(user)
 }
 
-func NewUser(name, email, password string) (*User) {
-    user := &User{Name: name, Email: email}
-    user.SetPassword(password)
-    return user
+func NewUser(name, email, password string) *User {
+	user := &User{Name: name, Email: email}
+	user.SetPassword(password)
+	return user
 }
-
 
 func GetUser(userID int) (*User, error) {
 	obj, err := dbMap.Get(User{}, userID)
@@ -75,5 +74,5 @@ func Authenticate(email string, password string) (*User, error) {
 		return nil, nil
 	}
 
-    return user, nil
+	return user, nil
 }

@@ -1,9 +1,9 @@
 package session
 
 import (
+	"github.com/danjac/photoshare/api/models"
 	"github.com/gorilla/securecookie"
-    "github.com/danjac/photoshare/api/models"
-    "net/http"
+	"net/http"
 )
 
 const (
@@ -29,15 +29,15 @@ func GetCurrentUser(r *http.Request) (*models.User, error) {
 		return nil, nil
 	}
 
-    return models.GetUser(userID)
+	return models.GetUser(userID)
 }
 
 func Login(w http.ResponseWriter, user *models.User) error {
-    return writeSessionCookie(w, user.ID)
+	return writeSessionCookie(w, user.ID)
 }
 
 func Logout(w http.ResponseWriter) error {
-    return writeSessionCookie(w, 0)
+	return writeSessionCookie(w, 0)
 }
 
 func writeSessionCookie(w http.ResponseWriter, id int) error {
@@ -56,5 +56,3 @@ func writeSessionCookie(w http.ResponseWriter, id int) error {
 	return nil
 
 }
-
-

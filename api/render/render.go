@@ -1,8 +1,8 @@
 package render
 
 import (
-    "net/http"
-    "encoding/json"
+	"encoding/json"
+	"net/http"
 )
 
 func Error(w http.ResponseWriter, err error) {

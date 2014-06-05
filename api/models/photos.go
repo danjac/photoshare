@@ -2,21 +2,20 @@ package models
 
 import (
 	"github.com/coopernurse/gorp"
+	"github.com/nfnt/resize"
 	"image"
 	"image/jpeg"
 	"image/png"
-    "mime/multipart"
-	"github.com/nfnt/resize"
 	"io"
-    "os"
-    "time"
-    "strings"
+	"mime/multipart"
+	"os"
+	"strings"
+	"time"
 )
 
 const (
 	UploadsDir = "app/uploads"
 )
-
 
 type Photo struct {
 	ID        int       `db:"id" json:"id"`
@@ -92,7 +91,7 @@ func (photo *Photo) ProcessImage(src multipart.File, filename, contentType strin
 }
 
 func (photo *Photo) Save() error {
-    return dbMap.Insert(photo)
+	return dbMap.Insert(photo)
 }
 
 func GetPhotos() ([]Photo, error) {
@@ -100,5 +99,5 @@ func GetPhotos() ([]Photo, error) {
 	if _, err := dbMap.Select(&photos, "SELECT * FROM photos WHERE photo != '' AND photo IS NOT NULL  ORDER BY created_at DESC"); err != nil {
 		return photos, err
 	}
-    return photos, nil
+	return photos, nil
 }

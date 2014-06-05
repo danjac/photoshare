@@ -1,7 +1,7 @@
 package models
 
 import (
-    "database/sql"
+	"database/sql"
 	"github.com/coopernurse/gorp"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -18,25 +18,24 @@ func populateDatabase(db *sql.DB) error {
 
 	numUsers, err := dbMap.SelectInt("SELECT COUNT(id) FROM users")
 	if err != nil {
-        return err
+		return err
 	} else if numUsers == 0 {
-        user := NewUser("demo", "demo@photoshare.com", "demo1")
-        if err := user.Save(); err != nil {
-            return err
-        }
+		user := NewUser("demo", "demo@photoshare.com", "demo1")
+		if err := user.Save(); err != nil {
+			return err
+		}
 	}
 
-    return nil
+	return nil
 }
-
 
 func Init() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", "photos.db")
 	if err != nil {
-        return nil, err
+		return nil, err
 	}
 
 	dbMap = &gorp.DbMap{Db: db, Dialect: gorp.SqliteDialect{}}
 
-    return db, nil
+	return db, nil
 }

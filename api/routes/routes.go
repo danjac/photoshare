@@ -1,12 +1,12 @@
 package routes
 
 import (
+	"github.com/danjac/photoshare/api/models"
+	"github.com/danjac/photoshare/api/render"
+	"github.com/danjac/photoshare/api/session"
 	"github.com/dchest/uniuri"
 	"github.com/gorilla/mux"
-    "github.com/danjac/photoshare/api/session"
-    "github.com/danjac/photoshare/api/models"
-    "github.com/danjac/photoshare/api/render"
-    "net/http"
+	"net/http"
 )
 
 func upload(w http.ResponseWriter, r *http.Request) {
@@ -57,8 +57,8 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 func getPhotos(w http.ResponseWriter, r *http.Request) {
 
-    photos, err := models.GetPhotos()
-    if err != nil {
+	photos, err := models.GetPhotos()
+	if err != nil {
 		render.Error(w, err)
 		return
 	}
@@ -107,22 +107,21 @@ func login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    user, err := models.Authenticate(email, password)
-    if err != nil {
-        render.Error(w, err)
-        return
-    }
+	user, err := models.Authenticate(email, password)
+	if err != nil {
+		render.Error(w, err)
+		return
+	}
 
-    if user != nil {
-        if err := session.Login(w, user); err != nil {
-            render.Error(w, err)
-            return
-        }
-    }
+	if user != nil {
+		if err := session.Login(w, user); err != nil {
+			render.Error(w, err)
+			return
+		}
+	}
 
 	render.JSON(w, http.StatusOK, user)
 }
-
 
 func Init() *mux.Router {
 	r := mux.NewRouter()
@@ -138,5 +137,5 @@ func Init() *mux.Router {
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./app/")))
 
-    return r
+	return r
 }

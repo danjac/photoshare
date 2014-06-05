@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-    "github.com/danjac/photoshare/api/models"
-    "github.com/danjac/photoshare/api/routes"
+	"github.com/danjac/photoshare/api/models"
+	"github.com/danjac/photoshare/api/routes"
 	"net/http"
 	"os"
 )
@@ -16,7 +16,7 @@ func main() {
 	}
 	defer db.Close()
 
-    r := routes.Init()
+	r := routes.Init()
 	http.Handle("/", r)
 
 	fmt.Println("starting server...")

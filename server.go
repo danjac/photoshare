@@ -269,7 +269,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(encoded)
 
 	cookie := &http.Cookie{
 		Name:  CookieName,

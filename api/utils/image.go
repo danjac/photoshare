@@ -12,10 +12,6 @@ import (
 	"strings"
 )
 
-const (
-	UploadsDir = "public/uploads"
-)
-
 func generateRandomFilename(contentType string) string {
 	filename := uniuri.New()
 	if contentType == "image/png" {
@@ -24,11 +20,11 @@ func generateRandomFilename(contentType string) string {
 	return filename + ".jpg"
 }
 
-func ProcessImage(src multipart.File, contentType string) (string, error) {
+func ProcessImage(src multipart.File, contentType string, uploadsDir string) (string, error) {
 
 	filename := generateRandomFilename(contentType)
 
-	if err := os.MkdirAll(UploadsDir+"/thumbnails", 0777); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(uploadsDir+"/thumbnails", 0777); err != nil && !os.IsExist(err) {
 		return filename, err
 	}
 
@@ -49,7 +45,7 @@ func ProcessImage(src multipart.File, contentType string) (string, error) {
 	}
 
 	thumb := resize.Thumbnail(300, 300, img, resize.Lanczos3)
-	dst, err := os.Create(strings.Join([]string{UploadsDir, "thumbnails", filename}, "/"))
+	dst, err := os.Create(strings.Join([]string{uploadsDir, "thumbnails", filename}, "/"))
 
 	if err != nil {
 		return filename, err
@@ -65,7 +61,7 @@ func ProcessImage(src multipart.File, contentType string) (string, error) {
 
 	src.Seek(0, 0)
 
-	dst, err = os.Create(strings.Join([]string{UploadsDir, filename}, "/"))
+	dst, err = os.Create(strings.Join([]string{uploadsDir, filename}, "/"))
 
 	if err != nil {
 		return filename, err

@@ -33,7 +33,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer src.Close()
-	filename, err := utils.ProcessImage(src, contentType)
+	filename, err := utils.ProcessImage(src, contentType, fileUploadDir)
 	if err != nil {
 		render.Error(w, err)
 		return

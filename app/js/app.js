@@ -19,6 +19,9 @@ angular.module('photoshare', [
         //
         $resourceProvider.defaults.stripTrailingSlashes = false;
 
+        $httpProvider.defaults.xsrfCookieName = "csrf_token";
+        $httpProvider.defaults.xsrfHeaderName = "X-CSRF-Token";
+
         $httpProvider.defaults.transformRequest = function (data) {
             if (data === undefined) {
                 return data;

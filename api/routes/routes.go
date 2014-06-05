@@ -123,7 +123,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, http.StatusOK, user)
 }
 
-func Init() *mux.Router {
+func Init() http.Handler {
 	r := mux.NewRouter()
 
 	s := r.PathPrefix("/auth").Subrouter()
@@ -137,5 +137,5 @@ func Init() *mux.Router {
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./app/")))
 
-	return r
+	return session.NewCSRF(r)
 }

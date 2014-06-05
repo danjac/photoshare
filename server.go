@@ -4,6 +4,10 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
 	"encoding/json"
+    "github.com/nfnt/resize"
+    "image"
+    "image/jpeg"
+    "image/png"
 	"fmt"
 	"github.com/coopernurse/gorp"
 	"github.com/dchest/uniuri"
@@ -142,31 +146,42 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	contentType := hdr.Header["Content-Type"][0]
 	var ext string
 
+	defer src.Close()
+
+	filename := uniuri.New() + ext
+
 	if contentType == "image/png" {
-		ext = ".png"
+		filename += ".png"
 	} else if contentType == "image/jpeg" {
-		ext = ".jpg"
+		filename += ".jpg"
 	} else {
         w.WriteHeader(http.StatusBadRequest)
         w.Write([]byte("Not a valid image"))
         return
     }
 
-    if err := os.Mkdir(UploadsDir, 0777); err != nil && !os.IsExist(err) {
+    if err := os.MkdirAll(UploadsDir+"/thumbnails", 0777); err != nil && !os.IsExist(err) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
     }
 
-	filename := uniuri.New() + ext
+    // make thumbnail
+    var img image.Image
+
+    if contentType == "image/png" {
+        img, err = png.Decode(src)
+    } else {
+        img, err = jpeg.Decode(src)
+    }
+
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	defer src.Close()
-
-	dst, err := os.Create(strings.Join([]string{UploadsDir, filename}, "/"))
+    thumb := resize.Resize(300, 0, img, resize.Lanczos3)
+	dst, err := os.Create(strings.Join([]string{UploadsDir, "thumbnails", filename}, "/"))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -174,6 +189,24 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer dst.Close()
+
+    if contentType == "image/png" {
+        png.Encode(dst, thumb)
+    } else if contentType == "image/jpeg" {
+        jpeg.Encode(dst, thumb, nil) 
+    }
+
+    src.Seek(0, 0)
+
+	dst, err = os.Create(strings.Join([]string{UploadsDir, filename}, "/"))
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	defer dst.Close()
+
 	_, err = io.Copy(dst, src)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

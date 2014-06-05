@@ -8,11 +8,11 @@ angular.module('photoshare.services', [])
         return {
             loggedIn: false,
             currentUser: null,
-            resource: $resource("/auth/")
+            resource: $resource("/api/auth/")
         };
 
     }])
     .service('Photo', ['$resource', function ($resource) {
-        return $resource("/photos/");
+        return $resource("/api/photos/");
     }]);
     

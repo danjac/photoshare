@@ -4,7 +4,7 @@ import (
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/render"
 	"github.com/danjac/photoshare/api/session"
-	"github.com/dchest/uniuri"
+	"github.com/danjac/photoshare/api/utils"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -28,29 +28,25 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	contentType := hdr.Header["Content-Type"][0]
-
-	defer src.Close()
-
-	filename := uniuri.New()
-
-	if contentType == "image/png" {
-		filename += ".png"
-	} else if contentType == "image/jpeg" {
-		filename += ".jpg"
-	} else {
+	if contentType != "image/png" && contentType != "image/jpeg" {
 		render.Status(w, http.StatusBadRequest, "Not a valid image")
 		return
 	}
 
+	defer src.Close()
+	filename, err := utils.ProcessImage(src, contentType)
+	if err != nil {
+		render.Error(w, err)
+		return
+	}
+
 	photo := &models.Photo{Title: title,
-		OwnerID: user.ID}
+		OwnerID: user.ID, Photo: filename}
 
 	if err := photo.Save(); err != nil {
 		render.Error(w, err)
 		return
 	}
-
-	go photo.ProcessImage(src, filename, contentType)
 
 	render.JSON(w, http.StatusOK, photo)
 }
@@ -126,14 +122,14 @@ func login(w http.ResponseWriter, r *http.Request) {
 func Init() http.Handler {
 	r := mux.NewRouter()
 
-	s := r.PathPrefix("/auth").Subrouter()
-	s.HandleFunc("/", authenticate).Methods("GET")
-	s.HandleFunc("/", login).Methods("POST")
-	s.HandleFunc("/", logout).Methods("DELETE")
+	auth := r.PathPrefix("/api/auth").Subrouter()
+	auth.HandleFunc("/", authenticate).Methods("GET")
+	auth.HandleFunc("/", login).Methods("POST")
+	auth.HandleFunc("/", logout).Methods("DELETE")
 
-	s = r.PathPrefix("/photos").Subrouter()
-	s.HandleFunc("/", getPhotos).Methods("GET")
-	s.HandleFunc("/", upload).Methods("POST")
+	photos := r.PathPrefix("/api/photos").Subrouter()
+	photos.HandleFunc("/", getPhotos).Methods("GET")
+	photos.HandleFunc("/", upload).Methods("POST")
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./public/")))
 

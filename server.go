@@ -14,9 +14,14 @@ import (
 	"net/http"
 	"os"
 	"time"
+    "strings"
 )
 
-const CookieName = "userid"
+
+const (
+    CookieName = "userid"
+    UploadsDir = "app/uploads"
+)
 
 var dbMap *gorp.DbMap
 var hashKey = securecookie.GenerateRandomKey(32)
@@ -77,15 +82,17 @@ func populateDatabase(db *sql.DB) {
 	if err := dbMap.CreateTablesIfNotExists(); err != nil {
 		panic(err)
 	}
-	if err := dbMap.TruncateTables(); err != nil {
-		panic(err)
-	}
-
-	user := &User{Name: "demo", Email: "demo@photoshare.com", IsActive: true}
-	user.SetPassword("demo1")
-	if err := dbMap.Insert(user); err != nil {
-		panic(err)
-	}
+    
+    numUsers, err := dbMap.SelectInt("SELECT COUNT(id) FROM users")
+    if err != nil {
+        panic(err)
+    } else if numUsers == 0 {
+        user := &User{Name: "demo", Email: "demo@photoshare.com", IsActive: true}
+        user.SetPassword("demo1")
+        if err := dbMap.Insert(user); err != nil {
+            panic(err)
+        }
+    }
 
 	fmt.Println("Database ready!")
 
@@ -117,7 +124,7 @@ func getCurrentUser(r *http.Request) (*User, error) {
 	return obj.(*User), nil
 }
 
-func addPhoto(w http.ResponseWriter, r *http.Request) {
+func upload(w http.ResponseWriter, r *http.Request) {
 
 	user, err := getCurrentUser(r)
 	if err != nil {
@@ -137,9 +144,18 @@ func addPhoto(w http.ResponseWriter, r *http.Request) {
 
 	if contentType == "image/png" {
 		ext = ".png"
-	} else {
+	} else if contentType == "image/jpeg" {
 		ext = ".jpg"
-	}
+	} else {
+        w.WriteHeader(http.StatusBadRequest)
+        w.Write([]byte("Not a valid image"))
+        return
+    }
+
+    if err := os.Mkdir(UploadsDir, 0777); err != nil && !os.IsExist(err) {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+    }
 
 	filename := uniuri.New() + ext
 
@@ -150,7 +166,7 @@ func addPhoto(w http.ResponseWriter, r *http.Request) {
 
 	defer src.Close()
 
-	dst, err := os.Create(fmt.Sprintf("app/uploads/%s", filename))
+	dst, err := os.Create(strings.Join([]string{UploadsDir, filename}, "/"))
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -219,13 +235,11 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if user == nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("no user found"))
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
+    if user != nil {
+	    w.WriteHeader(http.StatusOK)
+    } else {
+	    w.WriteHeader(http.StatusNotFound)
+    }
 	w.Header().Add("content-type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }
@@ -301,7 +315,7 @@ func main() {
 
     s = r.PathPrefix("/photos").Subrouter()
     s.HandleFunc("/", getPhotos).Methods("GET")
-    s.HandleFunc("/", addPhoto).Methods("POST")
+    s.HandleFunc("/", upload).Methods("POST")
 
     r.PathPrefix("/").Handler(http.FileServer(http.Dir("./app/"))) 
 

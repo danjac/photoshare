@@ -39,5 +39,26 @@ angular.module('photoshare', [
             });
             return fd;
         };
+        $httpProvider.interceptors.push([
+            '$injector', function ($injector) {
+                return $injector.get('AuthInterceptor');
+            }
+        ]);
         $httpProvider.defaults.headers.post['Content-Type'] = undefined;
-    }]);
+    }]).factory('AuthInterceptor', function ($q, $location) {
+        return {
+            response: function (response) {
+                return response;
+            },
+
+            responseError: function (response) {
+                var rejection = $q.reject(response);
+
+                if (response.status === 401) {
+                    $location.path("/login");
+                    return rejection;
+                }
+                return rejection;
+            }
+        };
+    });

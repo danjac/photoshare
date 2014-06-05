@@ -32,10 +32,6 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         });
     }])
     .controller('UploadCtrl', ['$scope', '$location', '$window', 'Authenticator', 'Photo', function ($scope, $location, $window, Authenticator, Photo) {
-        if (!Authenticator.isLoggedIn()) {
-            $location.path("#/login");
-            return;
-        }
         $scope.newPhoto = new Photo();
         $scope.upload = null;
         $scope.uploadPhoto = function () {

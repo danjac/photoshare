@@ -2,10 +2,10 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/coopernurse/gorp"
 	_ "github.com/lib/pq"
 	"log"
-    "fmt"
 	"os"
 )
 
@@ -30,10 +30,10 @@ func populateDatabase() error {
 }
 
 func Init(dbName, dbUser, dbPassword, dbHost, logPrefix string) (*sql.DB, error) {
-		db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s",
+	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s",
 		dbUser,
 		dbName,
-        dbPassword))
+		dbPassword))
 	if err != nil {
 		return nil, err
 	}

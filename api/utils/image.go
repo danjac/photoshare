@@ -2,7 +2,7 @@ package utils
 
 import (
 	"github.com/dchest/uniuri"
-	"github.com/nfnt/resize"
+    "code.google.com/p/graphics-go/graphics"
 	"image"
 	"image/jpeg"
 	"image/png"
@@ -44,7 +44,9 @@ func ProcessImage(src multipart.File, contentType string, uploadsDir string) (st
 		return filename, err
 	}
 
-	thumb := resize.Thumbnail(300, 300, img, resize.Lanczos3)
+    thumb := image.NewRGBA(image.Rect(0, 0, 300, 300))
+    graphics.Thumbnail(thumb, img)
+
 	dst, err := os.Create(strings.Join([]string{uploadsDir, "thumbnails", filename}, "/"))
 
 	if err != nil {

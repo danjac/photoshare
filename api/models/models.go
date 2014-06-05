@@ -36,9 +36,9 @@ func Init() (*sql.DB, error) {
 	}
 	dbMap = &gorp.DbMap{Db: db, Dialect: gorp.SqliteDialect{}}
 
-    if err := populateDatabase(); err != nil {
-        return nil, err
-    }
+	if err := populateDatabase(); err != nil {
+		return nil, err
+	}
 
 	return db, nil
 }

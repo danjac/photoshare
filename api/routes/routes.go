@@ -135,7 +135,7 @@ func Init() http.Handler {
 	s.HandleFunc("/", getPhotos).Methods("GET")
 	s.HandleFunc("/", upload).Methods("POST")
 
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./app/")))
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./public/")))
 
 	return session.NewCSRF(r)
 }

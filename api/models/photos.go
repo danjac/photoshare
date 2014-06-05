@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	UploadsDir = "app/uploads"
+	UploadsDir = "public/uploads"
 )
 
 type Photo struct {

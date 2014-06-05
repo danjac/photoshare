@@ -6,6 +6,10 @@
   "repository": "https://github.com/angular/angular-seed",
   "license": "MIT",
   "devDependencies": {
+    "express": "*",
+    "morgan": "*",
+    "cookie-parser": "*",
+    "body-parser": "*",
     "karma": "~0.10",
     "protractor": "~0.20.1",
     "http-server": "^0.6.1",

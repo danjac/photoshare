@@ -97,14 +97,13 @@ func (photo *Photo) processImage(src multipart.File, filename, contentType strin
 		return err
 	}
 
-    photo.Photo = filename
-    if _, err := dbMap.Update(photo); err != nil {
-        return err
-    }
+	photo.Photo = filename
+	if _, err := dbMap.Update(photo); err != nil {
+		return err
+	}
 
 	return nil
 }
-
 
 type User struct {
 	ID        int       `db:"id" json:"id"`
@@ -217,10 +216,10 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 	title := r.FormValue("title")
 	src, hdr, err := r.FormFile("photo")
-    if err != nil {
-        renderError(w, err)
-        return
-    }
+	if err != nil {
+		renderError(w, err)
+		return
+	}
 	contentType := hdr.Header["Content-Type"][0]
 
 	defer src.Close()
@@ -244,7 +243,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    go photo.processImage(src, filename, contentType)
+	go photo.processImage(src, filename, contentType)
 
 	renderJSON(w, http.StatusOK, photo)
 }

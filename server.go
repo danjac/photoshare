@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/danjac/photoshare/api"
+	"github.com/danjac/photoshare/api/settings"
 	"log"
 	"net/http"
 	"os"
@@ -26,7 +27,7 @@ func getEnvOrElse(name, defaultValue string) string {
 
 func main() {
 
-	config := &api.Config{
+	config := &settings.AppConfig{
 		DBName:           getEnvOrDie("DB_NAME"),
 		DBUser:           getEnvOrDie("DB_USER"),
 		DBPassword:       getEnvOrDie("DB_PASS"),

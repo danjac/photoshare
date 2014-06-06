@@ -2,6 +2,7 @@ package utils
 
 import (
 	"code.google.com/p/graphics-go/graphics"
+	"github.com/danjac/photoshare/api/settings"
 	"github.com/dchest/uniuri"
 	"image"
 	"image/jpeg"
@@ -20,11 +21,11 @@ func generateRandomFilename(contentType string) string {
 	return filename + ".jpg"
 }
 
-func ProcessImage(src multipart.File, contentType string, uploadsDir string) (string, error) {
+func ProcessImage(src multipart.File, contentType string) (string, error) {
 
 	filename := generateRandomFilename(contentType)
 
-	if err := os.MkdirAll(uploadsDir+"/thumbnails", 0777); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(settings.Config.UploadsDir+"/thumbnails", 0777); err != nil && !os.IsExist(err) {
 		return filename, err
 	}
 
@@ -47,7 +48,7 @@ func ProcessImage(src multipart.File, contentType string, uploadsDir string) (st
 	thumb := image.NewRGBA(image.Rect(0, 0, 300, 300))
 	graphics.Thumbnail(thumb, img)
 
-	dst, err := os.Create(strings.Join([]string{uploadsDir, "thumbnails", filename}, "/"))
+	dst, err := os.Create(strings.Join([]string{settings.Config.UploadsDir, "thumbnails", filename}, "/"))
 
 	if err != nil {
 		return filename, err
@@ -63,7 +64,7 @@ func ProcessImage(src multipart.File, contentType string, uploadsDir string) (st
 
 	src.Seek(0, 0)
 
-	dst, err = os.Create(strings.Join([]string{uploadsDir, filename}, "/"))
+	dst, err = os.Create(strings.Join([]string{settings.Config.UploadsDir, filename}, "/"))
 
 	if err != nil {
 		return filename, err

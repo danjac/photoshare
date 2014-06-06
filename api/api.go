@@ -4,12 +4,9 @@ import (
 	"database/sql"
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/routes"
+	"github.com/danjac/photoshare/api/settings"
 	"net/http"
 )
-
-type Config struct {
-	DBHost, DBName, DBUser, DBPassword, LogPrefix, UploadsDir, ApiPathPrefix, PublicPathPrefix, PublicDir string
-}
 
 type Application struct {
 	DB      *sql.DB
@@ -20,23 +17,18 @@ func (app *Application) Shutdown() {
 	app.DB.Close()
 }
 
-func NewApplication(config *Config) (*Application, error) {
+func NewApplication(config *settings.AppConfig) (*Application, error) {
 
+	settings.Config = config
 	app := &Application{}
-	db, err := models.Init(config.DBName,
-		config.DBUser,
-		config.DBPassword,
-		config.DBHost,
-		config.LogPrefix)
+
+	db, err := models.Init()
 	if err != nil {
 		return nil, err
 	}
 	app.DB = db
 
-	app.Handler = routes.Init(config.UploadsDir,
-		config.ApiPathPrefix,
-		config.PublicPathPrefix,
-		config.PublicDir)
+	app.Handler = routes.Init()
 
 	return app, nil
 }

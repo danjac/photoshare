@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/coopernurse/gorp"
+	"github.com/danjac/photoshare/api/settings"
 	_ "github.com/lib/pq"
 	"log"
 	"os"
@@ -29,18 +30,18 @@ func populateDatabase() error {
 	return nil
 }
 
-func Init(dbName, dbUser, dbPassword, dbHost, logPrefix string) (*sql.DB, error) {
+func Init() (*sql.DB, error) {
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s",
-		dbUser,
-		dbName,
-		dbPassword))
+		settings.Config.DBUser,
+		settings.Config.DBName,
+		settings.Config.DBPassword))
 	if err != nil {
 		return nil, err
 	}
 
 	dbMap = &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
 
-	dbMap.TraceOn("[sql]", log.New(os.Stdout, logPrefix+":", log.Lmicroseconds))
+	dbMap.TraceOn("[sql]", log.New(os.Stdout, settings.Config.LogPrefix+":", log.Lmicroseconds))
 
 	dbMap.AddTableWithName(User{}, "users").SetKeys(true, "ID")
 	dbMap.AddTableWithName(Photo{}, "photos").SetKeys(true, "ID")

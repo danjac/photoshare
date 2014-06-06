@@ -11,7 +11,7 @@ func Error(w http.ResponseWriter, r *http.Request, err error) {
 	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
-func Status(w http.ResponseWriter, status int, msg string) error {
+func Ping(w http.ResponseWriter, status int, msg string) error {
 	w.WriteHeader(status)
 	w.Write([]byte(msg))
 	return nil

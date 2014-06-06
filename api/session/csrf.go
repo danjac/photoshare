@@ -68,7 +68,7 @@ func (csrf *CSRF) Save(w http.ResponseWriter, token string) {
 
 func (csrf *CSRF) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !csrf.Validate(w, r) {
-		render.Status(w, http.StatusForbidden, "Invalid CSRF header")
+		render.Ping(w, http.StatusForbidden, "Invalid CSRF header")
 		return
 	}
 	csrf.Handler.ServeHTTP(w, r)

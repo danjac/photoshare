@@ -13,7 +13,7 @@ func logout(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return render.Status(w, http.StatusOK, "Logged out")
+	return render.Ping(w, http.StatusOK, "Logged out")
 
 }
 
@@ -25,15 +25,7 @@ func authenticate(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	var status int
-
-	if user != nil {
-		status = http.StatusOK
-	} else {
-		status = http.StatusNotFound
-	}
-
-	return render.JSON(w, status, user)
+	return render.JSON(w, http.StatusOK, user)
 }
 
 func login(w http.ResponseWriter, r *http.Request) error {
@@ -42,7 +34,7 @@ func login(w http.ResponseWriter, r *http.Request) error {
 	password := r.FormValue("password")
 
 	if email == "" || password == "" {
-		return render.Status(w, http.StatusBadRequest, "Email or password missing")
+		return render.Ping(w, http.StatusBadRequest, "Email or password missing")
 	}
 
 	user, err := models.Authenticate(email, password)
@@ -51,7 +43,7 @@ func login(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if user == nil {
-		return render.Status(w, http.StatusBadRequest, "Invalid email or password")
+		return render.Ping(w, http.StatusBadRequest, "Invalid email or password")
 	}
 
 	if err := session.Login(w, user); err != nil {

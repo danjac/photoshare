@@ -13,10 +13,6 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
             $scope.auth = Authenticator;
             $scope.alert = Alert;
-            $scope.$watch('alert', function () {
-                $scope.alert = Alert;
-            });
-
             Authenticator.resource.get({}, function (user) {
                 $scope.auth.loggedIn = true;
                 $scope.auth.currentUser = user;

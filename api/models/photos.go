@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const pageSize = 8
+const pageSize = 32
 
 type Photo struct {
 	ID        int64     `db:"id" json:"id"`

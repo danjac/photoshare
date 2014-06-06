@@ -1,6 +1,6 @@
 
 <div class="row">
-    <div infinite-scroll="nextPage()" infinite-scroll-distance="3">
+    <div infinite-scroll="nextPage()" infinite-scroll-distance="2">
     <div ng-repeat="photo in photos" class="col-xs-6 col-md-3">
         <a class="thumbnail" title="{{photo.title}}" ng-href="#/detail/{{photo.id}}">
             <img alt="{{photo.title}}" ng-src="uploads/thumbnails/{{photo.photo}}" />

@@ -15,7 +15,7 @@ angular.module('photoshare', [
         auth: '/api/auth/',
         photos: '/api/photos/:id'
     }).
-    constant('pageSize', 8).
+    constant('pageSize', 32).
     config(['$routeProvider',
             '$locationProvider',
             '$httpProvider',

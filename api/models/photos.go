@@ -3,6 +3,9 @@ package models
 import (
 	"database/sql"
 	"github.com/coopernurse/gorp"
+	"github.com/danjac/photoshare/api/settings"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -19,6 +22,23 @@ type Photo struct {
 func (photo *Photo) PreInsert(s gorp.SqlExecutor) error {
 	photo.CreatedAt = time.Now()
 	return nil
+}
+
+func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
+	filename := strings.Join([]string{settings.Config.UploadsDir, photo.Photo}, "/")
+	if err := os.Remove(filename); err != nil {
+		return err
+	}
+	thumbnail := strings.Join([]string{settings.Config.UploadsDir, "thumbnails", photo.Photo}, "/")
+	if err := os.Remove(thumbnail); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (photo *Photo) Delete() error {
+	_, err := dbMap.Delete(photo)
+	return err
 }
 
 func (photo *Photo) Save() error {
@@ -51,7 +71,16 @@ type PhotoDetail struct {
 	Photo     string    `db:"photo" json:"photo"`
 }
 
-func GetPhoto(photoID string) (*PhotoDetail, error) {
+func GetPhoto(photoID string) (*Photo, error) {
+
+	obj, err := dbMap.Get(&Photo{}, photoID)
+	if err != nil {
+		return nil, err
+	}
+	return obj.(*Photo), nil
+}
+
+func GetPhotoDetail(photoID string) (*PhotoDetail, error) {
 
 	photo := &PhotoDetail{}
 

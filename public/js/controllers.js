@@ -28,6 +28,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         });
         */
     }])
+
     .controller('ListCtrl', ['$scope', 'Photo', 'pageSize', function ($scope, Photo, pageSize) {
         var page = 1, stopScrolling = false;
         $scope.photos = [];
@@ -44,10 +45,34 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             }
         };
     }])
-    .controller('DetailCtrl', ['$scope', '$routeParams', 'Photo', function ($scope, $routeParams, Photo) {
-        $scope.photo = Photo.get({id: $routeParams.id});
-    }])
-    .controller('UploadCtrl', ['$scope', '$location', '$window', 'Authenticator', 'Photo', function ($scope, $location, $window, Authenticator, Photo) {
+
+    .controller('DetailCtrl', ['$scope',
+                               '$routeParams',
+                               '$location',
+                               'Photo',
+                               'Authenticator',
+                               function ($scope, $routeParams, $location, Photo, Authenticator) {
+            $scope.photo = null;
+            Photo.get({id: $routeParams.id}).$promise.then(function (photo) {
+                $scope.photo = photo;
+                $scope.canDelete = Authenticator.loggedIn && $scope.photo.ownerId === Authenticator.currentUser.id;
+            });
+            $scope.deletePhoto = function () {
+                $scope.photo.$delete();
+                $location.path("/");
+            };
+
+        }])
+
+    .controller('UploadCtrl', ['$scope',
+                               '$location',
+                               '$window',
+                               'Authenticator',
+                               'Photo', function ($scope, $location, $window, Authenticator, Photo) {
+        if (!Authenticator.currentUser) {
+            $location.path("#/list");
+            return;
+        }
         $scope.newPhoto = new Photo();
         $scope.upload = null;
         $scope.uploadPhoto = function () {
@@ -58,6 +83,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         };
 
     }])
+
     .controller('LoginCtrl', ['$scope', '$location', 'Authenticator', function ($scope, $location, Authenticator) {
         $scope.loginCreds = new Authenticator.resource();
         $scope.login = function () {

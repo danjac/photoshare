@@ -12,17 +12,21 @@ func Init() http.Handler {
 
 	r := mux.NewRouter()
 
-	auth := r.PathPrefix(fmt.Sprintf("%s/auth", settings.Config.ApiPathPrefix)).Subrouter()
+	auth := r.PathPrefix(fmt.Sprintf("%s/auth",
+		settings.Config.ApiPathPrefix)).Subrouter()
 	auth.HandleFunc("/", authenticate).Methods("GET")
 	auth.HandleFunc("/", login).Methods("POST")
 	auth.HandleFunc("/", logout).Methods("DELETE")
 
-	photos := r.PathPrefix(fmt.Sprintf("%s/photos", settings.Config.ApiPathPrefix)).Subrouter()
-	photos.HandleFunc("/{id}", photoDetail).Methods("GET")
+	photos := r.PathPrefix(fmt.Sprintf("%s/photos",
+		settings.Config.ApiPathPrefix)).Subrouter()
 	photos.HandleFunc("/", getPhotos).Methods("GET")
 	photos.HandleFunc("/", upload).Methods("POST")
+	photos.HandleFunc("/{id}", photoDetail).Methods("GET")
+	photos.HandleFunc("/{id}", deletePhoto).Methods("DELETE")
 
-	r.PathPrefix(settings.Config.PublicPathPrefix).Handler(http.FileServer(http.Dir(settings.Config.PublicDir)))
+	r.PathPrefix(settings.Config.PublicPathPrefix).Handler(
+		http.FileServer(http.Dir(settings.Config.PublicDir)))
 
 	return session.NewCSRF(r)
 }

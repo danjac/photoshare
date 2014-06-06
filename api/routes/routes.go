@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/render"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/settings"
@@ -15,6 +16,28 @@ func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if err := fn(w, r); err != nil {
 		render.Error(w, r, err)
+	}
+
+}
+
+type authHandler func(http.ResponseWriter, *http.Request, *models.User) error
+
+func (fn authHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	user, err := session.GetCurrentUser(r)
+	if err != nil {
+		render.Error(w, r, err)
+		return
+	}
+
+	if user == nil {
+		render.Status(w, http.StatusUnauthorized, "You must be logged in")
+		return
+	}
+
+	if err := fn(w, r, user); err != nil {
+		render.Error(w, r, err)
+		return
 	}
 
 }
@@ -34,9 +57,9 @@ func Init() http.Handler {
 		settings.Config.ApiPathPrefix)).Subrouter()
 
 	photos.Handle("/", appHandler(getPhotos)).Methods("GET")
-	photos.Handle("/", appHandler(upload)).Methods("POST")
+	photos.Handle("/", authHandler(upload)).Methods("POST")
 	photos.Handle("/{id}", appHandler(photoDetail)).Methods("GET")
-	photos.Handle("/{id}", appHandler(deletePhoto)).Methods("DELETE")
+	photos.Handle("/{id}", authHandler(deletePhoto)).Methods("DELETE")
 
 	user := r.PathPrefix(fmt.Sprintf("%s/user",
 		settings.Config.ApiPathPrefix)).Subrouter()

@@ -3,23 +3,13 @@ package routes
 import (
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/render"
-	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/utils"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 )
 
-func deletePhoto(w http.ResponseWriter, r *http.Request) error {
-
-	user, err := session.GetCurrentUser(r)
-	if err != nil {
-		return err
-	}
-
-	if user == nil {
-		return render.Status(w, http.StatusUnauthorized, "You can't do that")
-	}
+func deletePhoto(w http.ResponseWriter, r *http.Request, user *models.User) error {
 
 	photo, err := models.GetPhoto(mux.Vars(r)["id"])
 	if err != nil {
@@ -52,15 +42,7 @@ func photoDetail(w http.ResponseWriter, r *http.Request) error {
 	return render.JSON(w, http.StatusOK, photo)
 }
 
-func upload(w http.ResponseWriter, r *http.Request) error {
-
-	user, err := session.GetCurrentUser(r)
-	if err != nil {
-		return err
-	}
-	if user == nil {
-		return render.Status(w, http.StatusUnauthorized, "Not logged in")
-	}
+func upload(w http.ResponseWriter, r *http.Request, user *models.User) error {
 
 	title := r.FormValue("title")
 	src, hdr, err := r.FormFile("photo")

@@ -63,7 +63,7 @@ angular.module('photoshare', [
             }
         ]);
         $httpProvider.defaults.headers.post['Content-Type'] = undefined;
-    }]).factory('AuthInterceptor', function ($q, $location) {
+    }]).factory('AuthInterceptor', function ($q, $location, Alert) {
         return {
             response: function (response) {
                 return response;
@@ -74,6 +74,10 @@ angular.module('photoshare', [
 
                 if (response.status === 401) {
                     $location.path("/login");
+                    return rejection;
+                }
+                if (response.status === 400) {
+                    Alert.addMessage(response, 'error');
                     return rejection;
                 }
                 return rejection;

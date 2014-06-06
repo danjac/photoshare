@@ -35,6 +35,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
     .controller('ListCtrl', ['$scope', 'Photo', 'pageSize', function ($scope, Photo, pageSize) {
         var page = 1, stopScrolling = false;
+
         $scope.photos = [];
         $scope.nextPage = function () {
             if (!stopScrolling) {
@@ -42,11 +43,10 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                     $scope.photos = $scope.photos.concat(photos);
                     if (photos.length < pageSize) {
                         stopScrolling = true;
-                    } else {
-                        page += 1;
                     }
                 });
             }
+            page += 1;
         };
     }])
 

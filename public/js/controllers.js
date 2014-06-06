@@ -13,6 +13,9 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
             $scope.auth = Authenticator;
             $scope.alert = Alert;
+            $scope.$watch('alert', function () {
+                $scope.alert = Alert;
+            });
 
             Authenticator.resource.get({}, function (user) {
                 $scope.auth.loggedIn = true;
@@ -56,7 +59,8 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                '$location',
                                'Photo',
                                'Authenticator',
-                               function ($scope, $routeParams, $location, Photo, Authenticator) {
+                               'Alert',
+                               function ($scope, $routeParams, $location, Photo, Authenticator, Alert) {
             $scope.photo = null;
             Photo.get({id: $routeParams.id}).$promise.then(function (photo) {
                 $scope.photo = photo;
@@ -68,6 +72,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             });
             $scope.deletePhoto = function () {
                 $scope.photo.$delete();
+                Alert.addMessage('Your photo has been deleted', 'warning');
                 $location.path("/");
             };
 

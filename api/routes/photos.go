@@ -5,9 +5,25 @@ import (
 	"github.com/danjac/photoshare/api/render"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/utils"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 )
+
+func photoDetail(w http.ResponseWriter, r *http.Request) {
+
+	photo, err := models.GetPhoto(mux.Vars(r)["id"])
+	if err != nil {
+		render.Error(w, err)
+		return
+	}
+	if photo == nil {
+		render.Status(w, http.StatusNotFound, "Photo not found")
+		return
+	}
+
+	render.JSON(w, http.StatusOK, photo)
+}
 
 func upload(w http.ResponseWriter, r *http.Request) {
 

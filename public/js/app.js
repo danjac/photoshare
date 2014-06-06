@@ -11,11 +11,25 @@ angular.module('photoshare', [
     'photoshare.directives',
     'photoshare.controllers'
 ]).
-    config(['$routeProvider', '$locationProvider', '$httpProvider', '$resourceProvider', function ($routeProvider, $locationProvider, $httpProvider, $resourceProvider) {
-        $routeProvider.when('/list', {templateUrl: 'partials/list.html', controller: 'ListCtrl'});
-        $routeProvider.when('/upload', {templateUrl: 'partials/upload.html', controller: 'UploadCtrl'});
-        $routeProvider.when('/login', {templateUrl: 'partials/login.html', controller: 'LoginCtrl'});
-        $routeProvider.otherwise({redirectTo: '/list'});
+    constant('urls', {
+        auth: '/api/auth/',
+        photos: '/api/photos/:id'
+    }).
+    constant('pageSize', 8).
+    config(['$routeProvider',
+            '$locationProvider',
+            '$httpProvider',
+            '$resourceProvider', function (
+        $routeProvider,
+        $locationProvider,
+        $httpProvider,
+        $resourceProvider
+    ) {
+        $routeProvider.when('/list', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
+            when('/detail/:id', {templateUrl: 'partials/detail.html', controller: 'DetailCtrl'}).
+            when('/upload', {templateUrl: 'partials/upload.html', controller: 'UploadCtrl'}).
+            when('/login', {templateUrl: 'partials/login.html', controller: 'LoginCtrl'}).
+            otherwise({redirectTo: '/list'});
         //$locationProvider.html5Mode(true);
         //
         $resourceProvider.defaults.stripTrailingSlashes = false;

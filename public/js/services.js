@@ -3,16 +3,16 @@
 /* Services */
 
 angular.module('photoshare.services', [])
-    .service('Authenticator', ['$resource', '$q', function ($resource, $q) {
+    .service('Authenticator', ['$resource', 'urls', function ($resource, urls) {
 
         return {
             loggedIn: false,
             currentUser: null,
-            resource: $resource("/api/auth/")
+            resource: $resource(urls.auth)
         };
 
     }])
-    .service('Photo', ['$resource', function ($resource) {
-        return $resource("/api/photos/");
+    .service('Photo', ['$resource', 'urls', function ($resource, urls) {
+        return $resource(urls.photos, {id: '@id'});
     }]);
     

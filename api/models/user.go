@@ -49,16 +49,17 @@ func NewUser(name, email, password string) *User {
 	return user
 }
 
-func GetUser(userID int) (*User, error) {
-	obj, err := dbMap.Get(User{}, userID)
-	if err != nil {
+func GetActiveUser(userID int) (*User, error) {
+
+	user := &User{}
+	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
-	if obj == nil {
-		return nil, nil
-	}
+	return user, nil
 
-	return obj.(*User), nil
 }
 
 func Authenticate(email string, password string) (*User, error) {

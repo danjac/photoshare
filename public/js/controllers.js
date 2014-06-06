@@ -28,14 +28,14 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         });
         */
     }])
-    .controller('ListCtrl', ['$scope', 'Photo', function ($scope, Photo) {
+    .controller('ListCtrl', ['$scope', 'Photo', 'pageSize', function ($scope, Photo, pageSize) {
         var page = 1, stopScrolling = false;
         $scope.photos = [];
         $scope.nextPage = function () {
             if (!stopScrolling) {
                 Photo.query({page: page}).$promise.then(function (photos) {
                     $scope.photos = $scope.photos.concat(photos);
-                    if (photos.length < 8) {
+                    if (photos.length < pageSize) {
                         stopScrolling = true;
                     } else {
                         page += 1;
@@ -43,6 +43,9 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 });
             }
         };
+    }])
+    .controller('DetailCtrl', ['$scope', '$routeParams', 'Photo', function ($scope, $routeParams, Photo) {
+        $scope.photo = Photo.get({id: $routeParams.id});
     }])
     .controller('UploadCtrl', ['$scope', '$location', '$window', 'Authenticator', 'Photo', function ($scope, $location, $window, Authenticator, Photo) {
         $scope.newPhoto = new Photo();

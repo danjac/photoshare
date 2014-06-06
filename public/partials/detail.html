@@ -1,0 +1,18 @@
+<h2>{{photo.title}}</h2>
+<hr>
+
+<div class="row">
+    <div class="col-xs-6 col-md-3">
+        <a target="_blank" class="thumbnail" title="{{photo.title}}" ng-href="uploads/{{photo.photo}}">
+            <img alt="{{photo.title}}" ng-src="uploads/thumbnails/{{photo.photo}}" />
+        </a>
+    </div>
+    <div class="col-xs-6">
+        <dl>
+        	<dt>Owner</dt>
+            <dd>{{photo.ownerName}}</dd>
+        	<dt>Uploaded on</dt>
+            <dd>{{photo.createdAt|date:"dd/MM/yyyy"}}</dd>
+        </dl>
+    </div>
+</div>

@@ -18,6 +18,7 @@ func Init() http.Handler {
 	auth.HandleFunc("/", logout).Methods("DELETE")
 
 	photos := r.PathPrefix(fmt.Sprintf("%s/photos", settings.Config.ApiPathPrefix)).Subrouter()
+	photos.HandleFunc("/{id}", photoDetail).Methods("GET")
 	photos.HandleFunc("/", getPhotos).Methods("GET")
 	photos.HandleFunc("/", upload).Methods("POST")
 

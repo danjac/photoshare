@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func signup(w http.ResponseWriter, r *http.Request) {
+func signup(w http.ResponseWriter, r *http.Request) error {
 
 	user := models.NewUser(
 		r.FormValue("name"),
@@ -17,23 +17,19 @@ func signup(w http.ResponseWriter, r *http.Request) {
 
 	if result, err := user.Validate(); err != nil || !result.OK {
 		if err != nil {
-			render.Error(w, r, err)
-			return
+			return err
 		}
-		render.JSON(w, http.StatusBadRequest, result)
-		return
+		return render.JSON(w, http.StatusBadRequest, result)
 	}
 
 	if err := user.Save(); err != nil {
-		render.Error(w, r, err)
-		return
+		return err
 	}
 
 	if err := session.Login(w, user); err != nil {
-		render.Error(w, r, err)
-		return
+		return err
 	}
 
-	render.JSON(w, http.StatusOK, user)
+	return render.JSON(w, http.StatusOK, user)
 
 }

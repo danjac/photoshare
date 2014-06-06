@@ -7,24 +7,22 @@ import (
 	"net/http"
 )
 
-func logout(w http.ResponseWriter, r *http.Request) {
+func logout(w http.ResponseWriter, r *http.Request) error {
 
 	if err := session.Logout(w); err != nil {
-		render.Error(w, r, err)
-		return
+		return err
 	}
 
-	render.Status(w, http.StatusOK, "Logged out")
+	return render.Status(w, http.StatusOK, "Logged out")
 
 }
 
 // return current logged in user, or 401
-func authenticate(w http.ResponseWriter, r *http.Request) {
+func authenticate(w http.ResponseWriter, r *http.Request) error {
 
 	user, err := session.GetCurrentUser(r)
 	if err != nil {
-		render.Error(w, r, err)
-		return
+		return err
 	}
 
 	var status int
@@ -35,34 +33,30 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 		status = http.StatusNotFound
 	}
 
-	render.JSON(w, status, user)
+	return render.JSON(w, status, user)
 }
 
-func login(w http.ResponseWriter, r *http.Request) {
+func login(w http.ResponseWriter, r *http.Request) error {
 
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
 	if email == "" || password == "" {
-		render.Status(w, http.StatusBadRequest, "Email or password missing")
-		return
+		return render.Status(w, http.StatusBadRequest, "Email or password missing")
 	}
 
 	user, err := models.Authenticate(email, password)
 	if err != nil {
-		render.Error(w, r, err)
-		return
+		return err
 	}
 
 	if user == nil {
-		render.Status(w, http.StatusBadRequest, "Invalid email or password")
-		return
+		return render.Status(w, http.StatusBadRequest, "Invalid email or password")
 	}
 
 	if err := session.Login(w, user); err != nil {
-		render.Error(w, r, err)
-		return
+		return err
 	}
 
-	render.JSON(w, http.StatusOK, user)
+	return render.JSON(w, http.StatusOK, user)
 }

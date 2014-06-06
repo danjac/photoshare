@@ -85,10 +85,10 @@ angular.module('photoshare', [
                     $location.path("/login");
                 }
                 if (response.status === 400) {
-                    Alert.addMessage(response.data, 'danger');
+                    Alert.danger(response.data);
                 }
                 if (response.status === 500) {
-                    Alert.addMessage("Sorry, an error has occurred", 'danger');
+                    Alert.danger("Sorry, an error has occurred");
                 }
                 return rejection;
             }

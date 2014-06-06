@@ -26,6 +26,11 @@ angular.module('photoshare.services', [])
                 this.message = {message: message, level: level};
             };
             this.dismiss = function () { this.message = null; };
+
+            this.success = function (message) { this.addMessage(message, "success"); };
+            this.info = function (message) { this.addMessage(message, "info"); };
+            this.warning = function (message) { this.addMessage(message, "warning"); };
+            this.danger = function (message) { this.addMessage(message, "danger"); };
         }
 
         return new Alert();

@@ -68,7 +68,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             });
             $scope.deletePhoto = function () {
                 $scope.photo.$delete();
-                Alert.addMessage('Your photo has been deleted', 'warning');
+                Alert.warning('Your photo has been deleted');
                 $location.path("/");
             };
 
@@ -89,7 +89,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         $scope.uploadPhoto = function () {
             $scope.newPhoto.$save(function () {
                 $scope.newPhoto = new Photo();
-                Alert.addMessage('Your photo has been uploaded', 'success');
+                Alert.success('Your photo has been uploaded');
                 $location.path("#/list");
             });
         };
@@ -108,7 +108,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 //$scope.$emit("login", $scope.loginCreds);
                 $scope.loginCreds = new Authenticator.resource();
                 if (Authenticator.loggedIn) {
-                    Alert.addMessage("Welcome back, " + Authenticator.currentUser.name, "success");
+                    Alert.success("Welcome back, " + Authenticator.currentUser.name);
                     $location.path("#/list");
                 }
             });
@@ -126,7 +126,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.newUser.$save(function () {
                 Authenticator.currentUser = $scope.newUser;
                 Authenticator.loggedIn = true;
-                Alert.addMessage("Welcome, " + $scope.newUser.name, "success");
+                Alert.success("Welcome, " + $scope.newUser.name);
                 $location.path("#/list");
             });
         };

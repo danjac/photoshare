@@ -39,6 +39,12 @@
 </nav>
 
  <div class="container-fluid">
+
+     <div ng-show="alert.message" class="alert fade-in" ng-class="'alert-'+alert.message.level">
+         <a class="close" ng-click="alert.dismiss()" data-dismiss="alert" href="#">&times;</a>
+         {{ alert.message.message }}
+     </div>
+
   <div ng-view></div>
   </div>
   <script src="bower_components/jquery/dist/jquery.min.js"></script>

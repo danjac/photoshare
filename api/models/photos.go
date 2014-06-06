@@ -36,6 +36,10 @@ func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
 	return nil
 }
 
+func (photo *Photo) CanDelete(user *User) bool {
+	return user.ID == photo.OwnerID || user.IsAdmin
+}
+
 func (photo *Photo) Delete() error {
 	_, err := dbMap.Delete(photo)
 	return err

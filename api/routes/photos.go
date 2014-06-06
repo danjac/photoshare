@@ -33,7 +33,7 @@ func deletePhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.ID != photo.OwnerID {
+	if !photo.CanDelete(user) {
 		render.Status(w, http.StatusForbidden, "You can't delete this photo")
 		return
 	}

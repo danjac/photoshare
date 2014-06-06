@@ -96,7 +96,10 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
     }])
 
-    .controller('LoginCtrl', ['$scope', '$location', 'Authenticator', 'Alert', function ($scope, $location, Authenticator, Alert) {
+    .controller('LoginCtrl', ['$scope',
+                              '$location',
+                              'Authenticator',
+                              'Alert', function ($scope, $location, Authenticator, Alert) {
         $scope.loginCreds = new Authenticator.resource();
         $scope.login = function () {
             $scope.loginCreds.$save(function () {
@@ -108,6 +111,23 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                     Alert.addMessage("Welcome back, " + Authenticator.currentUser.name, "success");
                     $location.path("#/list");
                 }
+            });
+        };
+    }])
+
+    .controller('SignupCtrl', ['$scope',
+                               '$location',
+                               'User',
+                               'Authenticator',
+                               'Alert', function ($scope, $location, User, Authenticator, Alert) {
+
+        $scope.newUser = new User();
+        $scope.signup = function () {
+            $scope.newUser.$save(function () {
+                Authenticator.currentUser = $scope.newUser;
+                Authenticator.loggedIn = true;
+                Alert.addMessage("Welcome, " + $scope.newUser.name, "success");
+                $location.path("#/list");
             });
         };
     }]);

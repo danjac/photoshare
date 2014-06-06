@@ -13,7 +13,8 @@ angular.module('photoshare', [
 ]).
     constant('urls', {
         auth: '/api/auth/',
-        photos: '/api/photos/:id'
+        photos: '/api/photos/:id',
+        users: '/api/user/'
     }).
     constant('pageSize', 32).
     config(['$routeProvider',
@@ -25,10 +26,18 @@ angular.module('photoshare', [
         $httpProvider,
         $resourceProvider
     ) {
-        $routeProvider.when('/list', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
+        $routeProvider.
+        
+            when('/list', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
+
             when('/detail/:id', {templateUrl: 'partials/detail.html', controller: 'DetailCtrl'}).
+
             when('/upload', {templateUrl: 'partials/upload.html', controller: 'UploadCtrl'}).
+
             when('/login', {templateUrl: 'partials/login.html', controller: 'LoginCtrl'}).
+
+            when('/signup', {templateUrl: 'partials/signup.html', controller: 'SignupCtrl'}).
+
             otherwise({redirectTo: '/list'});
         //$locationProvider.html5Mode(true);
         //
@@ -74,11 +83,12 @@ angular.module('photoshare', [
 
                 if (response.status === 401) {
                     $location.path("/login");
-                    return rejection;
                 }
                 if (response.status === 400) {
-                    Alert.addMessage(response, 'error');
-                    return rejection;
+                    Alert.addMessage(response.data, 'danger');
+                }
+                if (response.status === 500) {
+                    Alert.addMessage("Sorry, an error has occurred", 'danger');
                 }
                 return rejection;
             }

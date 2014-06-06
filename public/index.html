@@ -30,7 +30,7 @@
         </ul>
         <ul class="nav navbar-nav navbar-right">
             <tab url="#/login" ng-show="!auth.loggedIn">Login</tab>
-            <tab url="#/" ng-show="!auth.loggedIn">Signup</tab>
+            <tab url="#/signup" ng-show="!auth.loggedIn">Signup</tab>
             <li ng-show="auth.loggedIn"><span class="navbar-text">You are signed in as {{ auth.currentUser.name }}</span></li>
             <li><a ng-click="logout()" ng-show="auth.loggedIn">Logout</a></li>
         </ul>

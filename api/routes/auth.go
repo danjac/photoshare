@@ -10,7 +10,7 @@ import (
 func logout(w http.ResponseWriter, r *http.Request) {
 
 	if err := session.Logout(w); err != nil {
-		render.Error(w, err)
+		render.Error(w, r, err)
 		return
 	}
 
@@ -23,7 +23,7 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 
 	user, err := session.GetCurrentUser(r)
 	if err != nil {
-		render.Error(w, err)
+		render.Error(w, r, err)
 		return
 	}
 
@@ -50,17 +50,17 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := models.Authenticate(email, password)
 	if err != nil {
-		render.Error(w, err)
+		render.Error(w, r, err)
 		return
 	}
 
 	if user == nil {
-		render.Status(w, http.StatusNotFound, "No user found")
+		render.Status(w, http.StatusBadRequest, "Invalid email or password")
 		return
 	}
 
 	if err := session.Login(w, user); err != nil {
-		render.Error(w, err)
+		render.Error(w, r, err)
 		return
 	}
 

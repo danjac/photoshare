@@ -15,6 +15,9 @@ angular.module('photoshare.services', [])
     .service('Photo', ['$resource', 'urls', function ($resource, urls) {
         return $resource(urls.photos, {id: '@id'});
     }])
+    .service('User', ['$resource', 'urls', function ($resource, urls) {
+        return $resource(urls.users);
+    }])
     .service('Alert', [function () {
 
         function Alert() {

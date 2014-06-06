@@ -2,10 +2,12 @@ package render
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
-func Error(w http.ResponseWriter, err error) {
+func Error(w http.ResponseWriter, r *http.Request, err error) {
+	log.Println(err, r)
 	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 

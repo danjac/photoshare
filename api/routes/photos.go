@@ -14,7 +14,7 @@ func deletePhoto(w http.ResponseWriter, r *http.Request) {
 
 	user, err := session.GetCurrentUser(r)
 	if err != nil {
-		render.Error(w, err)
+		render.Error(w, r, err)
 		return
 	}
 
@@ -25,7 +25,7 @@ func deletePhoto(w http.ResponseWriter, r *http.Request) {
 
 	photo, err := models.GetPhoto(mux.Vars(r)["id"])
 	if err != nil {
-		render.Error(w, err)
+		render.Error(w, r, err)
 		return
 	}
 	if photo == nil {
@@ -37,7 +37,11 @@ func deletePhoto(w http.ResponseWriter, r *http.Request) {
 		render.Status(w, http.StatusForbidden, "You can't delete this photo")
 		return
 	}
-	err = photo.Delete()
+	if err := photo.Delete(); err != nil {
+		render.Error(w, r, err)
+		return
+	}
+
 	render.Status(w, http.StatusOK, "Photo deleted")
 }
 
@@ -45,7 +49,7 @@ func photoDetail(w http.ResponseWriter, r *http.Request) {
 
 	photo, err := models.GetPhotoDetail(mux.Vars(r)["id"])
 	if err != nil {
-		render.Error(w, err)
+		render.Error(w, r, err)
 		return
 	}
 	if photo == nil {
@@ -60,7 +64,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 	user, err := session.GetCurrentUser(r)
 	if err != nil {
-		render.Error(w, err)
+		render.Error(w, r, err)
 		return
 	}
 	if user == nil {
@@ -71,7 +75,11 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	title := r.FormValue("title")
 	src, hdr, err := r.FormFile("photo")
 	if err != nil {
-		render.Error(w, err)
+		if err == http.ErrMissingFile {
+			render.Status(w, http.StatusBadRequest, "No image was posted")
+		} else {
+			render.Error(w, r, err)
+		}
 		return
 	}
 	contentType := hdr.Header["Content-Type"][0]
@@ -83,7 +91,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	defer src.Close()
 	filename, err := utils.ProcessImage(src, contentType)
 	if err != nil {
-		render.Error(w, err)
+		render.Error(w, r, err)
 		return
 	}
 
@@ -96,7 +104,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := photo.Save(); err != nil {
-		render.Error(w, err)
+		render.Error(w, r, err)
 		return
 	}
 
@@ -112,7 +120,7 @@ func getPhotos(w http.ResponseWriter, r *http.Request) {
 
 	photos, err := models.GetPhotos(pageNum)
 	if err != nil {
-		render.Error(w, err)
+		render.Error(w, r, err)
 		return
 	}
 	render.JSON(w, http.StatusOK, photos)

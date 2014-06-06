@@ -18,8 +18,7 @@ func deletePhoto(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if user == nil {
-		render.Status(w, http.StatusUnauthorized, "You can't do that")
-		return err
+		return render.Status(w, http.StatusUnauthorized, "You can't do that")
 	}
 
 	photo, err := models.GetPhoto(mux.Vars(r)["id"])

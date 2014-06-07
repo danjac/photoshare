@@ -86,6 +86,7 @@ angular.module('photoshare', [
                 var rejection = $q.reject(response);
 
                 if (response.status === 401) {
+                    Alert.danger(angular.fromJson(response.data));
                     $location.path("/login");
                 }
                 if (response.status === 400) {

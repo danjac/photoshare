@@ -49,6 +49,7 @@ func Init() http.Handler {
 	photos.Handle("/", appHandler(getPhotos)).Methods("GET")
 	photos.Handle("/", appHandler(upload)).Methods("POST")
 	photos.Handle("/{id}", appHandler(photoDetail)).Methods("GET")
+	photos.Handle("/{id}", appHandler(editPhoto)).Methods("POST")
 	photos.Handle("/{id}", appHandler(deletePhoto)).Methods("DELETE")
 
 	user := r.PathPrefix(fmt.Sprintf("%s/user",

@@ -66,6 +66,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                'Alert',
                                function ($scope, $routeParams, $location, Photo, Authenticator, Alert) {
             $scope.photo = null;
+            $scope.editTitle = false;
             Photo.get({id: $routeParams.id}).$promise.then(function (photo) {
                 $scope.photo = photo;
                 $scope.canDelete = (
@@ -73,11 +74,28 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                     ($scope.photo.ownerId === Authenticator.currentUser.id ||
                             Authenticator.currentUser.isAdmin)
                 );
+                $scope.canEdit = (
+                    Authenticator.loggedIn && $scope.photo.ownerId ===
+                    Authenticator.currentUser.id
+                );
             });
             $scope.deletePhoto = function () {
                 $scope.photo.$delete();
                 Alert.warning('Your photo has been deleted');
                 $location.path("/");
+            };
+            $scope.showEditForm = function () {
+                if ($scope.canEdit) {
+                    $scope.editTitle = true;
+                }
+            };
+            $scope.hideEditForm = function () {
+                $scope.editTitle = false;
+            };
+            $scope.updateTitle = function () {
+                $scope.photo.$save(function () {
+                    $scope.editTitle = false;
+                });
             };
 
         }])

@@ -13,7 +13,7 @@ angular.module('photoshare.services', [])
 
     }])
     .service('Photo', ['$resource', 'urls', function ($resource, urls) {
-        return $resource(urls.photos, {id: '@id'});
+        return $resource(urls.photos, {id: '@id'}, { 'update': { method: 'PUT' } });
     }])
     .service('User', ['$resource', 'urls', function ($resource, urls) {
         return $resource(urls.users);

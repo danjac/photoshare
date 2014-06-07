@@ -40,12 +40,20 @@ func (photo *Photo) CanDelete(user *User) bool {
 	return user.ID == photo.OwnerID || user.IsAdmin
 }
 
+func (photo *Photo) CanEdit(user *User) bool {
+	return user.ID == photo.OwnerID
+}
+
 func (photo *Photo) Delete() error {
 	_, err := dbMap.Delete(photo)
 	return err
 }
 
 func (photo *Photo) Save() error {
+	if photo.ID != 0 {
+		_, err := dbMap.Update(photo)
+		return err
+	}
 	return dbMap.Insert(photo)
 }
 

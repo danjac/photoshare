@@ -51,6 +51,42 @@ func photoDetail(w http.ResponseWriter, r *http.Request) error {
 	return render(w, http.StatusOK, photo)
 }
 
+func editPhoto(w http.ResponseWriter, r *http.Request) error {
+
+	user, err := session.GetCurrentUser(r)
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return render(w, http.StatusUnauthorized, "You must be logged in")
+	}
+
+	photo, err := models.GetPhoto(mux.Vars(r)["id"])
+	if err != nil {
+		return err
+	}
+
+	if photo == nil {
+		return render(w, http.StatusNotFound, "No photo found")
+	}
+
+	if !photo.CanEdit(user) {
+		return render(w, http.StatusForbidden, "You can't edit this photo")
+	}
+
+	photo.Title = r.FormValue("title")
+	if result := photo.Validate(); !result.OK {
+		return render(w, http.StatusBadRequest, result)
+	}
+
+	if err := photo.Save(); err != nil {
+		return err
+	}
+
+	return render(w, http.StatusOK, photo)
+}
+
 func upload(w http.ResponseWriter, r *http.Request) error {
 
 	user, err := session.GetCurrentUser(r)

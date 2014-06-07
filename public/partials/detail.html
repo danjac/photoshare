@@ -1,4 +1,20 @@
-    <h2>{{photo.title}}</h2>
+    <h2 ng-show="!editTitle" ng-click="showEditForm()">{{photo.title}}</h2>
+    <form role="form" 
+          action=""
+          name="form" 
+          ng-show="editTitle" 
+          novalidate>
+          <div class="form-group">
+          <input type="text" class="form-control" ng-model="photo.title">
+      </div>
+          <button type="submit" 
+                  class="btn btn-primary"
+                  ng-click="updateTitle()" 
+                  ng-disabled="form.$invalid">Save</button>
+          <button type="cancel" 
+                  class="btn btn-default"
+                  ng-click="hideEditForm()">Cancel</button>
+      </form>
 
 <hr>
 

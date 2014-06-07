@@ -23,7 +23,7 @@ func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func render(w http.ResponseWriter, status int, value interface{}) error {
 	w.WriteHeader(status)
-	w.Header().Set("content-type", "application/json; charset=utf-8")
+	w.Header().Set("Content-type", "application/json")
 	content, err := json.Marshal(value)
 	if err != nil {
 		return err

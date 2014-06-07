@@ -46,6 +46,9 @@ angular.module('photoshare', [
         $httpProvider.defaults.xsrfCookieName = "csrf_token";
         $httpProvider.defaults.xsrfHeaderName = "X-CSRF-Token";
 
+        // handle file uploads
+        $httpProvider.defaults.headers.post['Content-Type'] = undefined;
+
         $httpProvider.defaults.transformRequest = function (data) {
             if (data === undefined) {
                 return data;
@@ -66,13 +69,14 @@ angular.module('photoshare', [
             });
             return fd;
         };
+
+        // handle errors
         $httpProvider.interceptors.push([
             '$injector', function ($injector) {
-                return $injector.get('AuthInterceptor');
+                return $injector.get('ErrorInterceptor');
             }
         ]);
-        $httpProvider.defaults.headers.post['Content-Type'] = undefined;
-    }]).factory('AuthInterceptor', function ($q, $location, Alert) {
+    }]).factory('ErrorInterceptor', function ($q, $location, Alert) {
         return {
             response: function (response) {
                 return response;
@@ -85,7 +89,12 @@ angular.module('photoshare', [
                     $location.path("/login");
                 }
                 if (response.status === 400) {
-                    Alert.danger(response.data);
+                    if (response.data.errors) {
+                        // TBD: render the specific form errors  
+                        Alert.danger("Sorry, your form contains errors, please try again");
+                    } else {
+                        Alert.danger(angular.fromJson(response.data));
+                    } 
                 }
                 if (response.status === 500) {
                     Alert.danger("Sorry, an error has occurred");

@@ -2,7 +2,7 @@ package session
 
 import (
 	"code.google.com/p/xsrftoken"
-	"github.com/danjac/photoshare/api/render"
+	"errors"
 	"net/http"
 	"time"
 )
@@ -11,6 +11,8 @@ const (
 	XsrfCookieName = "csrf_token"
 	XsrfHeaderName = "X-CSRF-Token"
 )
+
+var InvalidCSRFToken = errors.New("Invalid CSRF token")
 
 type CSRF struct {
 	SecretKey string
@@ -68,7 +70,7 @@ func (csrf *CSRF) Save(w http.ResponseWriter, token string) {
 
 func (csrf *CSRF) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !csrf.Validate(w, r) {
-		render.Ping(w, http.StatusForbidden, "Invalid CSRF header")
+		http.Error(w, InvalidCSRFToken.Error(), http.StatusForbidden)
 		return
 	}
 	csrf.Handler.ServeHTTP(w, r)

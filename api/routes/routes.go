@@ -1,11 +1,12 @@
 package routes
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/danjac/photoshare/api/render"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/settings"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 )
 
@@ -14,9 +15,16 @@ type appHandler func(http.ResponseWriter, *http.Request) error
 func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if err := fn(w, r); err != nil {
-		render.Error(w, r, err)
+		log.Println(err, r)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
+}
+
+func render(w http.ResponseWriter, status int, value interface{}) error {
+	w.WriteHeader(status)
+	w.Header().Add("content-type", "application/json")
+	return json.NewEncoder(w).Encode(value)
 }
 
 func Init() http.Handler {

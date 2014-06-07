@@ -1,6 +1,6 @@
-<h2>{{photo.title}}</h2>
+    <h2>{{photo.title}}</h2>
+
 <hr>
-<div ng-show="canDelete"><a ng-click="deletePhoto()">Delete this</a></div>
 
 <div class="row">
     <div class="col-xs-6 col-md-3">
@@ -17,3 +17,5 @@
         </dl>
     </div>
 </div>
+
+<button type="button" ng-show="canDelete" class="btn btn-danger" ng-click="deletePhoto()">Delete this photo</button>

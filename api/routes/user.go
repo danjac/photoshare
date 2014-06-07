@@ -2,7 +2,6 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/render"
 	"github.com/danjac/photoshare/api/session"
 	"net/http"
 )
@@ -19,7 +18,7 @@ func signup(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		return render.JSON(w, http.StatusBadRequest, result)
+		return render(w, http.StatusBadRequest, result)
 	}
 
 	if err := user.Save(); err != nil {
@@ -30,6 +29,6 @@ func signup(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return render.JSON(w, http.StatusOK, user)
+	return render(w, http.StatusOK, user)
 
 }

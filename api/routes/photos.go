@@ -2,7 +2,6 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/render"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/utils"
 	"github.com/gorilla/mux"
@@ -18,7 +17,7 @@ func deletePhoto(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if user == nil {
-		return render.Ping(w, http.StatusUnauthorized, "You must be logged in")
+		return render(w, http.StatusUnauthorized, "You must be logged in")
 	}
 
 	photo, err := models.GetPhoto(mux.Vars(r)["id"])
@@ -26,17 +25,17 @@ func deletePhoto(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	if photo == nil {
-		return render.Ping(w, http.StatusNotFound, "Photo not found")
+		return render(w, http.StatusNotFound, "Photo not found")
 	}
 
 	if !photo.CanDelete(user) {
-		return render.Ping(w, http.StatusForbidden, "You can't delete this photo")
+		return render(w, http.StatusForbidden, "You can't delete this photo")
 	}
 	if err := photo.Delete(); err != nil {
 		return err
 	}
 
-	return render.Ping(w, http.StatusOK, "Photo deleted")
+	return render(w, http.StatusOK, "Photo deleted")
 }
 
 func photoDetail(w http.ResponseWriter, r *http.Request) error {
@@ -46,10 +45,10 @@ func photoDetail(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	if photo == nil {
-		return render.Ping(w, http.StatusNotFound, "Photo not found")
+		return render(w, http.StatusNotFound, "Photo not found")
 	}
 
-	return render.JSON(w, http.StatusOK, photo)
+	return render(w, http.StatusOK, photo)
 }
 
 func upload(w http.ResponseWriter, r *http.Request) error {
@@ -60,20 +59,20 @@ func upload(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if user == nil {
-		return render.Ping(w, http.StatusUnauthorized, "You must be logged in")
+		return render(w, http.StatusUnauthorized, "You must be logged in")
 	}
 
 	title := r.FormValue("title")
 	src, hdr, err := r.FormFile("photo")
 	if err != nil {
 		if err == http.ErrMissingFile {
-			return render.Ping(w, http.StatusBadRequest, "No image was posted")
+			return render(w, http.StatusBadRequest, "No image was posted")
 		}
 		return err
 	}
 	contentType := hdr.Header["Content-Type"][0]
 	if contentType != "image/png" && contentType != "image/jpeg" {
-		return render.Ping(w, http.StatusBadRequest, "Not a valid image")
+		return render(w, http.StatusBadRequest, "Not a valid image")
 	}
 
 	defer src.Close()
@@ -86,14 +85,14 @@ func upload(w http.ResponseWriter, r *http.Request) error {
 		OwnerID: user.ID, Photo: filename}
 
 	if result := photo.Validate(); !result.OK {
-		return render.JSON(w, http.StatusBadRequest, result)
+		return render(w, http.StatusBadRequest, result)
 	}
 
 	if err := photo.Save(); err != nil {
 		return err
 	}
 
-	return render.JSON(w, http.StatusOK, photo)
+	return render(w, http.StatusOK, photo)
 }
 
 func getPhotos(w http.ResponseWriter, r *http.Request) error {
@@ -107,5 +106,5 @@ func getPhotos(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return render.JSON(w, http.StatusOK, photos)
+	return render(w, http.StatusOK, photos)
 }

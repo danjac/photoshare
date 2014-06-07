@@ -2,7 +2,6 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/render"
 	"github.com/danjac/photoshare/api/session"
 	"net/http"
 )
@@ -13,7 +12,7 @@ func logout(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	return render.Ping(w, http.StatusOK, "Logged out")
+	return render(w, http.StatusOK, "Logged out")
 
 }
 
@@ -24,8 +23,14 @@ func authenticate(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+	var status int
+	if user == nil {
+		status = http.StatusNotFound
+	} else {
+		status = http.StatusOK
+	}
 
-	return render.JSON(w, http.StatusOK, user)
+	return render(w, status, user)
 }
 
 func login(w http.ResponseWriter, r *http.Request) error {
@@ -34,7 +39,7 @@ func login(w http.ResponseWriter, r *http.Request) error {
 	password := r.FormValue("password")
 
 	if email == "" || password == "" {
-		return render.Ping(w, http.StatusBadRequest, "Email or password missing")
+		return render(w, http.StatusBadRequest, "Email or password missing")
 	}
 
 	user, err := models.Authenticate(email, password)
@@ -43,12 +48,12 @@ func login(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if user == nil {
-		return render.Ping(w, http.StatusBadRequest, "Invalid email or password")
+		return render(w, http.StatusBadRequest, "Invalid email or password")
 	}
 
 	if err := session.Login(w, user); err != nil {
 		return err
 	}
 
-	return render.JSON(w, http.StatusOK, user)
+	return render(w, http.StatusOK, user)
 }

@@ -7,12 +7,20 @@ var user = null;
 angular.module('photoshare.controllers', ['photoshare.services'])
     .controller('AppCtrl', ['$scope',
                             '$location',
+                            '$timeout',
                             'Authenticator',
                             'Alert',
-                            function ($scope, $location, Authenticator, Alert) {
+                            function ($scope, $location, $timeout, Authenticator, Alert) {
 
             $scope.auth = Authenticator;
             $scope.alert = Alert;
+
+            $scope.$watch('alert.message', function (newValue, oldValue) {
+                if (newValue) {
+                    $timeout(function () { Alert.dismiss(); }, 3000);
+                }
+            });
+
             Authenticator.resource.get({}, function (user) {
                 $scope.auth.loggedIn = true;
                 $scope.auth.currentUser = user;

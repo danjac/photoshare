@@ -5,6 +5,7 @@ import (
 	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/utils"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -75,7 +76,15 @@ func editPhoto(w http.ResponseWriter, r *http.Request) error {
 		return render(w, http.StatusForbidden, "You can't edit this photo")
 	}
 
-	photo.Title = r.FormValue("title")
+	newPhoto := &models.Photo{}
+
+	if err := parseJSON(r, newPhoto); err != nil {
+		return err
+	}
+
+	photo.Title = newPhoto.Title
+	log.Println(photo)
+
 	if result := photo.Validate(); !result.OK {
 		return render(w, http.StatusBadRequest, result)
 	}

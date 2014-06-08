@@ -47,15 +47,20 @@ angular.module('photoshare', [
         $httpProvider.defaults.xsrfHeaderName = "X-CSRF-Token";
 
         // handle file uploads
-        $httpProvider.defaults.headers.post['Content-Type'] = undefined;
 
-        $httpProvider.defaults.transformRequest = function (data) {
+        $httpProvider.defaults.transformRequest = function (data, headersGetter) {
+
             if (data === undefined) {
                 return data;
             }
-            var fd = new FormData();
+
+            var fd = new FormData(),
+                isFileUpload = false,
+                headers = headersGetter();
+
             angular.forEach(data, function (value, key) {
                 if (value instanceof FileList) {
+                    isFileUpload = true;
                     if (value.length === 1) {
                         fd.append(key, value[0]);
                     } else {
@@ -67,7 +72,12 @@ angular.module('photoshare', [
                     fd.append(key, value);
                 }
             });
-            return fd;
+            if (isFileUpload) {
+                headers["Content-Type"] = undefined;
+                return fd;
+            }
+
+            return JSON.stringify(data);
         };
 
         // handle errors

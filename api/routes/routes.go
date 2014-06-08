@@ -21,15 +21,14 @@ func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func parseJSON(r *http.Request, value interface{}) error {
+	return json.NewDecoder(r.Body).Decode(value)
+}
+
 func render(w http.ResponseWriter, status int, value interface{}) error {
 	w.WriteHeader(status)
 	w.Header().Set("Content-type", "application/json")
-	content, err := json.Marshal(value)
-	if err != nil {
-		return err
-	}
-	w.Write(content)
-	return nil
+	return json.NewEncoder(w).Encode(value)
 }
 
 func Init() http.Handler {
@@ -49,7 +48,7 @@ func Init() http.Handler {
 	photos.Handle("/", appHandler(getPhotos)).Methods("GET")
 	photos.Handle("/", appHandler(upload)).Methods("POST")
 	photos.Handle("/{id}", appHandler(photoDetail)).Methods("GET")
-	photos.Handle("/{id}", appHandler(editPhoto)).Methods("POST")
+	photos.Handle("/{id}", appHandler(editPhoto)).Methods("PUT")
 	photos.Handle("/{id}", appHandler(deletePhoto)).Methods("DELETE")
 
 	user := r.PathPrefix(fmt.Sprintf("%s/user",

@@ -8,11 +8,11 @@ import (
 
 func signup(w http.ResponseWriter, r *http.Request) error {
 
-	user := models.NewUser(
-		r.FormValue("name"),
-		r.FormValue("email"),
-		r.FormValue("password"),
-	)
+	user := &models.User{}
+
+	if err := parseJSON(r, user); err != nil {
+		return err
+	}
 
 	if result, err := user.Validate(); err != nil || !result.OK {
 		if err != nil {

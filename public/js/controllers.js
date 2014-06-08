@@ -93,7 +93,8 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 $scope.editTitle = false;
             };
             $scope.updateTitle = function () {
-                $scope.photo.$save(function () {
+                Photo.update({id: $scope.photo.id,
+                              title: $scope.photo.title}, function () {
                     $scope.editTitle = false;
                 });
             };

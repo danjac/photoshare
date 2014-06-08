@@ -3,10 +3,14 @@ package models
 import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
+	"errors"
 	"github.com/coopernurse/gorp"
+	"log"
 	"regexp"
 	"time"
 )
+
+var MissingLoginFields = errors.New("Missing login fields")
 
 var emailRegex = regexp.MustCompile(".+@.+\\..+")
 
@@ -14,11 +18,24 @@ func validateEmail(email string) bool {
 	return emailRegex.Match([]byte(email))
 }
 
+type Authenticator struct {
+	Identifier string `json:"identifier"`
+	Password   string `json:"password"`
+}
+
+func (auth *Authenticator) Identify() (*User, error) {
+
+	if auth.Identifier == "" || auth.Password == "" {
+		return nil, MissingLoginFields
+	}
+	return GetAuthenticatedUser(auth.Identifier, auth.Password)
+}
+
 type User struct {
 	ID        int64     `db:"id" json:"id"`
 	CreatedAt time.Time `db:"created_at" json:"createdAt"`
 	Name      string    `db:"name" json:"name"`
-	Password  string    `db:"password" json:"-"`
+	Password  string    `db:"password" json:"password,omitempty"`
 	Email     string    `db:"email" json:"email"`
 	IsAdmin   bool      `db:"admin" json:"isAdmin"`
 	IsActive  bool      `db:"active" json:"isActive"`
@@ -84,6 +101,7 @@ func (user *User) Validate() (*ValidationResult, error) {
 	if user.Password == "" {
 		result.Error("password", "Password is missing")
 	}
+	log.Println(result.Errors)
 
 	return result, nil
 }
@@ -143,9 +161,9 @@ func GetActiveUser(userID int) (*User, error) {
 
 }
 
-func Authenticate(email string, password string) (*User, error) {
+func GetAuthenticatedUser(identifier string, password string) (*User, error) {
 	user := &User{}
-	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
+	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}

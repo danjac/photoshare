@@ -35,15 +35,16 @@ func authenticate(w http.ResponseWriter, r *http.Request) error {
 
 func login(w http.ResponseWriter, r *http.Request) error {
 
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-
-	if email == "" || password == "" {
-		return render(w, http.StatusBadRequest, "Email or password missing")
+	auth := &models.Authenticator{}
+	if err := parseJSON(r, auth); err != nil {
+		return err
 	}
 
-	user, err := models.Authenticate(email, password)
+	user, err := auth.Identify()
 	if err != nil {
+		if err == models.MissingLoginFields {
+			return render(w, http.StatusBadRequest, "Missing email or password")
+		}
 		return err
 	}
 

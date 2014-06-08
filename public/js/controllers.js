@@ -2,8 +2,6 @@
 
 /* Controllers */
 
-var user = null;
-
 angular.module('photoshare.controllers', ['photoshare.services'])
     .controller('AppCtrl', ['$scope',
                             '$location',

@@ -89,7 +89,7 @@ func editPhoto(w http.ResponseWriter, r *http.Request) error {
 		return render(w, http.StatusBadRequest, result)
 	}
 
-	if err := photo.Save(); err != nil {
+	if err := photo.Update(); err != nil {
 		return err
 	}
 
@@ -133,7 +133,7 @@ func upload(w http.ResponseWriter, r *http.Request) error {
 		return render(w, http.StatusBadRequest, result)
 	}
 
-	if err := photo.Save(); err != nil {
+	if err := photo.Insert(); err != nil {
 		return err
 	}
 

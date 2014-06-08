@@ -21,7 +21,7 @@ func signup(w http.ResponseWriter, r *http.Request) error {
 		return render(w, http.StatusBadRequest, result)
 	}
 
-	if err := user.Save(); err != nil {
+	if err := user.Insert(); err != nil {
 		return err
 	}
 

@@ -49,11 +49,12 @@ func (photo *Photo) Delete() error {
 	return err
 }
 
-func (photo *Photo) Save() error {
-	if photo.ID != 0 {
-		_, err := dbMap.Update(photo)
-		return err
-	}
+func (photo *Photo) Update() error {
+	_, err := dbMap.Update(photo)
+	return err
+}
+
+func (photo *Photo) Insert() error {
 	return dbMap.Insert(photo)
 }
 

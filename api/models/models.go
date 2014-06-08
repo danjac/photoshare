@@ -21,8 +21,8 @@ func populateDatabase() error {
 		return err
 	} else if numUsers == 0 {
 		log.Println("CREATING DEMO USER")
-		user := NewUser("demo", "demo@photoshare.com", "demo1")
-		if err := user.Save(); err != nil {
+		user := &User{Name: "demo", Email: "demo@photoshare.com", Password: "demo1"}
+		if err := user.Insert(); err != nil {
 			return err
 		}
 	}

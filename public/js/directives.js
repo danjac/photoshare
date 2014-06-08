@@ -25,7 +25,7 @@ angular.module('photoshare.directives', []).
             }
         };
     }).
-    directive('tab', function () {
+    directive('navtab', function () {
 
         function isActive(url, current) {
             return current.indexOf(url, current.length - url.length) !== -1;

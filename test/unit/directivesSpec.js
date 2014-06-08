@@ -5,12 +5,11 @@
 describe('directives', function() {
     beforeEach(module('photoshare.directives'));
 
-    describe('tab', function () {
-        it('should show a tab', function ($rootScope, $compile) {
-            var element = $compile('<tab url="/">hello</tab>')($rootScope);
-            console.log(element);
+    describe('navtab', function () {
+        it('should show a tab', inject(function ($rootScope, $compile) {
+            var element = $compile('<navtab url="/">hello</navtab>')($rootScope);
             expect(element.text()).toEqual("hello");
 
-        });
+        }));
     });
 });

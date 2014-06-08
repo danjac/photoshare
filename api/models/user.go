@@ -63,7 +63,7 @@ func (user *User) CheckPassword(password string) bool {
 	return err == nil
 }
 
-func (user *User) Save() error {
+func (user *User) Insert() error {
 	return dbMap.Insert(user)
 }
 
@@ -140,12 +140,6 @@ func (user *User) isEmailAvailable() (bool, error) {
 		return false, err
 	}
 	return num == 0, nil
-}
-
-func NewUser(name, email, password string) *User {
-	user := &User{Name: name, Email: email, IsActive: true}
-	user.SetPassword(password)
-	return user
 }
 
 func GetActiveUser(userID int) (*User, error) {

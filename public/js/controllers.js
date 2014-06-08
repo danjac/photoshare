@@ -69,15 +69,8 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.editTitle = false;
             Photo.get({id: $routeParams.id}).$promise.then(function (photo) {
                 $scope.photo = photo;
-                $scope.canDelete = (
-                    Authenticator.loggedIn &&
-                    ($scope.photo.ownerId === Authenticator.currentUser.id ||
-                            Authenticator.currentUser.isAdmin)
-                );
-                $scope.canEdit = (
-                    Authenticator.loggedIn && $scope.photo.ownerId ===
-                    Authenticator.currentUser.id
-                );
+                $scope.canDelete = Authenticator.canDelete($scope.photo);
+                $scope.canEdit = Authenticator.canEdit($scope.photo);
             });
             $scope.deletePhoto = function () {
                 $scope.photo.$delete();

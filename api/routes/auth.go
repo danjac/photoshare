@@ -2,26 +2,26 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/session"
 	"net/http"
 )
 
-func logout(w http.ResponseWriter, r *http.Request) {
+func logout(c *AppContext) {
 
-	if err := session.Logout(w); err != nil {
-		panic(err)
+	if err := c.Logout(); err != nil {
+		c.Error(err)
+		return
 	}
 
-	render(w, http.StatusOK, "Logged out")
+	c.Render(http.StatusOK, "Logged out")
 
 }
 
-// return current logged in user, or 401
-func authenticate(w http.ResponseWriter, r *http.Request) {
+func authenticate(c *AppContext) {
 
-	user, err := session.GetCurrentUser(r)
+	user, err := c.GetCurrentUser()
 	if err != nil {
-		panic(err)
+		c.Error(err)
+		return
 	}
 	var status int
 	if user == nil {
@@ -30,33 +30,32 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 		status = http.StatusOK
 	}
 
-	render(w, status, user)
+	c.Render(status, user)
 }
 
-func login(w http.ResponseWriter, r *http.Request) {
+func login(c *AppContext) {
 
 	auth := &models.Authenticator{}
-	if err := parseJSON(r, auth); err != nil {
-		panic(err)
+	if err := c.ParseJSON(auth); err != nil {
+		c.Error(err)
+		return
 	}
-
 	user, err := auth.Identify()
 	if err != nil {
 		if err == models.MissingLoginFields {
-			render(w, http.StatusBadRequest, "Missing email or password")
+			c.Render(http.StatusBadRequest, "Missing email or password")
 			return
 		}
-		panic(err)
-	}
-
-	if user == nil {
-		render(w, http.StatusBadRequest, "Invalid email or password")
+		c.Error(err)
 		return
 	}
-
-	if err := session.Login(w, user); err != nil {
-		panic(err)
+	if user == nil {
+		c.Render(http.StatusBadRequest, "Invalid email or password")
+		return
 	}
-
-	render(w, http.StatusOK, user)
+	if err := c.Login(user); err != nil {
+		c.Error(err)
+		return
+	}
+	c.Render(http.StatusOK, user)
 }

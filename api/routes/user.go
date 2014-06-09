@@ -2,33 +2,36 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/session"
 	"net/http"
 )
 
-func signup(w http.ResponseWriter, r *http.Request) {
+func signup(c *AppContext) {
 
 	user := &models.User{}
 
-	if err := parseJSON(r, user); err != nil {
-		panic(err)
+	if err := c.ParseJSON(user); err != nil {
+		c.Error(err)
+		return
 	}
 
 	if result, err := user.Validate(); err != nil || !result.OK {
 		if err != nil {
-			panic(err)
+			c.Error(err)
+			return
 		}
-		render(w, http.StatusBadRequest, result)
+		c.Render(http.StatusBadRequest, result)
 	}
 
 	if err := user.Insert(); err != nil {
-		panic(err)
+		c.Error(err)
+		return
 	}
 
-	if err := session.Login(w, user); err != nil {
-		panic(err)
+	if err := c.Login(user); err != nil {
+		c.Error(err)
+		return
 	}
 
-	render(w, http.StatusOK, user)
+	c.Render(http.StatusOK, user)
 
 }

@@ -31,11 +31,11 @@ func (rec *Recovery) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
 			stack := debug.Stack()
-			f := "PANIC: %s\n%s"
-			log.Printf(f, err, stack)
+			f := "PANIC: %s\n%s\n%s"
+			log.Printf(f, r, err, stack)
 			var msg string
 			if rec.Debug {
-				msg = fmt.Sprintf(f, stack)
+				msg = fmt.Sprintf(f, r, stack)
 			} else {
 				msg = "Sorry, an error has occurred"
 			}

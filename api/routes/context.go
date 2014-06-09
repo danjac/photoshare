@@ -28,10 +28,12 @@ func (c *AppContext) GetCurrentUser() (*models.User, error) {
 }
 
 func (c *AppContext) Login(user *models.User) error {
+    c.User = user
 	return session.Login(c.Response, user)
 }
 
 func (c *AppContext) Logout() error {
+    c.User = nil
 	return session.Logout(c.Response)
 }
 

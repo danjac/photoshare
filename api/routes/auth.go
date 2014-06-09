@@ -5,23 +5,21 @@ import (
 	"net/http"
 )
 
-func logout(c *AppContext) {
+func logout(c *AppContext) error {
 
 	if err := c.Logout(); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
-	c.OK("Logged out")
+	return c.OK("Logged out")
 
 }
 
-func authenticate(c *AppContext) {
+func authenticate(c *AppContext) error {
 
 	user, err := c.GetCurrentUser()
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 	var status int
 	if user == nil {
@@ -30,32 +28,27 @@ func authenticate(c *AppContext) {
 		status = http.StatusOK
 	}
 
-	c.Render(status, user)
+	return c.Render(status, user)
 }
 
-func login(c *AppContext) {
+func login(c *AppContext) error {
 
 	auth := &models.Authenticator{}
 	if err := c.ParseJSON(auth); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 	user, err := auth.Identify()
 	if err != nil {
 		if err == models.MissingLoginFields {
-			c.BadRequest("Missing email or password")
-			return
+			return c.BadRequest("Missing email or password")
 		}
-		c.Error(err)
-		return
+		return err
 	}
 	if user == nil {
-		c.BadRequest("Invalid email or password")
-		return
+		return c.BadRequest("Invalid email or password")
 	}
 	if err := c.Login(user); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
-	c.OK(user)
+	return c.OK(user)
 }

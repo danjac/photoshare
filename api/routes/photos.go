@@ -7,127 +7,109 @@ import (
 	"strconv"
 )
 
-func deletePhoto(c *AppContext) {
+func deletePhoto(c *AppContext) error {
 
 	photo, err := models.GetPhoto(c.Param("id"))
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 	if photo == nil {
-		c.NotFound("Photo not found")
-		return
+		return c.NotFound("Photo not found")
 	}
 
 	if !photo.CanDelete(c.User) {
-		c.Forbidden("You can't delete this photo")
-		return
+		return c.Forbidden("You can't delete this photo")
 	}
 	if err := photo.Delete(); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
-	c.OK("Photo deleted")
+	return c.OK("Photo deleted")
 }
 
-func photoDetail(c *AppContext) {
+func photoDetail(c *AppContext) error {
 
 	photo, err := models.GetPhotoDetail(c.Param("id"))
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 	if photo == nil {
-		c.NotFound("Photo not found")
-		return
+		return c.NotFound("Photo not found")
 	}
 
-	c.OK(photo)
+	return c.OK(photo)
 }
 
-func editPhoto(c *AppContext) {
+func editPhoto(c *AppContext) error {
 
 	photo, err := models.GetPhoto(c.Param("id"))
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	if photo == nil {
-		c.NotFound("No photo found")
-		return
+		return c.NotFound("No photo found")
 	}
 
 	if !photo.CanEdit(c.User) {
-		c.Forbidden("You can't edit this photo")
-		return
+		return c.Forbidden("You can't edit this photo")
 	}
 
 	newPhoto := &models.Photo{}
 
 	if err := c.ParseJSON(newPhoto); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	photo.Title = newPhoto.Title
 
 	if result := photo.Validate(); !result.OK {
-		c.BadRequest(result)
-		return
+		return c.BadRequest(result)
 	}
 
 	if err := photo.Update(); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
-	c.OK(photo)
+	return c.OK(photo)
 }
 
-func upload(c *AppContext) {
+func upload(c *AppContext) error {
 
 	title := c.FormValue("title")
 	src, hdr, err := c.FormFile("photo")
 	if err != nil {
 		if err == http.ErrMissingFile {
-			c.BadRequest("No image was posted")
-			return
+			return c.BadRequest("No image was posted")
 		}
-		c.Error(err)
-		return
+		return err
 	}
 	contentType := hdr.Header["Content-Type"][0]
 	if contentType != "image/png" && contentType != "image/jpeg" {
-		c.BadRequest("Not a valid image")
-		return
+		return c.BadRequest("Not a valid image")
 	}
 
 	defer src.Close()
 	filename, err := utils.ProcessImage(src, contentType)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	photo := &models.Photo{Title: title,
 		OwnerID: c.User.ID, Photo: filename}
 
 	if result := photo.Validate(); !result.OK {
-		c.BadRequest(result)
-		return
+		return c.BadRequest(result)
 	}
 
 	if err := photo.Insert(); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
-	c.OK(photo)
+	return c.OK(photo)
 }
 
-func getPhotos(c *AppContext) {
+func getPhotos(c *AppContext) error {
 
 	pageNum, err := strconv.ParseInt(c.FormValue("page"), 10, 0)
 	if err != nil {
@@ -136,8 +118,7 @@ func getPhotos(c *AppContext) {
 
 	photos, err := models.GetPhotos(pageNum)
 	if err != nil {
-		c.Error(err)
-		return
+		return err
 	}
-	c.OK(photos)
+	return c.OK(photos)
 }

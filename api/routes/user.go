@@ -4,33 +4,29 @@ import (
 	"github.com/danjac/photoshare/api/models"
 )
 
-func signup(c *AppContext) {
+func signup(c *AppContext) error {
 
 	user := &models.User{}
 
 	if err := c.ParseJSON(user); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	if result, err := user.Validate(); err != nil || !result.OK {
 		if err != nil {
-			c.Error(err)
-			return
+			return err
 		}
 		c.BadRequest(result)
 	}
 
 	if err := user.Insert(); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
 	if err := c.Login(user); err != nil {
-		c.Error(err)
-		return
+		return err
 	}
 
-	c.OK(user)
+	return c.OK(user)
 
 }

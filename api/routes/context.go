@@ -35,32 +35,30 @@ func (c *AppContext) Logout() error {
 	return session.Logout(c.Response)
 }
 
-func (c *AppContext) Render(status int, value interface{}) {
+func (c *AppContext) Render(status int, value interface{}) error {
 	c.Response.WriteHeader(status)
 	c.Response.Header().Set("Content-type", "application/json")
-	if err := json.NewEncoder(c.Response).Encode(value); err != nil {
-		c.Error(err)
-	}
+	return json.NewEncoder(c.Response).Encode(value)
 }
 
-func (c *AppContext) OK(value interface{}) {
-	c.Render(http.StatusOK, value)
+func (c *AppContext) OK(value interface{}) error {
+	return c.Render(http.StatusOK, value)
 }
 
-func (c *AppContext) Unauthorized(value interface{}) {
-	c.Render(http.StatusUnauthorized, value)
+func (c *AppContext) Unauthorized(value interface{}) error {
+	return c.Render(http.StatusUnauthorized, value)
 }
 
-func (c *AppContext) Forbidden(value interface{}) {
-	c.Render(http.StatusForbidden, value)
+func (c *AppContext) Forbidden(value interface{}) error {
+	return c.Render(http.StatusForbidden, value)
 }
 
-func (c *AppContext) BadRequest(value interface{}) {
-	c.Render(http.StatusBadRequest, value)
+func (c *AppContext) BadRequest(value interface{}) error {
+	return c.Render(http.StatusBadRequest, value)
 }
 
-func (c *AppContext) NotFound(value interface{}) {
-	c.Render(http.StatusNotFound, value)
+func (c *AppContext) NotFound(value interface{}) error {
+	return c.Render(http.StatusNotFound, value)
 }
 
 func (c *AppContext) ParseJSON(value interface{}) error {
@@ -92,7 +90,9 @@ func (handler *AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	handler.Handler(c)
+	if err := handler.Handler(c); err != nil {
+		c.Error(err)
+	}
 
 }
 
@@ -107,4 +107,4 @@ func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 
 }
 
-type AppHandlerFunc func(c *AppContext)
+type AppHandlerFunc func(c *AppContext) error

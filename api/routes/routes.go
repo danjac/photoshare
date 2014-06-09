@@ -8,27 +8,46 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"runtime/debug"
 )
-
-type appHandler func(http.ResponseWriter, *http.Request) error
-
-func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
-	if err := fn(w, r); err != nil {
-		log.Println(err, r)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
-}
 
 func parseJSON(r *http.Request, value interface{}) error {
 	return json.NewDecoder(r.Body).Decode(value)
 }
 
-func render(w http.ResponseWriter, status int, value interface{}) error {
+func render(w http.ResponseWriter, status int, value interface{}) {
 	w.WriteHeader(status)
 	w.Header().Set("Content-type", "application/json")
-	return json.NewEncoder(w).Encode(value)
+	json.NewEncoder(w).Encode(value)
+}
+
+type Recovery struct {
+	Handler http.Handler
+	Debug   bool
+}
+
+func (rec *Recovery) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	defer func() {
+		if err := recover(); err != nil {
+			stack := debug.Stack()
+			f := "PANIC: %s\n%s"
+			log.Printf(f, err, stack)
+			var msg string
+			if rec.Debug {
+				msg = fmt.Sprintf(f, stack)
+			} else {
+				msg = "Sorry, an error has occurred"
+			}
+			http.Error(w, msg, http.StatusInternalServerError)
+		}
+	}()
+
+	rec.Handler.ServeHTTP(w, r)
+}
+
+func NewRecovery(handler http.Handler, debug bool) *Recovery {
+	return &Recovery{handler, debug}
 }
 
 func Init() http.Handler {
@@ -38,26 +57,26 @@ func Init() http.Handler {
 	auth := r.PathPrefix(fmt.Sprintf("%s/auth",
 		settings.Config.ApiPathPrefix)).Subrouter()
 
-	auth.Handle("/", appHandler(authenticate)).Methods("GET")
-	auth.Handle("/", appHandler(login)).Methods("POST")
-	auth.Handle("/", appHandler(logout)).Methods("DELETE")
+	auth.HandleFunc("/", authenticate).Methods("GET")
+	auth.HandleFunc("/", login).Methods("POST")
+	auth.HandleFunc("/", logout).Methods("DELETE")
 
 	photos := r.PathPrefix(fmt.Sprintf("%s/photos",
 		settings.Config.ApiPathPrefix)).Subrouter()
 
-	photos.Handle("/", appHandler(getPhotos)).Methods("GET")
-	photos.Handle("/", appHandler(upload)).Methods("POST")
-	photos.Handle("/{id}", appHandler(photoDetail)).Methods("GET")
-	photos.Handle("/{id}", appHandler(editPhoto)).Methods("PUT")
-	photos.Handle("/{id}", appHandler(deletePhoto)).Methods("DELETE")
+	photos.HandleFunc("/", getPhotos).Methods("GET")
+	photos.HandleFunc("/", upload).Methods("POST")
+	photos.HandleFunc("/{id}", photoDetail).Methods("GET")
+	photos.HandleFunc("/{id}", editPhoto).Methods("PUT")
+	photos.HandleFunc("/{id}", deletePhoto).Methods("DELETE")
 
 	user := r.PathPrefix(fmt.Sprintf("%s/user",
 		settings.Config.ApiPathPrefix)).Subrouter()
 
-	user.Handle("/", appHandler(signup)).Methods("POST")
+	user.HandleFunc("/", signup).Methods("POST")
 
 	r.PathPrefix(settings.Config.PublicPathPrefix).Handler(
 		http.FileServer(http.Dir(settings.Config.PublicDir)))
 
-	return session.NewCSRF(r)
+	return NewRecovery(session.NewCSRF(r), true)
 }

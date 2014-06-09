@@ -6,29 +6,29 @@ import (
 	"net/http"
 )
 
-func signup(w http.ResponseWriter, r *http.Request) error {
+func signup(w http.ResponseWriter, r *http.Request) {
 
 	user := &models.User{}
 
 	if err := parseJSON(r, user); err != nil {
-		return err
+		panic(err)
 	}
 
 	if result, err := user.Validate(); err != nil || !result.OK {
 		if err != nil {
-			return err
+			panic(err)
 		}
-		return render(w, http.StatusBadRequest, result)
+		render(w, http.StatusBadRequest, result)
 	}
 
 	if err := user.Insert(); err != nil {
-		return err
+		panic(err)
 	}
 
 	if err := session.Login(w, user); err != nil {
-		return err
+		panic(err)
 	}
 
-	return render(w, http.StatusOK, user)
+	render(w, http.StatusOK, user)
 
 }

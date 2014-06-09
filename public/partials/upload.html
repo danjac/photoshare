@@ -18,7 +18,7 @@
     <button class="btn-submit btn" 
             type="submit" 
             ng-click="uploadPhoto()"
-            ng-disabled="form.$invalid">Upload</button>
+            ng-disabled="form.$invalid || formDisabled">Upload</button>
 
     <div class="row" ng-show="upload.url">
         <div class="col-xs-6">

@@ -28,7 +28,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 $scope.auth.currentUser.$delete();
                 $scope.auth.loggedIn = false;
                 $scope.auth.currentUser = null;
-                $location.path("#/list");
+                $location.path("/list");
             };
 
             /*
@@ -39,22 +39,31 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             */
         }])
 
-    .controller('ListCtrl', ['$scope', 'Photo', 'pageSize', function ($scope, Photo, pageSize) {
-        var page = 1, stopScrolling = false;
+    .controller('ListCtrl', ['$scope', 
+                             '$location',
+                             'Photo', 
+                             'pageSize', 
+                             function ($scope, $location, Photo, pageSize) {
+            var page = 1, stopScrolling = false;
 
-        $scope.photos = [];
-        $scope.nextPage = function () {
-            if (!stopScrolling) {
-                Photo.query({page: page}).$promise.then(function (photos) {
-                    $scope.photos = $scope.photos.concat(photos);
-                    if (photos.length < pageSize) {
-                        stopScrolling = true;
-                    }
-                });
-            }
-            page += 1;
-        };
-    }])
+            $scope.photos = [];
+            $scope.nextPage = function () {
+                if (!stopScrolling) {
+                    Photo.query({page: page}).$promise.then(function (photos) {
+                        $scope.photos = $scope.photos.concat(photos);
+                        if (photos.length < pageSize) {
+                            stopScrolling = true;
+                        }
+                    });
+                }
+                page += 1;
+            };
+
+            $scope.getDetail = function (photo) {
+                $location.path("/detail/" + photo.id);
+            };
+
+        }])
 
     .controller('DetailCtrl', ['$scope',
                                '$routeParams',
@@ -99,17 +108,23 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                'Alert',
                                'Photo', function ($scope, $location, $window, Authenticator, Alert, Photo) {
         if (!Authenticator.currentUser) {
-            $location.path("#/list");
+            $location.path("/list");
             return;
         }
         $scope.newPhoto = new Photo();
         $scope.upload = null;
+        $scope.formDisabled = false;
         $scope.uploadPhoto = function () {
-            $scope.newPhoto.$save(function () {
-                $scope.newPhoto = new Photo();
-                Alert.success('Your photo has been uploaded');
-                $location.path("#/list");
-            });
+            $scope.formDisabled = true;
+            $scope.newPhoto.$save(
+                function () {
+                    $scope.newPhoto = new Photo();
+                    Alert.success('Your photo has been uploaded');
+                    $location.path("/list");
+                },
+                function () {
+                    $scope.formDisabled = false;
+                });
         };
 
     }])
@@ -127,7 +142,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 $scope.loginCreds = new Authenticator.resource();
                 if (Authenticator.loggedIn) {
                     Alert.success("Welcome back, " + Authenticator.currentUser.name);
-                    $location.path("#/list");
+                    $location.path("/list");
                 }
             });
         };
@@ -145,7 +160,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 Authenticator.currentUser = $scope.newUser;
                 Authenticator.loggedIn = true;
                 Alert.success("Welcome, " + $scope.newUser.name);
-                $location.path("#/list");
+                $location.path("/list");
             });
         };
     }]);

@@ -6,22 +6,22 @@ import (
 	"net/http"
 )
 
-func logout(w http.ResponseWriter, r *http.Request) error {
+func logout(w http.ResponseWriter, r *http.Request) {
 
 	if err := session.Logout(w); err != nil {
-		return err
+		panic(err)
 	}
 
-	return render(w, http.StatusOK, "Logged out")
+	render(w, http.StatusOK, "Logged out")
 
 }
 
 // return current logged in user, or 401
-func authenticate(w http.ResponseWriter, r *http.Request) error {
+func authenticate(w http.ResponseWriter, r *http.Request) {
 
 	user, err := session.GetCurrentUser(r)
 	if err != nil {
-		return err
+		panic(err)
 	}
 	var status int
 	if user == nil {
@@ -30,31 +30,33 @@ func authenticate(w http.ResponseWriter, r *http.Request) error {
 		status = http.StatusOK
 	}
 
-	return render(w, status, user)
+	render(w, status, user)
 }
 
-func login(w http.ResponseWriter, r *http.Request) error {
+func login(w http.ResponseWriter, r *http.Request) {
 
 	auth := &models.Authenticator{}
 	if err := parseJSON(r, auth); err != nil {
-		return err
+		panic(err)
 	}
 
 	user, err := auth.Identify()
 	if err != nil {
 		if err == models.MissingLoginFields {
-			return render(w, http.StatusBadRequest, "Missing email or password")
+			render(w, http.StatusBadRequest, "Missing email or password")
+			return
 		}
-		return err
+		panic(err)
 	}
 
 	if user == nil {
-		return render(w, http.StatusBadRequest, "Invalid email or password")
+		render(w, http.StatusBadRequest, "Invalid email or password")
+		return
 	}
 
 	if err := session.Login(w, user); err != nil {
-		return err
+		panic(err)
 	}
 
-	return render(w, http.StatusOK, user)
+	render(w, http.StatusOK, user)
 }

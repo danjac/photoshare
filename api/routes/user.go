@@ -2,7 +2,6 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"net/http"
 )
 
 func signup(c *AppContext) {
@@ -19,7 +18,7 @@ func signup(c *AppContext) {
 			c.Error(err)
 			return
 		}
-		c.Render(http.StatusBadRequest, result)
+		c.BadRequest(result)
 	}
 
 	if err := user.Insert(); err != nil {
@@ -32,6 +31,6 @@ func signup(c *AppContext) {
 		return
 	}
 
-	c.Render(http.StatusOK, user)
+	c.OK(user)
 
 }

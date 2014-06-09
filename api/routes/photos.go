@@ -9,29 +9,18 @@ import (
 
 func deletePhoto(c *AppContext) {
 
-	user, err := c.GetCurrentUser()
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	if user == nil {
-		c.Render(http.StatusUnauthorized, "You must be logged in")
-		return
-	}
-
 	photo, err := models.GetPhoto(c.Param("id"))
 	if err != nil {
 		c.Error(err)
 		return
 	}
 	if photo == nil {
-		c.Render(http.StatusNotFound, "Photo not found")
+		c.NotFound("Photo not found")
 		return
 	}
 
-	if !photo.CanDelete(user) {
-		c.Render(http.StatusForbidden, "You can't delete this photo")
+	if !photo.CanDelete(c.User) {
+		c.Forbidden("You can't delete this photo")
 		return
 	}
 	if err := photo.Delete(); err != nil {
@@ -39,7 +28,7 @@ func deletePhoto(c *AppContext) {
 		return
 	}
 
-	c.Render(http.StatusOK, "Photo deleted")
+	c.OK("Photo deleted")
 }
 
 func photoDetail(c *AppContext) {
@@ -50,25 +39,14 @@ func photoDetail(c *AppContext) {
 		return
 	}
 	if photo == nil {
-		c.Render(http.StatusNotFound, "Photo not found")
+		c.NotFound("Photo not found")
 		return
 	}
 
-	c.Render(http.StatusOK, photo)
+	c.OK(photo)
 }
 
 func editPhoto(c *AppContext) {
-
-	user, err := c.GetCurrentUser()
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	if user == nil {
-		c.Render(http.StatusUnauthorized, "You must be logged in")
-		return
-	}
 
 	photo, err := models.GetPhoto(c.Param("id"))
 	if err != nil {
@@ -77,12 +55,12 @@ func editPhoto(c *AppContext) {
 	}
 
 	if photo == nil {
-		c.Render(http.StatusNotFound, "No photo found")
+		c.NotFound("No photo found")
 		return
 	}
 
-	if !photo.CanEdit(user) {
-		c.Render(http.StatusForbidden, "You can't edit this photo")
+	if !photo.CanEdit(c.User) {
+		c.Forbidden("You can't edit this photo")
 		return
 	}
 
@@ -96,7 +74,7 @@ func editPhoto(c *AppContext) {
 	photo.Title = newPhoto.Title
 
 	if result := photo.Validate(); !result.OK {
-		c.Render(http.StatusBadRequest, result)
+		c.BadRequest(result)
 		return
 	}
 
@@ -105,27 +83,16 @@ func editPhoto(c *AppContext) {
 		return
 	}
 
-	c.Render(http.StatusOK, photo)
+	c.OK(photo)
 }
 
 func upload(c *AppContext) {
 
-	user, err := c.GetCurrentUser()
-	if err != nil {
-		c.Error(err)
-		return
-	}
-
-	if user == nil {
-		c.Render(http.StatusUnauthorized, "You must be logged in")
-		return
-	}
-
-	title := c.Request.FormValue("title")
-	src, hdr, err := c.Request.FormFile("photo")
+	title := c.FormValue("title")
+	src, hdr, err := c.FormFile("photo")
 	if err != nil {
 		if err == http.ErrMissingFile {
-			c.Render(http.StatusBadRequest, "No image was posted")
+			c.BadRequest("No image was posted")
 			return
 		}
 		c.Error(err)
@@ -133,7 +100,7 @@ func upload(c *AppContext) {
 	}
 	contentType := hdr.Header["Content-Type"][0]
 	if contentType != "image/png" && contentType != "image/jpeg" {
-		c.Render(http.StatusBadRequest, "Not a valid image")
+		c.BadRequest("Not a valid image")
 		return
 	}
 
@@ -145,10 +112,10 @@ func upload(c *AppContext) {
 	}
 
 	photo := &models.Photo{Title: title,
-		OwnerID: user.ID, Photo: filename}
+		OwnerID: c.User.ID, Photo: filename}
 
 	if result := photo.Validate(); !result.OK {
-		c.Render(http.StatusBadRequest, result)
+		c.BadRequest(result)
 		return
 	}
 
@@ -157,12 +124,12 @@ func upload(c *AppContext) {
 		return
 	}
 
-	c.Render(http.StatusOK, photo)
+	c.OK(photo)
 }
 
 func getPhotos(c *AppContext) {
 
-	pageNum, err := strconv.ParseInt(c.Request.FormValue("page"), 10, 0)
+	pageNum, err := strconv.ParseInt(c.FormValue("page"), 10, 0)
 	if err != nil {
 		pageNum = 1
 	}
@@ -172,5 +139,5 @@ func getPhotos(c *AppContext) {
 		c.Error(err)
 		return
 	}
-	c.Render(http.StatusOK, photos)
+	c.OK(photos)
 }

@@ -12,7 +12,7 @@ func logout(c *AppContext) {
 		return
 	}
 
-	c.Render(http.StatusOK, "Logged out")
+	c.OK("Logged out")
 
 }
 
@@ -43,19 +43,19 @@ func login(c *AppContext) {
 	user, err := auth.Identify()
 	if err != nil {
 		if err == models.MissingLoginFields {
-			c.Render(http.StatusBadRequest, "Missing email or password")
+			c.BadRequest("Missing email or password")
 			return
 		}
 		c.Error(err)
 		return
 	}
 	if user == nil {
-		c.Render(http.StatusBadRequest, "Invalid email or password")
+		c.BadRequest("Invalid email or password")
 		return
 	}
 	if err := c.Login(user); err != nil {
 		c.Error(err)
 		return
 	}
-	c.Render(http.StatusOK, user)
+	c.OK(user)
 }

@@ -71,39 +71,29 @@ func (c *AppContext) Error(err error) {
 	http.Error(c.Response, "Sorry, an error has occurred", http.StatusInternalServerError)
 }
 
-type AppHandler struct {
-	Handler       AppHandlerFunc
-	LoginRequired bool
-}
-
-func (handler *AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
-	c := NewAppContext(w, r)
-	if handler.LoginRequired {
-		if user, err := c.GetCurrentUser(); err != nil || user == nil {
-			if err != nil {
-				c.Error(err)
-				return
-			}
-			c.Unauthorized("You must be logged in")
-			return
-		}
-
-	}
-	if err := handler.Handler(c); err != nil {
-		c.Error(err)
-	}
-
-}
-
 func NewAppContext(w http.ResponseWriter, r *http.Request) *AppContext {
 	return &AppContext{r, w, mux.Vars(r), nil}
 }
 
 func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 
-	handler := &AppHandler{fn, loginRequired}
-	return handler.ServeHTTP
+	return func(w http.ResponseWriter, r *http.Request) {
+		c := NewAppContext(w, r)
+		if loginRequired {
+			if user, err := c.GetCurrentUser(); err != nil || user == nil {
+				if err != nil {
+					c.Error(err)
+					return
+				}
+				c.Unauthorized("You must be logged in")
+				return
+			}
+		}
+
+		if err := fn(c); err != nil {
+			c.Error(err)
+		}
+	}
 
 }
 

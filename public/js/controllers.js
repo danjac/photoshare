@@ -25,10 +25,11 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             });
 
             $scope.logout = function () {
-                $scope.auth.currentUser.$delete();
-                $scope.auth.loggedIn = false;
-                $scope.auth.currentUser = null;
-                $location.path("/list");
+                $scope.auth.currentUser.$delete(function () {
+                    $scope.auth.loggedIn = false;
+                    $scope.auth.currentUser = null;
+                    $location.path("/list");
+                });
             };
 
             /*
@@ -39,10 +40,10 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             */
         }])
 
-    .controller('ListCtrl', ['$scope', 
+    .controller('ListCtrl', ['$scope',
                              '$location',
-                             'Photo', 
-                             'pageSize', 
+                             'Photo',
+                             'pageSize',
                              function ($scope, $location, Photo, pageSize) {
             var page = 1, stopScrolling = false;
 
@@ -80,9 +81,10 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 $scope.canEdit = Authenticator.canEdit($scope.photo);
             });
             $scope.deletePhoto = function () {
-                $scope.photo.$delete();
-                Alert.warning('Your photo has been deleted');
-                $location.path("/");
+                $scope.photo.$delete(function () {
+                    Alert.warning('Your photo has been deleted');
+                    $location.path("/");
+                });
             };
             $scope.showEditForm = function () {
                 if ($scope.canEdit) {

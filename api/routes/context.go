@@ -100,7 +100,7 @@ func NewAppContext(w http.ResponseWriter, r *http.Request) *AppContext {
 	return &AppContext{r, w, mux.Vars(r), nil}
 }
 
-func NewAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
+func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 
 	handler := &AppHandler{fn, loginRequired}
 	return handler.ServeHTTP

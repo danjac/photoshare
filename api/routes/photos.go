@@ -7,6 +7,18 @@ import (
 	"strconv"
 )
 
+var allowedContentTypes = []string{"image/png", "image/jpeg"}
+
+func isAllowedContentType(contentType string) bool {
+	for _, value := range allowedContentTypes {
+		if contentType == value {
+			return true
+		}
+	}
+
+	return false
+}
+
 func deletePhoto(c *AppContext) error {
 
 	photo, err := models.GetPhoto(c.Param("id"))
@@ -85,7 +97,8 @@ func upload(c *AppContext) error {
 		return err
 	}
 	contentType := hdr.Header["Content-Type"][0]
-	if contentType != "image/png" && contentType != "image/jpeg" {
+
+	if !isAllowedContentType(contentType) {
 		return c.BadRequest("Not a valid image")
 	}
 
@@ -111,7 +124,7 @@ func upload(c *AppContext) error {
 
 func getPhotos(c *AppContext) error {
 
-	pageNum, err := strconv.ParseInt(c.FormValue("page"), 10, 0)
+	pageNum, err := strconv.ParseInt(c.FormValue("page"), 10, 64)
 	if err != nil {
 		pageNum = 1
 	}

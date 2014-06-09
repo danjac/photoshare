@@ -16,7 +16,7 @@ func signup(c *AppContext) error {
 		if err != nil {
 			return err
 		}
-		c.BadRequest(result)
+		return c.BadRequest(result)
 	}
 
 	if err := user.Insert(); err != nil {

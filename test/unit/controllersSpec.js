@@ -56,7 +56,7 @@ describe('controllers', function (){
         httpBackend.flush();
 
         expect(scope.newPhoto.title).toBe(undefined);
-        expect($location.path()).toBe("/#/list");
+        expect($location.path()).toBe("/list");
 
     }));
 });

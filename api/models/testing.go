@@ -27,7 +27,7 @@ func MakeTestDB() (tdb *TestDB) {
 	if err != nil {
 		panic(err)
 	}
-	if _, err := InitMap(db, "TESTING"); err != nil {
+	if _, err := InitDB(db); err != nil {
 		panic(err)
 	}
 

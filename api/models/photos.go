@@ -3,13 +3,20 @@ package models
 import (
 	"database/sql"
 	"github.com/coopernurse/gorp"
-	"github.com/danjac/photoshare/api/settings"
+	"github.com/danjac/photoshare/api/utils"
 	"os"
 	"strings"
 	"time"
 )
 
-const pageSize = 32
+const (
+	PageSize   = 32
+	UploadsDir = "./public/uploads"
+)
+
+func GetImageProcessor() utils.ImageProcessor {
+	return utils.LocalImageProcessor{UploadsDir, "/thumbnails"}
+}
 
 type Photo struct {
 	ID        int64     `db:"id" json:"id"`
@@ -25,11 +32,11 @@ func (photo *Photo) PreInsert(s gorp.SqlExecutor) error {
 }
 
 func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
-	filename := strings.Join([]string{settings.Config.UploadsDir, photo.Photo}, "/")
+	filename := strings.Join([]string{UploadsDir, photo.Photo}, "/")
 	if err := os.Remove(filename); err != nil {
 		return err
 	}
-	thumbnail := strings.Join([]string{settings.Config.UploadsDir, "thumbnails", photo.Photo}, "/")
+	thumbnail := strings.Join([]string{UploadsDir, "thumbnails", photo.Photo}, "/")
 	if err := os.Remove(thumbnail); err != nil {
 		return err
 	}
@@ -116,7 +123,7 @@ func GetPhotoDetail(photoID string) (*PhotoDetail, error) {
 }
 
 func getOffset(pageNum int64) int64 {
-	return (pageNum - 1) * pageSize
+	return (pageNum - 1) * PageSize
 }
 
 func SearchPhotos(pageNum int64, q string) ([]Photo, error) {
@@ -128,7 +135,7 @@ func SearchPhotos(pageNum int64, q string) ([]Photo, error) {
 	if _, err := dbMap.Select(&photos,
 		"SELECT * FROM photos WHERE title ILIKE $1 "+
 			"ORDER BY created_at DESC LIMIT $2 OFFSET $3",
-		q, pageSize, offset); err != nil {
+		q, PageSize, offset); err != nil {
 		return photos, err
 	}
 	return photos, nil
@@ -141,7 +148,7 @@ func GetPhotos(pageNum int64) ([]Photo, error) {
 
 	offset := getOffset(pageNum)
 
-	if _, err := dbMap.Select(&photos, "SELECT * FROM photos ORDER BY created_at DESC LIMIT $1 OFFSET $2", pageSize, offset); err != nil {
+	if _, err := dbMap.Select(&photos, "SELECT * FROM photos ORDER BY created_at DESC LIMIT $1 OFFSET $2", PageSize, offset); err != nil {
 		return photos, err
 	}
 	return photos, nil

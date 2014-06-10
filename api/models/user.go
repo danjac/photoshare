@@ -19,11 +19,11 @@ func validateEmail(email string) bool {
 }
 
 type UserManager interface {
-    GetActive(userID int) (*User, error) 
-    Authenticate(identifier string, password string) (*User, error) 
+	GetActive(userID int) (*User, error)
+	Authenticate(identifier string, password string) (*User, error)
 }
 
-type defaultUserManager struct {}
+type defaultUserManager struct{}
 
 func (mgr *defaultUserManager) GetActive(userID int) (*User, error) {
 
@@ -56,8 +56,8 @@ func (mgr *defaultUserManager) Authenticate(identifier string, password string) 
 
 var userMgr = &defaultUserManager{}
 
-func NewUserManager() (UserManager) {
-    return userMgr
+func NewUserManager() UserManager {
+	return userMgr
 }
 
 type Authenticator struct {
@@ -183,4 +183,3 @@ func (user *User) isEmailAvailable() (bool, error) {
 	}
 	return num == 0, nil
 }
-

@@ -15,7 +15,6 @@ type AppContext struct {
 	Response http.ResponseWriter
 	Params   map[string]string
 	User     *models.User
-	PhotoMgr models.IPhotoManager
 }
 
 func (c *AppContext) Param(name string) string {
@@ -75,7 +74,7 @@ func (c *AppContext) Error(err error) {
 }
 
 func NewAppContext(w http.ResponseWriter, r *http.Request) *AppContext {
-	return &AppContext{r, w, mux.Vars(r), nil, models.PhotoManager}
+	return &AppContext{r, w, mux.Vars(r), nil}
 }
 
 func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {

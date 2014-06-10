@@ -84,7 +84,32 @@ type PhotoDetail struct {
 	Photo     string    `db:"photo" json:"photo"`
 }
 
-func GetPhoto(photoID string) (*Photo, error) {
+type IPhotoManager interface {
+	Get(photoID string) (*Photo, error)
+	GetDetail(photoID string) (*PhotoDetail, error)
+	GetAll(pageNum int64) ([]Photo, error)
+	Create(photo *Photo) error
+	Update(photo *Photo) error
+	Delete(photo *Photo) error
+}
+
+type DbPhotoManager struct{}
+
+var PhotoManager = &DbPhotoManager{}
+
+func (mgr *DbPhotoManager) Create(photo *Photo) error {
+	return photo.Insert()
+}
+
+func (mgr *DbPhotoManager) Update(photo *Photo) error {
+	return photo.Update()
+}
+
+func (mgr *DbPhotoManager) Delete(photo *Photo) error {
+	return photo.Delete()
+}
+
+func (mgr *DbPhotoManager) Get(photoID string) (*Photo, error) {
 
 	obj, err := dbMap.Get(&Photo{}, photoID)
 	if err != nil {
@@ -93,7 +118,7 @@ func GetPhoto(photoID string) (*Photo, error) {
 	return obj.(*Photo), nil
 }
 
-func GetPhotoDetail(photoID string) (*PhotoDetail, error) {
+func (mgr *DbPhotoManager) GetDetail(photoID string) (*PhotoDetail, error) {
 
 	photo := &PhotoDetail{}
 
@@ -111,7 +136,7 @@ func GetPhotoDetail(photoID string) (*PhotoDetail, error) {
 
 }
 
-func GetPhotos(pageNum int64) ([]Photo, error) {
+func (mgr *DbPhotoManager) GetAll(pageNum int64) ([]Photo, error) {
 
 	var photos []Photo
 

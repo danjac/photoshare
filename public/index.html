@@ -40,7 +40,7 @@
 
  <div class="container-fluid">
 
-     <div ng-show="alert.message" class="alert fade-in" ng-class="'alert-'+alert.message.level">
+     <div ng-show="alert.message" class="alert fade-in" ng-class="'alert-'+alert.message.level" ng-cloak>
          <a class="close" ng-click="alert.dismiss()">&times;</a>
          {{ alert.message.message }}
      </div>

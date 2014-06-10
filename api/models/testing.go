@@ -33,5 +33,3 @@ func MakeTestDB() (tdb *TestDB) {
 
 	return &TestDB{db}
 }
-
-

@@ -1,8 +1,8 @@
 package models
 
 import (
-    "testing"
-    "strconv"
+	"strconv"
+	"testing"
 )
 
 func TestGetPhotoIfNotNone(t *testing.T) {

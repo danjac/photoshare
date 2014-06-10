@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
+	"github.com/danjac/photoshare/api/utils"
 	"net/http"
 	"strconv"
 )
@@ -103,7 +104,7 @@ func upload(c *AppContext) error {
 
 	defer src.Close()
 
-	processor := models.GetImageProcessor()
+	processor := utils.NewImageProcessor()
 	filename, err := processor.Process(src, contentType)
 
 	if err != nil {

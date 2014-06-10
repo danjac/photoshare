@@ -2,6 +2,7 @@ package utils
 
 import (
 	"code.google.com/p/graphics-go/graphics"
+	"github.com/danjac/photoshare/api/constants"
 	"github.com/dchest/uniuri"
 	"image"
 	"image/jpeg"
@@ -87,4 +88,8 @@ func (processor LocalImageProcessor) Process(src multipart.File, contentType str
 
 	return filename, nil
 
+}
+
+func NewImageProcessor() ImageProcessor {
+	return LocalImageProcessor{constants.UploadsDir, constants.ThumbnailsPrefix}
 }

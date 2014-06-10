@@ -44,7 +44,28 @@ func TestGetPhotoIfNone(t *testing.T) {
 
 }
 
-func TestGetAllPhotos(t *testing.T) {
+func TestSearchPhotos(t *testing.T) {
+	tdb := MakeTestDB()
+	defer tdb.Clean()
+
+	user := &User{Name: "tester", Email: "tester@gmail.com", Password: "test"}
+	if err := user.Insert(); err != nil {
+		panic(err)
+	}
+	photo := &Photo{Title: "test", OwnerID: user.ID, Photo: "test.jpg"}
+	if err := photo.Insert(); err != nil {
+		panic(err)
+	}
+	photos, err := SearchPhotos(1, "test")
+	if err != nil {
+		panic(err)
+	}
+
+	if len(photos) != 1 {
+		t.Error("There should be 1 photo")
+	}
+}
+func TestGetPhotos(t *testing.T) {
 	tdb := MakeTestDB()
 	defer tdb.Clean()
 

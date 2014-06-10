@@ -115,11 +115,31 @@ func GetPhotoDetail(photoID string) (*PhotoDetail, error) {
 
 }
 
+func getOffset(pageNum int64) int64 {
+	return (pageNum - 1) * pageSize
+}
+
+func SearchPhotos(pageNum int64, q string) ([]Photo, error) {
+
+	var photos []Photo
+	offset := getOffset(pageNum)
+
+	q = "%" + q + "%"
+	if _, err := dbMap.Select(&photos,
+		"SELECT * FROM photos WHERE title LIKE $1 "+
+			"ORDER BY created_at DESC LIMIT $2 OFFSET $3",
+		q, pageSize, offset); err != nil {
+		return photos, err
+	}
+	return photos, nil
+
+}
+
 func GetPhotos(pageNum int64) ([]Photo, error) {
 
 	var photos []Photo
 
-	offset := (pageNum - 1) * pageSize
+	offset := getOffset(pageNum)
 
 	if _, err := dbMap.Select(&photos, "SELECT * FROM photos ORDER BY created_at DESC LIMIT $1 OFFSET $2", pageSize, offset); err != nil {
 		return photos, err

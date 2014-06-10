@@ -18,17 +18,59 @@ func validateEmail(email string) bool {
 	return emailRegex.Match([]byte(email))
 }
 
+type UserManager interface {
+    GetActive(userID int) (*User, error) 
+    Authenticate(identifier string, password string) (*User, error) 
+}
+
+type defaultUserManager struct {}
+
+func (mgr *defaultUserManager) GetActive(userID int) (*User, error) {
+
+	user := &User{}
+	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return user, nil
+
+}
+
+func (mgr *defaultUserManager) Authenticate(identifier string, password string) (*User, error) {
+	user := &User{}
+	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	if !user.CheckPassword(password) {
+		return nil, nil
+	}
+
+	return user, nil
+}
+
+var userMgr = &defaultUserManager{}
+
+func NewUserManager() (UserManager) {
+    return userMgr
+}
+
 type Authenticator struct {
 	Identifier string `json:"identifier"`
 	Password   string `json:"password"`
 }
 
-func (auth *Authenticator) Identify() (*User, error) {
+func (auth *Authenticator) Identify(mgr UserManager) (*User, error) {
 
 	if auth.Identifier == "" || auth.Password == "" {
 		return nil, MissingLoginFields
 	}
-	return GetAuthenticatedUser(auth.Identifier, auth.Password)
+	return mgr.Authenticate(auth.Identifier, auth.Password)
 }
 
 type User struct {
@@ -142,31 +184,3 @@ func (user *User) isEmailAvailable() (bool, error) {
 	return num == 0, nil
 }
 
-func GetActiveUser(userID int) (*User, error) {
-
-	user := &User{}
-	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return user, nil
-
-}
-
-func GetAuthenticatedUser(identifier string, password string) (*User, error) {
-	user := &User{}
-	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	if !user.CheckPassword(password) {
-		return nil, nil
-	}
-
-	return user, nil
-}

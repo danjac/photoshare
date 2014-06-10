@@ -29,7 +29,7 @@ func GetCurrentUser(r *http.Request) (*models.User, error) {
 		return nil, nil
 	}
 
-	return models.GetActiveUser(userID)
+	return models.NewUserManager().GetActive(userID)
 }
 
 func Login(w http.ResponseWriter, user *models.User) error {

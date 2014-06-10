@@ -13,8 +13,8 @@ import (
 func main() {
 
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s",
-		os.Getenv("DB_NAME"),
 		os.Getenv("DB_USER"),
+		os.Getenv("DB_NAME"),
 		os.Getenv("DB_PASS"),
 	))
 

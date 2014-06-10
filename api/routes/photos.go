@@ -21,7 +21,9 @@ func isAllowedContentType(contentType string) bool {
 
 func deletePhoto(c *AppContext) error {
 
-	photo, err := models.GetPhoto(c.Param("id"))
+	photoMgr := models.NewPhotoManager()
+
+	photo, err := photoMgr.Get(c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -41,7 +43,8 @@ func deletePhoto(c *AppContext) error {
 
 func photoDetail(c *AppContext) error {
 
-	photo, err := models.GetPhotoDetail(c.Param("id"))
+	photoMgr := models.NewPhotoManager()
+	photo, err := photoMgr.Get(c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -54,7 +57,9 @@ func photoDetail(c *AppContext) error {
 
 func editPhoto(c *AppContext) error {
 
-	photo, err := models.GetPhoto(c.Param("id"))
+	photoMgr := models.NewPhotoManager()
+
+	photo, err := photoMgr.Get(c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -137,11 +142,12 @@ func getPhotos(c *AppContext) error {
 	}
 
 	q := c.FormValue("q")
+	photoMgr := models.NewPhotoManager()
 
 	if q == "" {
-		photos, err = models.GetPhotos(pageNum)
+		photos, err = photoMgr.All(pageNum)
 	} else {
-		photos, err = models.SearchPhotos(pageNum, q)
+		photos, err = photoMgr.Search(pageNum, q)
 	}
 	if err != nil {
 		return err

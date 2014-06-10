@@ -37,7 +37,7 @@ func login(c *AppContext) error {
 	if err := c.ParseJSON(auth); err != nil {
 		return err
 	}
-	user, err := auth.Identify()
+	user, err := auth.Identify(models.NewUserManager())
 	if err != nil {
 		if err == models.MissingLoginFields {
 			return c.BadRequest("Missing email or password")

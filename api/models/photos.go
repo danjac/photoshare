@@ -82,7 +82,22 @@ type PhotoDetail struct {
 	Photo     string    `db:"photo" json:"photo"`
 }
 
-func GetPhoto(photoID string) (*Photo, error) {
+type PhotoManager interface {
+	Get(photoID string) (*Photo, error)
+	GetDetail(photoID string) (*PhotoDetail, error)
+	All(pageNum int64) ([]Photo, error)
+	Search(pageNum int64, q string) ([]Photo, error)
+}
+
+type defaultPhotoManager struct{}
+
+var photoMgr = &defaultPhotoManager{}
+
+func NewPhotoManager() PhotoManager {
+	return photoMgr
+}
+
+func (mgr *defaultPhotoManager) Get(photoID string) (*Photo, error) {
 
 	photo := &Photo{}
 	obj, err := dbMap.Get(photo, photoID)
@@ -95,7 +110,7 @@ func GetPhoto(photoID string) (*Photo, error) {
 	return obj.(*Photo), nil
 }
 
-func GetPhotoDetail(photoID string) (*PhotoDetail, error) {
+func (mgr *defaultPhotoManager) GetDetail(photoID string) (*PhotoDetail, error) {
 
 	photo := &PhotoDetail{}
 
@@ -113,11 +128,7 @@ func GetPhotoDetail(photoID string) (*PhotoDetail, error) {
 
 }
 
-func getOffset(pageNum int64) int64 {
-	return (pageNum - 1) * constants.PageSize
-}
-
-func SearchPhotos(pageNum int64, q string) ([]Photo, error) {
+func (mgr *defaultPhotoManager) Search(pageNum int64, q string) ([]Photo, error) {
 
 	var photos []Photo
 	offset := getOffset(pageNum)
@@ -133,7 +144,7 @@ func SearchPhotos(pageNum int64, q string) ([]Photo, error) {
 
 }
 
-func GetPhotos(pageNum int64) ([]Photo, error) {
+func (mgr *defaultPhotoManager) All(pageNum int64) ([]Photo, error) {
 
 	var photos []Photo
 
@@ -145,4 +156,8 @@ func GetPhotos(pageNum int64) ([]Photo, error) {
 		return photos, err
 	}
 	return photos, nil
+}
+
+func getOffset(pageNum int64) int64 {
+	return (pageNum - 1) * constants.PageSize
 }

@@ -41,7 +41,7 @@ func deletePhoto(c *AppContext) error {
 
 func photoDetail(c *AppContext) error {
 
-	photo, err := models.GetPhoto(c.Param("id"))
+	photo, err := models.GetPhotoDetail(c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -123,13 +123,23 @@ func upload(c *AppContext) error {
 }
 
 func getPhotos(c *AppContext) error {
+	var (
+		err    error
+		photos []models.Photo
+	)
 
 	pageNum, err := strconv.ParseInt(c.FormValue("page"), 10, 64)
 	if err != nil {
 		pageNum = 1
 	}
 
-	photos, err := models.GetPhotos(pageNum)
+	q := c.FormValue("q")
+
+	if q == "" {
+		photos, err = models.GetPhotos(pageNum)
+	} else {
+		photos, err = models.SearchPhotos(pageNum, q)
+	}
 	if err != nil {
 		return err
 	}

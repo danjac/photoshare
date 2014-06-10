@@ -126,7 +126,7 @@ func SearchPhotos(pageNum int64, q string) ([]Photo, error) {
 
 	q = "%" + q + "%"
 	if _, err := dbMap.Select(&photos,
-		"SELECT * FROM photos WHERE title LIKE $1 "+
+		"SELECT * FROM photos WHERE title ILIKE $1 "+
 			"ORDER BY created_at DESC LIMIT $2 OFFSET $3",
 		q, pageSize, offset); err != nil {
 		return photos, err

@@ -19,9 +19,15 @@ func isAllowedContentType(contentType string) bool {
 	return false
 }
 
+func getPhotoManager() models.PhotoManager {
+	return models.NewPhotoManager()
+}
+
 func deletePhoto(c *AppContext) error {
 
-	photo, err := models.NewPhotoManager().Get(c.Param("id"))
+	photoMgr := getPhotoManager()
+
+	photo, err := photoMgr.Get(c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -32,7 +38,7 @@ func deletePhoto(c *AppContext) error {
 	if !photo.CanDelete(c.User) {
 		return c.Forbidden("You can't delete this photo")
 	}
-	if err := photo.Delete(); err != nil {
+	if err := photoMgr.Delete(photo); err != nil {
 		return err
 	}
 
@@ -41,7 +47,7 @@ func deletePhoto(c *AppContext) error {
 
 func photoDetail(c *AppContext) error {
 
-	photo, err := models.NewPhotoManager().Get(c.Param("id"))
+	photo, err := getPhotoManager().Get(c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -54,7 +60,9 @@ func photoDetail(c *AppContext) error {
 
 func editPhoto(c *AppContext) error {
 
-	photo, err := models.NewPhotoManager().Get(c.Param("id"))
+	photoMgr := getPhotoManager()
+
+	photo, err := photoMgr.Get(c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -79,7 +87,7 @@ func editPhoto(c *AppContext) error {
 		return c.BadRequest(result)
 	}
 
-	if err := photo.Update(); err != nil {
+	if err := photoMgr.Update(photo); err != nil {
 		return err
 	}
 
@@ -118,7 +126,7 @@ func upload(c *AppContext) error {
 		return c.BadRequest(result)
 	}
 
-	if err := photo.Insert(); err != nil {
+	if err := getPhotoManager().Insert(photo); err != nil {
 		return err
 	}
 
@@ -137,7 +145,7 @@ func getPhotos(c *AppContext) error {
 	}
 
 	q := c.FormValue("q")
-	photoMgr := models.NewPhotoManager()
+	photoMgr := getPhotoManager()
 
 	if q == "" {
 		photos, err = photoMgr.All(pageNum)

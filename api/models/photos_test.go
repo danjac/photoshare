@@ -56,7 +56,7 @@ func TestSearchPhotos(t *testing.T) {
 	if err := photo.Insert(); err != nil {
 		panic(err)
 	}
-    photoMgr := NewPhotoManager()
+	photoMgr := NewPhotoManager()
 	photos, err := photoMgr.Search(1, "test")
 	if err != nil {
 		panic(err)
@@ -78,7 +78,7 @@ func TestGetPhotos(t *testing.T) {
 	if err := photo.Insert(); err != nil {
 		panic(err)
 	}
-    photoMgr := NewPhotoManager()
+	photoMgr := NewPhotoManager()
 	photos, err := photoMgr.All(1)
 	if err != nil {
 		panic(err)

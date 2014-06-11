@@ -52,20 +52,6 @@ func (photo *Photo) CanEdit(user *User) bool {
 	return user.ID == photo.OwnerID
 }
 
-func (photo *Photo) Delete() error {
-	_, err := dbMap.Delete(photo)
-	return err
-}
-
-func (photo *Photo) Update() error {
-	_, err := dbMap.Update(photo)
-	return err
-}
-
-func (photo *Photo) Insert() error {
-	return dbMap.Insert(photo)
-}
-
 func (photo *Photo) Validate() *ValidationResult {
 	result := NewValidationResult()
 	if photo.OwnerID == 0 {
@@ -93,6 +79,9 @@ type PhotoDetail struct {
 }
 
 type PhotoManager interface {
+	Insert(*Photo) error
+	Update(*Photo) error
+	Delete(*Photo) error
 	Get(photoID string) (*Photo, error)
 	GetDetail(photoID string) (*PhotoDetail, error)
 	All(pageNum int64) ([]Photo, error)
@@ -105,6 +94,20 @@ var photoMgr = &defaultPhotoManager{}
 
 func NewPhotoManager() PhotoManager {
 	return photoMgr
+}
+
+func (mgr *defaultPhotoManager) Delete(photo *Photo) error {
+	_, err := dbMap.Delete(photo)
+	return err
+}
+
+func (mgr *defaultPhotoManager) Update(photo *Photo) error {
+	_, err := dbMap.Update(photo)
+	return err
+}
+
+func (mgr *defaultPhotoManager) Insert(photo *Photo) error {
+	return dbMap.Insert(photo)
 }
 
 func (mgr *defaultPhotoManager) Get(photoID string) (*Photo, error) {

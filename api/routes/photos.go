@@ -75,7 +75,12 @@ func editPhoto(c *AppContext) error {
 
 	photo.Title = newPhoto.Title
 
-	if result := photo.Validate(); !result.OK {
+	validator := &models.PhotoValidator{photo}
+
+	if result, err := validator.Validate(); err != nil || !result.OK {
+		if err != nil {
+			return err
+		}
 		return c.BadRequest(result)
 	}
 
@@ -114,7 +119,11 @@ func upload(c *AppContext) error {
 	photo := &models.Photo{Title: title,
 		OwnerID: c.User.ID, Photo: filename}
 
-	if result := photo.Validate(); !result.OK {
+	validator := &models.PhotoValidator{photo}
+	if result, err := validator.Validate(); err != nil || !result.OK {
+		if err != nil {
+			return err
+		}
 		return c.BadRequest(result)
 	}
 

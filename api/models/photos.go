@@ -62,21 +62,25 @@ func (photo *Photo) CanEdit(user *User) bool {
 	return user.ID == photo.OwnerID
 }
 
-func (photo *Photo) Validate() *ValidationResult {
+type PhotoValidator struct {
+	Photo *Photo
+}
+
+func (v *PhotoValidator) Validate() (*ValidationResult, error) {
 	result := NewValidationResult()
-	if photo.OwnerID == 0 {
+	if v.Photo.OwnerID == 0 {
 		result.Error("owner_id", "Owner ID is missing")
 	}
-	if photo.Title == "" {
+	if v.Photo.Title == "" {
 		result.Error("title", "Title is missing")
 	}
-	if len(photo.Title) > 200 {
+	if len(v.Photo.Title) > 200 {
 		result.Error("title", "Title is too long")
 	}
-	if photo.Photo == "" {
-		result.Error("photo", "Photo filename not set")
+	if v.Photo.Photo == "" {
+		result.Error("v.Photo", "v.Photo filename not set")
 	}
-	return result
+	return result, nil
 }
 
 type PhotoDetail struct {

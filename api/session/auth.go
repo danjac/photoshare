@@ -14,6 +14,10 @@ var hashKey = securecookie.GenerateRandomKey(32)
 var blockKey = securecookie.GenerateRandomKey(32)
 var sCookie = securecookie.New(hashKey, blockKey)
 
+func getUserManager() models.UserManager {
+	return models.NewUserManager()
+}
+
 func GetCurrentUser(r *http.Request) (*models.User, error) {
 	cookie, err := r.Cookie(CookieName)
 	if err != nil {
@@ -29,7 +33,7 @@ func GetCurrentUser(r *http.Request) (*models.User, error) {
 		return nil, nil
 	}
 
-	return models.NewUserManager().GetActive(userID)
+	return getUserManager().GetActive(userID)
 }
 
 func Login(w http.ResponseWriter, user *models.User) error {

@@ -19,12 +19,54 @@ func validateEmail(email string) bool {
 }
 
 type UserManager interface {
+	Insert(user *User) error
+	IsNameAvailable(user *User) (bool, error)
+	IsEmailAvailable(user *User) (bool, error)
 	GetActive(userID int) (*User, error)
 	Authenticate(identifier string, password string) (*User, error)
 }
 
 type defaultUserManager struct{}
 
+func (mgr *defaultUserManager) Insert(user *User) error {
+	return dbMap.Insert(user)
+}
+
+func (mgr *defaultUserManager) IsNameAvailable(user *User) (bool, error) {
+	var (
+		num int64
+		err error
+	)
+	q := "SELECT COUNT(id) FROM users WHERE name=$1"
+	if user.ID == 0 {
+		num, err = dbMap.SelectInt(q, user.Name)
+	} else {
+		q += " AND id != $2"
+		num, err = dbMap.SelectInt(q, user.Name, user.ID)
+	}
+	if err != nil {
+		return false, err
+	}
+	return num == 0, nil
+}
+
+func (mgr *defaultUserManager) IsEmailAvailable(user *User) (bool, error) {
+	var (
+		num int64
+		err error
+	)
+	q := "SELECT COUNT(id) FROM users WHERE email=$1"
+	if user.ID == 0 {
+		num, err = dbMap.SelectInt(q, user.Email)
+	} else {
+		q += " AND id != $2"
+		num, err = dbMap.SelectInt(q, user.Email, user.ID)
+	}
+	if err != nil {
+		return false, err
+	}
+	return num == 0, nil
+}
 func (mgr *defaultUserManager) GetActive(userID int) (*User, error) {
 
 	user := &User{}
@@ -105,18 +147,14 @@ func (user *User) CheckPassword(password string) bool {
 	return err == nil
 }
 
-func (user *User) Insert() error {
-	return dbMap.Insert(user)
-}
-
-func (user *User) Validate() (*ValidationResult, error) {
+func (user *User) Validate(mgr UserManager) (*ValidationResult, error) {
 
 	result := NewValidationResult()
 
 	if user.Name == "" {
 		result.Error("name", "Name is missing")
 	} else {
-		ok, err := user.isNameAvailable()
+		ok, err := mgr.IsNameAvailable(user)
 		if err != nil {
 			return result, err
 		}
@@ -130,7 +168,7 @@ func (user *User) Validate() (*ValidationResult, error) {
 	} else if !validateEmail(user.Email) {
 		result.Error("email", "Invalid email address")
 	} else {
-		ok, err := user.isEmailAvailable()
+		ok, err := mgr.IsEmailAvailable(user)
 		if err != nil {
 			return result, err
 		}
@@ -146,40 +184,4 @@ func (user *User) Validate() (*ValidationResult, error) {
 	log.Println(result.Errors)
 
 	return result, nil
-}
-
-func (user *User) isNameAvailable() (bool, error) {
-	var (
-		num int64
-		err error
-	)
-	q := "SELECT COUNT(id) FROM users WHERE name=$1"
-	if user.ID == 0 {
-		num, err = dbMap.SelectInt(q, user.Name)
-	} else {
-		q += " AND id != $2"
-		num, err = dbMap.SelectInt(q, user.Name, user.ID)
-	}
-	if err != nil {
-		return false, err
-	}
-	return num == 0, nil
-}
-
-func (user *User) isEmailAvailable() (bool, error) {
-	var (
-		num int64
-		err error
-	)
-	q := "SELECT COUNT(id) FROM users WHERE email=$1"
-	if user.ID == 0 {
-		num, err = dbMap.SelectInt(q, user.Email)
-	} else {
-		q += " AND id != $2"
-		num, err = dbMap.SelectInt(q, user.Email, user.ID)
-	}
-	if err != nil {
-		return false, err
-	}
-	return num == 0, nil
 }

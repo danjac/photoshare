@@ -17,9 +17,42 @@ func MakeMockAppContext(user *models.User) *AppContext {
 
 }
 
-func TestGetPhotos(t *testing.T) {
+type MockPhotoManager struct {
+}
 
-	//c := MakeMockAppContext(nil)
-	//getPhotos(c)
+func (m *MockPhotoManager) Get(photoID string) (*models.Photo, error) {
+	return nil, nil
+}
+
+func (m *MockPhotoManager) GetDetail(photoID string) (*models.PhotoDetail, error) {
+	return nil, nil
+}
+
+func (m *MockPhotoManager) All(pageNum int64) ([]models.Photo, error) {
+	return []models.Photo{}, nil
+}
+
+func (m *MockPhotoManager) Search(pageNum int64, q string) ([]models.Photo, error) {
+	return []models.Photo{}, nil
+}
+
+func (m *MockPhotoManager) Delete(photo *models.Photo) error {
+	return nil
+}
+
+func (m *MockPhotoManager) Insert(photo *models.Photo) error {
+	return nil
+}
+
+func (m *MockPhotoManager) Update(photo *models.Photo) error {
+	return nil
+}
+
+func TestGetPhotos(t *testing.T) {
+	photoMgr = &MockPhotoManager{}
+	c := MakeMockAppContext(nil)
+	if err := getPhotos(c); err != nil {
+		t.Error(err)
+	}
 
 }

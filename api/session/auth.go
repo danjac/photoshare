@@ -10,10 +10,12 @@ const (
 	CookieName = "userid"
 )
 
-var hashKey = securecookie.GenerateRandomKey(32)
-var blockKey = securecookie.GenerateRandomKey(32)
-var sCookie = securecookie.New(hashKey, blockKey)
-var userMgr = models.NewUserManager()
+var (
+	hashKey  = securecookie.GenerateRandomKey(32)
+	blockKey = securecookie.GenerateRandomKey(32)
+	sCookie  = securecookie.New(hashKey, blockKey)
+	userMgr  = models.NewUserManager()
+)
 
 func GetCurrentUser(r *http.Request) (*models.User, error) {
 	cookie, err := r.Cookie(CookieName)

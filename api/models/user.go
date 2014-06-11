@@ -147,14 +147,19 @@ func (user *User) CheckPassword(password string) bool {
 	return err == nil
 }
 
-func (user *User) Validate(mgr UserManager) (*ValidationResult, error) {
+type UserValidator struct {
+	User    *User
+	UserMgr UserManager
+}
+
+func (v *UserValidator) Validate() (*ValidationResult, error) {
 
 	result := NewValidationResult()
 
-	if user.Name == "" {
+	if v.User.Name == "" {
 		result.Error("name", "Name is missing")
 	} else {
-		ok, err := mgr.IsNameAvailable(user)
+		ok, err := v.UserMgr.IsNameAvailable(v.User)
 		if err != nil {
 			return result, err
 		}
@@ -163,12 +168,12 @@ func (user *User) Validate(mgr UserManager) (*ValidationResult, error) {
 		}
 	}
 
-	if user.Email == "" {
+	if v.User.Email == "" {
 		result.Error("email", "Email is missing")
-	} else if !validateEmail(user.Email) {
+	} else if !validateEmail(v.User.Email) {
 		result.Error("email", "Invalid email address")
 	} else {
-		ok, err := mgr.IsEmailAvailable(user)
+		ok, err := v.UserMgr.IsEmailAvailable(v.User)
 		if err != nil {
 			return result, err
 		}
@@ -178,10 +183,11 @@ func (user *User) Validate(mgr UserManager) (*ValidationResult, error) {
 
 	}
 
-	if user.Password == "" {
+	if v.User.Password == "" {
 		result.Error("password", "Password is missing")
 	}
 	log.Println(result.Errors)
 
 	return result, nil
+
 }

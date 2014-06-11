@@ -1,5 +1,9 @@
 package models
 
+type Validator interface {
+	Validate() (*ValidationResult, error)
+}
+
 type ValidationResult struct {
 	Errors map[string]string `json:"errors"`
 	OK     bool              `json:"ok"`

@@ -61,7 +61,9 @@ func signup(c *AppContext) error {
 		return err
 	}
 
-	if result, err := user.Validate(userMgr); err != nil || !result.OK {
+	validator := &models.UserValidator{user, userMgr}
+
+	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
 			return err
 		}

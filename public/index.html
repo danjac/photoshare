@@ -27,6 +27,14 @@
         <ul class="nav navbar-nav">
             <navtab url="#/list">Latest photos</navtab>
             <navtab url="#/upload" ng-show="auth.loggedIn">Upload a photo</navtab>
+            <li>
+            <form class="navbar-form navbar-left" role="search" name="searchForm" novalidate>
+              <div class="form-group">
+                <input type="text" class="form-control" placeholder="Search" ng-model="searchQuery" required>
+              </div>
+              <button type="submit" class="btn btn-default" ng-disabled="searchForm.$invalid" ng-click="doSearch()">Go</button>
+            </form>
+            </li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
             <navtab url="#/login" ng-show="!auth.loggedIn">Login</navtab>

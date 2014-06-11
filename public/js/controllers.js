@@ -12,6 +12,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
             $scope.auth = Authenticator;
             $scope.alert = Alert;
+            $scope.searchQuery = "";
 
             $scope.$watch('alert.message', function (newValue, oldValue) {
                 if (newValue) {
@@ -38,19 +39,24 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 $scope.auth.currentUser = newUser;
             });
             */
+
+            $scope.doSearch = function () {
+                $location.path("/search/" + $scope.searchQuery);
+            };
         }])
 
     .controller('ListCtrl', ['$scope',
                              '$location',
+                             '$routeParams',
                              'Photo',
                              'pageSize',
-                             function ($scope, $location, Photo, pageSize) {
-            var page = 1, stopScrolling = false;
+                             function ($scope, $location, $routeParams, Photo, pageSize) {
+            var page = 1, stopScrolling = false, q = $routeParams.q || "";
 
             $scope.photos = [];
             $scope.nextPage = function () {
                 if (!stopScrolling) {
-                    Photo.query({page: page}).$promise.then(function (photos) {
+                    Photo.query({page: page, q: q}).$promise.then(function (photos) {
                         $scope.photos = $scope.photos.concat(photos);
                         if (photos.length < pageSize) {
                             stopScrolling = true;

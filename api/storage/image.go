@@ -1,8 +1,7 @@
-package utils
+package storage
 
 import (
 	"code.google.com/p/graphics-go/graphics"
-	"github.com/danjac/photoshare/api/constants"
 	"github.com/dchest/uniuri"
 	"image"
 	"image/jpeg"
@@ -10,7 +9,12 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
-	"strings"
+	"path"
+)
+
+const (
+	UploadsDir    = "./public/uploads"
+	ThumbnailsDir = "./public/uploads/thumbnails"
 )
 
 func generateRandomFilename(contentType string) string {
@@ -26,15 +30,19 @@ type ImageProcessor interface {
 }
 
 type LocalImageProcessor struct {
-	BaseDir          string
-	ThumbnailsPrefix string
+	BaseDir       string
+	ThumbnailsDir string
 }
 
 func (processor LocalImageProcessor) Process(src multipart.File, contentType string) (string, error) {
 
 	filename := generateRandomFilename(contentType)
 
-	if err := os.MkdirAll(processor.BaseDir+processor.ThumbnailsPrefix, 0777); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(processor.BaseDir, 0777); err != nil && !os.IsExist(err) {
+		return filename, err
+	}
+
+	if err := os.MkdirAll(processor.ThumbnailsDir, 0777); err != nil && !os.IsExist(err) {
 		return filename, err
 	}
 
@@ -57,7 +65,7 @@ func (processor LocalImageProcessor) Process(src multipart.File, contentType str
 	thumb := image.NewRGBA(image.Rect(0, 0, 300, 300))
 	graphics.Thumbnail(thumb, img)
 
-	dst, err := os.Create(strings.Join([]string{processor.BaseDir, processor.ThumbnailsPrefix, filename}, "/"))
+	dst, err := os.Create(path.Join(processor.ThumbnailsDir, filename))
 
 	if err != nil {
 		return filename, err
@@ -73,7 +81,7 @@ func (processor LocalImageProcessor) Process(src multipart.File, contentType str
 
 	src.Seek(0, 0)
 
-	dst, err = os.Create(strings.Join([]string{processor.BaseDir, filename}, "/"))
+	dst, err = os.Create(path.Join(processor.BaseDir, filename))
 
 	if err != nil {
 		return filename, err
@@ -91,5 +99,5 @@ func (processor LocalImageProcessor) Process(src multipart.File, contentType str
 }
 
 func NewImageProcessor() ImageProcessor {
-	return LocalImageProcessor{constants.UploadsDir, constants.ThumbnailsPrefix}
+	return LocalImageProcessor{UploadsDir, ThumbnailsDir}
 }

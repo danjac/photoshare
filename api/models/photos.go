@@ -3,10 +3,14 @@ package models
 import (
 	"database/sql"
 	"github.com/coopernurse/gorp"
-	"github.com/danjac/photoshare/api/constants"
+	"github.com/danjac/photoshare/api/storage"
 	"os"
-	"strings"
+	"path"
 	"time"
+)
+
+const (
+	PageSize = 32
 )
 
 type Photo struct {
@@ -23,15 +27,21 @@ func (photo *Photo) PreInsert(s gorp.SqlExecutor) error {
 }
 
 func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
-	filename := strings.Join([]string{constants.UploadsDir, photo.Photo}, "/")
-	if err := os.Remove(filename); err != nil {
+	if err := os.Remove(photo.GetFilePath()); err != nil {
 		return err
 	}
-	thumbnail := strings.Join([]string{constants.UploadsDir, "thumbnails", photo.Photo}, "/")
-	if err := os.Remove(thumbnail); err != nil {
+	if err := os.Remove(photo.GetThumbnailPath()); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (photo *Photo) GetFilePath() string {
+	return path.Join(storage.UploadsDir, photo.Photo)
+}
+
+func (photo *Photo) GetThumbnailPath() string {
+	return path.Join(storage.ThumbnailsDir, photo.Photo)
 }
 
 func (photo *Photo) CanDelete(user *User) bool {
@@ -137,7 +147,7 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) ([]Photo, error)
 	if _, err := dbMap.Select(&photos,
 		"SELECT * FROM photos WHERE title ILIKE $1 "+
 			"ORDER BY created_at DESC LIMIT $2 OFFSET $3",
-		q, constants.PageSize, offset); err != nil {
+		q, PageSize, offset); err != nil {
 		return photos, err
 	}
 	return photos, nil
@@ -152,12 +162,12 @@ func (mgr *defaultPhotoManager) All(pageNum int64) ([]Photo, error) {
 
 	if _, err := dbMap.Select(&photos,
 		"SELECT * FROM photos "+
-			"ORDER BY created_at DESC LIMIT $1 OFFSET $2", constants.PageSize, offset); err != nil {
+			"ORDER BY created_at DESC LIMIT $1 OFFSET $2", PageSize, offset); err != nil {
 		return photos, err
 	}
 	return photos, nil
 }
 
 func getOffset(pageNum int64) int64 {
-	return (pageNum - 1) * constants.PageSize
+	return (pageNum - 1) * PageSize
 }

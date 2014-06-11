@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/utils"
+	"github.com/danjac/photoshare/api/storage"
 	"net/http"
 	"strconv"
 )
@@ -21,9 +21,7 @@ func isAllowedContentType(contentType string) bool {
 
 func deletePhoto(c *AppContext) error {
 
-	photoMgr := models.NewPhotoManager()
-
-	photo, err := photoMgr.Get(c.Param("id"))
+	photo, err := models.NewPhotoManager().Get(c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -43,8 +41,7 @@ func deletePhoto(c *AppContext) error {
 
 func photoDetail(c *AppContext) error {
 
-	photoMgr := models.NewPhotoManager()
-	photo, err := photoMgr.Get(c.Param("id"))
+	photo, err := models.NewPhotoManager().Get(c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -57,9 +54,7 @@ func photoDetail(c *AppContext) error {
 
 func editPhoto(c *AppContext) error {
 
-	photoMgr := models.NewPhotoManager()
-
-	photo, err := photoMgr.Get(c.Param("id"))
+	photo, err := models.NewPhotoManager().Get(c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -109,7 +104,7 @@ func upload(c *AppContext) error {
 
 	defer src.Close()
 
-	processor := utils.NewImageProcessor()
+	processor := storage.NewImageProcessor()
 	filename, err := processor.Process(src, contentType)
 
 	if err != nil {

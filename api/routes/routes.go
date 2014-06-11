@@ -1,11 +1,12 @@
 package routes
 
 import (
-	"github.com/danjac/photoshare/api/constants"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/gorilla/mux"
 	"net/http"
 )
+
+const PublicDir = "./public/"
 
 func GetHandler() http.Handler {
 
@@ -29,7 +30,7 @@ func GetHandler() http.Handler {
 
 	user.HandleFunc("/", MakeAppHandler(signup, false)).Methods("POST")
 
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir(constants.PublicDir)))
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir(PublicDir)))
 
 	return session.NewCSRF(r)
 }

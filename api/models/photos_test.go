@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestGetPhotoIfNotNone(t *testing.T) {
+func TestGetIfNotNone(t *testing.T) {
 
 	tdb := MakeTestDB()
 	defer tdb.Clean()
@@ -19,7 +19,7 @@ func TestGetPhotoIfNotNone(t *testing.T) {
 		panic(err)
 	}
 
-	photo, err := GetPhoto(strconv.FormatInt(photo.ID, 10))
+	photo, err := NewPhotoManager().Get(strconv.FormatInt(photo.ID, 10))
 	if err != nil {
 		panic(err)
 	}
@@ -29,12 +29,12 @@ func TestGetPhotoIfNotNone(t *testing.T) {
 
 }
 
-func TestGetPhotoIfNone(t *testing.T) {
+func TestGetIfNone(t *testing.T) {
 
 	tdb := MakeTestDB()
 	defer tdb.Clean()
 
-	photo, err := GetPhoto("1")
+	photo, err := NewPhotoManager().Get("1")
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +56,8 @@ func TestSearchPhotos(t *testing.T) {
 	if err := photo.Insert(); err != nil {
 		panic(err)
 	}
-	photos, err := SearchPhotos(1, "test")
+    photoMgr := NewPhotoManager()
+	photos, err := photoMgr.Search(1, "test")
 	if err != nil {
 		panic(err)
 	}
@@ -77,7 +78,8 @@ func TestGetPhotos(t *testing.T) {
 	if err := photo.Insert(); err != nil {
 		panic(err)
 	}
-	photos, err := GetPhotos(1)
+    photoMgr := NewPhotoManager()
+	photos, err := photoMgr.All(1)
 	if err != nil {
 		panic(err)
 	}

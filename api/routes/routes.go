@@ -1,12 +1,18 @@
 package routes
 
 import (
+	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 const PublicDir = "./public/"
+
+var (
+	photoMgr = models.NewPhotoManager()
+	userMgr  = models.NewUserManager()
+)
 
 func GetHandler() http.Handler {
 

@@ -31,7 +31,7 @@
         <ul class="nav navbar-nav navbar-right">
             <navtab url="#/login" ng-show="!auth.loggedIn">Login</navtab>
             <navtab url="#/signup" ng-show="!auth.loggedIn">Signup</navtab>
-            <li ng-show="auth.loggedIn"><span class="navbar-text">You are signed in as {{ auth.currentUser.name }}</span></li>
+            <li ng-show="auth.loggedIn"><p class="navbar-text">You are signed in as {{ auth.currentUser.name }}</p></li>
             <li><a ng-click="logout()" ng-show="auth.loggedIn">Logout</a></li>
         </ul>
       </div>

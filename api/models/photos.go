@@ -13,6 +13,16 @@ const (
 	PageSize = 32
 )
 
+type PhotoManager interface {
+	Insert(*Photo) error
+	Update(*Photo) error
+	Delete(*Photo) error
+	Get(photoID string) (*Photo, error)
+	GetDetail(photoID string) (*PhotoDetail, error)
+	All(pageNum int64) ([]Photo, error)
+	Search(pageNum int64, q string) ([]Photo, error)
+}
+
 type Photo struct {
 	ID        int64     `db:"id" json:"id"`
 	OwnerID   int64     `db:"owner_id" json:"ownerId"`
@@ -76,16 +86,6 @@ type PhotoDetail struct {
 	CreatedAt time.Time `db:"created_at" json:"createdAt"`
 	Title     string    `db:"title" json:"title"`
 	Photo     string    `db:"photo" json:"photo"`
-}
-
-type PhotoManager interface {
-	Insert(*Photo) error
-	Update(*Photo) error
-	Delete(*Photo) error
-	Get(photoID string) (*Photo, error)
-	GetDetail(photoID string) (*PhotoDetail, error)
-	All(pageNum int64) ([]Photo, error)
-	Search(pageNum int64, q string) ([]Photo, error)
 }
 
 type defaultPhotoManager struct{}

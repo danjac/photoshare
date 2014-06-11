@@ -19,13 +19,7 @@ func isAllowedContentType(contentType string) bool {
 	return false
 }
 
-func getPhotoManager() models.PhotoManager {
-	return models.NewPhotoManager()
-}
-
 func deletePhoto(c *AppContext) error {
-
-	photoMgr := getPhotoManager()
 
 	photo, err := photoMgr.Get(c.Param("id"))
 	if err != nil {
@@ -47,7 +41,7 @@ func deletePhoto(c *AppContext) error {
 
 func photoDetail(c *AppContext) error {
 
-	photo, err := getPhotoManager().Get(c.Param("id"))
+	photo, err := photoMgr.Get(c.Param("id"))
 	if err != nil {
 		return err
 	}
@@ -59,8 +53,6 @@ func photoDetail(c *AppContext) error {
 }
 
 func editPhoto(c *AppContext) error {
-
-	photoMgr := getPhotoManager()
 
 	photo, err := photoMgr.Get(c.Param("id"))
 	if err != nil {
@@ -126,7 +118,7 @@ func upload(c *AppContext) error {
 		return c.BadRequest(result)
 	}
 
-	if err := getPhotoManager().Insert(photo); err != nil {
+	if err := photoMgr.Insert(photo); err != nil {
 		return err
 	}
 
@@ -145,7 +137,6 @@ func getPhotos(c *AppContext) error {
 	}
 
 	q := c.FormValue("q")
-	photoMgr := getPhotoManager()
 
 	if q == "" {
 		photos, err = photoMgr.All(pageNum)

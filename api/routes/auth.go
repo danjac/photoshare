@@ -5,10 +5,6 @@ import (
 	"net/http"
 )
 
-func getUserManager() models.UserManager {
-	return models.NewUserManager()
-}
-
 func logout(c *AppContext) error {
 
 	if err := c.Logout(); err != nil {
@@ -41,7 +37,7 @@ func login(c *AppContext) error {
 	if err := c.ParseJSON(auth); err != nil {
 		return err
 	}
-	user, err := auth.Identify(getUserManager())
+	user, err := auth.Identify(userMgr)
 	if err != nil {
 		if err == models.MissingLoginFields {
 			return c.BadRequest("Missing email or password")
@@ -64,8 +60,6 @@ func signup(c *AppContext) error {
 	if err := c.ParseJSON(user); err != nil {
 		return err
 	}
-
-	userMgr := getUserManager()
 
 	if result, err := user.Validate(userMgr); err != nil || !result.OK {
 		if err != nil {

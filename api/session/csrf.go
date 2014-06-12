@@ -32,11 +32,10 @@ func (csrf *CSRF) Validate(w http.ResponseWriter, r *http.Request) (bool, error)
 
 	cookie, err := r.Cookie(XsrfCookieName)
 
-	if err := sCookie.Decode(XsrfCookieName, cookie.Value, &token); err != nil {
-		return false, nil
-	}
-
 	if err != nil || cookie.Value == "" {
+		if err := sCookie.Decode(XsrfCookieName, cookie.Value, &token); err != nil {
+			return false, nil
+		}
 		token, err = csrf.Reset(w)
 		if err != nil {
 			return false, err

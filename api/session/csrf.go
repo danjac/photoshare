@@ -6,7 +6,6 @@ import (
 	"github.com/danjac/photoshare/api/settings"
 	"log"
 	"net/http"
-	"time"
 )
 
 const (
@@ -28,20 +27,16 @@ func NewCSRF(handler http.Handler) *CSRF {
 
 func (csrf *CSRF) Validate(w http.ResponseWriter, r *http.Request) (bool, error) {
 
-	var token string
+	token, err := cookieMgr.Read(r, XsrfCookieName, false)
+	if err != nil {
+		return false, err
+	}
 
-	cookie, err := r.Cookie(XsrfCookieName)
-
-	if err != nil || cookie.Value == "" {
-		if err := sCookie.Decode(XsrfCookieName, cookie.Value, &token); err != nil {
-			return false, nil
-		}
+	if token == "" {
 		token, err = csrf.Reset(w)
 		if err != nil {
 			return false, err
 		}
-	} else {
-		token = cookie.Value
 	}
 
 	if r.Method == "GET" || r.Method == "OPTIONS" || r.Method == "HEAD" {
@@ -64,25 +59,7 @@ func (csrf *CSRF) Generate() string {
 }
 
 func (csrf *CSRF) Save(w http.ResponseWriter, token string) error {
-
-	expires := time.Now().AddDate(0, 0, 1)
-
-	encoded, err := sCookie.Encode(XsrfCookieName, token)
-	if err != nil {
-		return err
-	}
-
-	cookie := &http.Cookie{
-		Name:       XsrfCookieName,
-		Value:      encoded,
-		Path:       "/",
-		MaxAge:     86400,
-		Expires:    expires,
-		RawExpires: expires.Format(time.UnixDate),
-	}
-
-	http.SetCookie(w, cookie)
-	return nil
+	return cookieMgr.Write(w, XsrfCookieName, token, false)
 }
 
 func (csrf *CSRF) ServeHTTP(w http.ResponseWriter, r *http.Request) {

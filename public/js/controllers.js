@@ -42,6 +42,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
             $scope.doSearch = function () {
                 $location.path("/search/" + $scope.searchQuery);
+                $scope.searchQuery = "";
             };
         }])
 
@@ -51,9 +52,12 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                              'Photo',
                              'pageSize',
                              function ($scope, $location, $routeParams, Photo, pageSize) {
-            var page = 1, stopScrolling = false, q = $routeParams.q || "";
+            var page = 1,
+                stopScrolling = false,
+                q = $routeParams.q || "";
 
             $scope.photos = [];
+            $scope.searchQuery = q;
             $scope.nextPage = function () {
                 if (!stopScrolling) {
                     Photo.query({page: page, q: q}).$promise.then(function (photos) {

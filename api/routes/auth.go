@@ -62,6 +62,9 @@ func signup(c *AppContext) error {
 		return err
 	}
 
+	// ensure nobody tries to make themselves an admin
+	user.IsAdmin = false
+
 	validator := &validation.UserValidator{user}
 
 	if result, err := validator.Validate(); err != nil || !result.OK {

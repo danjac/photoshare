@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/storage"
+	"github.com/danjac/photoshare/api/validation"
 	"net/http"
 	"strconv"
 )
@@ -75,7 +76,7 @@ func editPhoto(c *AppContext) error {
 
 	photo.Title = newPhoto.Title
 
-	validator := &models.PhotoValidator{photo}
+	validator := &validation.PhotoValidator{photo}
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
@@ -119,7 +120,7 @@ func upload(c *AppContext) error {
 	photo := &models.Photo{Title: title,
 		OwnerID: c.User.ID, Photo: filename}
 
-	validator := &models.PhotoValidator{photo}
+	validator := &validation.PhotoValidator{photo}
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
 			return err

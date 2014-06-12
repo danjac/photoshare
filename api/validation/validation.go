@@ -1,4 +1,4 @@
-package models
+package validation
 
 type Validator interface {
 	Validate() (*ValidationResult, error)

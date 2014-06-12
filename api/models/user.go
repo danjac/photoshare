@@ -5,18 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/coopernurse/gorp"
-	"log"
-	"regexp"
 	"time"
 )
 
 var MissingLoginFields = errors.New("Missing login fields")
-
-var emailRegex = regexp.MustCompile(".+@.+\\..+")
-
-func validateEmail(email string) bool {
-	return emailRegex.Match([]byte(email))
-}
 
 type UserManager interface {
 	Insert(user *User) error
@@ -145,49 +137,4 @@ func (user *User) CheckPassword(password string) bool {
 	}
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	return err == nil
-}
-
-type UserValidator struct {
-	User    *User
-	UserMgr UserManager
-}
-
-func (v *UserValidator) Validate() (*ValidationResult, error) {
-
-	result := NewValidationResult()
-
-	if v.User.Name == "" {
-		result.Error("name", "Name is missing")
-	} else {
-		ok, err := v.UserMgr.IsNameAvailable(v.User)
-		if err != nil {
-			return result, err
-		}
-		if !ok {
-			result.Error("name", "Name already taken")
-		}
-	}
-
-	if v.User.Email == "" {
-		result.Error("email", "Email is missing")
-	} else if !validateEmail(v.User.Email) {
-		result.Error("email", "Invalid email address")
-	} else {
-		ok, err := v.UserMgr.IsEmailAvailable(v.User)
-		if err != nil {
-			return result, err
-		}
-		if !ok {
-			result.Error("email", "Email already taken")
-		}
-
-	}
-
-	if v.User.Password == "" {
-		result.Error("password", "Password is missing")
-	}
-	log.Println(result.Errors)
-
-	return result, nil
-
 }

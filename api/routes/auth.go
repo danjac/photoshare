@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
+	"github.com/danjac/photoshare/api/validation"
 	"net/http"
 )
 
@@ -61,7 +62,7 @@ func signup(c *AppContext) error {
 		return err
 	}
 
-	validator := &models.UserValidator{user, userMgr}
+	validator := &validation.UserValidator{user}
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {

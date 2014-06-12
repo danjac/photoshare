@@ -14,24 +14,26 @@ var (
 	userMgr            = models.NewUserManager()
 )
 
-type Authenticator struct {
-	Identifier string `json:"identifier"`
-	Password   string `json:"password"`
-}
-
-type Session struct {
+// Basic user session info
+type SessionInfo struct {
 	ID       int64  `json:"id"`
 	Name     string `json:"name"`
 	IsAdmin  bool   `json:"isAdmin"`
 	LoggedIn bool   `json:"loggedIn"`
 }
 
-func NewSession(user *models.User) *Session {
+func NewSessionInfo(user *models.User) *SessionInfo {
 	if user == nil || user.ID == 0 {
-		return &Session{}
+		return &SessionInfo{}
 	}
 
-	return &Session{user.ID, user.Name, user.IsAdmin, true}
+	return &SessionInfo{user.ID, user.Name, user.IsAdmin, true}
+}
+
+// Handles user authentication
+type Authenticator struct {
+	Identifier string `json:"identifier"`
+	Password   string `json:"password"`
 }
 
 func (auth *Authenticator) Identify() (*models.User, error) {

@@ -2,29 +2,21 @@ package session
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/gorilla/securecookie"
 	"net/http"
 )
 
-const (
-	CookieName = "userid"
-)
+const UserCookieName = "userid"
 
-var (
-	hashKey  = securecookie.GenerateRandomKey(32)
-	blockKey = securecookie.GenerateRandomKey(32)
-	sCookie  = securecookie.New(hashKey, blockKey)
-	userMgr  = models.NewUserManager()
-)
+var userMgr = models.NewUserManager()
 
 func GetCurrentUser(r *http.Request) (*models.User, error) {
-	cookie, err := r.Cookie(CookieName)
+	cookie, err := r.Cookie(UserCookieName)
 	if err != nil {
 		return nil, nil
 	}
 
 	var userID int
-	if err := sCookie.Decode(CookieName, cookie.Value, &userID); err != nil {
+	if err := sCookie.Decode(UserCookieName, cookie.Value, &userID); err != nil {
 		return nil, nil
 	}
 
@@ -45,13 +37,13 @@ func Logout(w http.ResponseWriter) error {
 
 func writeSessionCookie(w http.ResponseWriter, id int64) error {
 	// write the user ID to the secure cookie
-	encoded, err := sCookie.Encode(CookieName, id)
+	encoded, err := sCookie.Encode(UserCookieName, id)
 	if err != nil {
 		return err
 	}
 
 	cookie := &http.Cookie{
-		Name:  CookieName,
+		Name:  UserCookieName,
 		Value: encoded,
 		Path:  "/",
 	}

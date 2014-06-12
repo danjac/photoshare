@@ -8,7 +8,11 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                             '$timeout',
                             'Authenticator',
                             'Alert',
-                            function ($scope, $location, $timeout, Authenticator, Alert) {
+                            function ($scope,
+                                      $location,
+                                      $timeout,
+                                      Authenticator,
+                                      Alert) {
 
             $scope.auth = Authenticator;
             $scope.alert = Alert;
@@ -21,7 +25,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             });
 
             Authenticator.resource.get({}, function (user) {
-                $scope.auth.loggedIn = true;
+                $scope.auth.loggedIn = user.id === 0 ? false : true;
                 $scope.auth.currentUser = user;
             });
 

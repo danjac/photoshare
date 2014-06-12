@@ -3,7 +3,6 @@ package routes
 import (
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/validation"
-	"net/http"
 )
 
 func logout(c *AppContext) error {
@@ -22,14 +21,10 @@ func authenticate(c *AppContext) error {
 	if err != nil {
 		return err
 	}
-	var status int
 	if user == nil {
-		status = http.StatusNotFound
-	} else {
-		status = http.StatusOK
+		user = &models.User{}
 	}
-
-	return c.Render(status, user)
+	return c.OK(user)
 }
 
 func login(c *AppContext) error {

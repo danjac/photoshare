@@ -3,6 +3,8 @@ package session
 import (
 	"code.google.com/p/xsrftoken"
 	"errors"
+	"github.com/danjac/photoshare/api/settings"
+	"log"
 	"net/http"
 	"time"
 )
@@ -20,45 +22,60 @@ type CSRF struct {
 }
 
 func NewCSRF(handler http.Handler) *CSRF {
-	csrf := &CSRF{string(hashKey), handler}
+	csrf := &CSRF{settings.HashKey, handler}
 	return csrf
 }
 
-func (csrf *CSRF) Validate(w http.ResponseWriter, r *http.Request) bool {
+func (csrf *CSRF) Validate(w http.ResponseWriter, r *http.Request) (bool, error) {
 
 	var token string
 
 	cookie, err := r.Cookie(XsrfCookieName)
+
+	if err := sCookie.Decode(XsrfCookieName, cookie.Value, &token); err != nil {
+		return false, nil
+	}
+
 	if err != nil || cookie.Value == "" {
-		token = csrf.Reset(w)
+		token, err = csrf.Reset(w)
+		if err != nil {
+			return false, err
+		}
 	} else {
 		token = cookie.Value
 	}
 
 	if r.Method == "GET" || r.Method == "OPTIONS" || r.Method == "HEAD" {
-		return true
+		return true, nil
 	}
 
-	return token != "" && token == r.Header.Get(XsrfHeaderName)
+	return token != "" && token == r.Header.Get(XsrfHeaderName), nil
 }
 
-func (csrf *CSRF) Reset(w http.ResponseWriter) string {
+func (csrf *CSRF) Reset(w http.ResponseWriter) (string, error) {
 	token := csrf.Generate()
-	csrf.Save(w, token)
-	return token
+	if err := csrf.Save(w, token); err != nil {
+		return token, err
+	}
+	return token, nil
 }
 
 func (csrf *CSRF) Generate() string {
 	return xsrftoken.Generate(csrf.SecretKey, "xsrf", "POST")
 }
 
-func (csrf *CSRF) Save(w http.ResponseWriter, token string) {
+func (csrf *CSRF) Save(w http.ResponseWriter, token string) error {
 
 	expires := time.Now().AddDate(0, 0, 1)
 
+	encoded, err := sCookie.Encode(XsrfCookieName, token)
+	if err != nil {
+		return err
+	}
+
 	cookie := &http.Cookie{
 		Name:       XsrfCookieName,
-		Value:      token,
+		Value:      encoded,
 		Path:       "/",
 		MaxAge:     86400,
 		Expires:    expires,
@@ -66,10 +83,14 @@ func (csrf *CSRF) Save(w http.ResponseWriter, token string) {
 	}
 
 	http.SetCookie(w, cookie)
+	return nil
 }
 
 func (csrf *CSRF) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if !csrf.Validate(w, r) {
+	if ok, err := csrf.Validate(w, r); !ok || err != nil {
+		if err != nil {
+			log.Println("ERROR:", err)
+		}
 		http.Error(w, InvalidCSRFToken.Error(), http.StatusForbidden)
 		return
 	}

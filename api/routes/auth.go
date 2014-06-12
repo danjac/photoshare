@@ -22,10 +22,18 @@ func authenticate(c *AppContext) error {
 	if err != nil {
 		return err
 	}
+
+    var s *session.Session
+
 	if user == nil {
-		user = &models.User{}
-	}
-	return c.OK(user)
+		s = &session.Session{LoggedIn: false}
+	} else {
+        s = &session.Session{LoggedIn: true,
+                              ID: user.ID,
+                              Name: user.Name}
+    }
+
+	return c.OK(s)
 }
 
 func login(c *AppContext) error {
@@ -47,7 +55,10 @@ func login(c *AppContext) error {
 	if err := c.Login(user); err != nil {
 		return err
 	}
-	return c.OK(user)
+    s := &session.Session{LoggedIn: true,
+                          ID: user.ID,
+                          Name: user.Name}
+	return c.OK(s)
 }
 
 func signup(c *AppContext) error {

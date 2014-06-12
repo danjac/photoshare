@@ -19,6 +19,13 @@ type Authenticator struct {
 	Password   string `json:"password"`
 }
 
+type Session struct {
+    ID int64 `json:"id"`
+    Name string `json:"name"`
+    IsAdmin bool `json:"isAdmin"`
+    LoggedIn bool `json:"loggedIn"`
+}
+
 func (auth *Authenticator) Identify() (*models.User, error) {
 
 	if auth.Identifier == "" || auth.Password == "" {

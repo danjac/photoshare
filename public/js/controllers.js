@@ -24,15 +24,17 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 }
             });
 
-            Authenticator.resource.get({}, function (user) {
-                $scope.auth.loggedIn = user.id === 0 ? false : true;
-                $scope.auth.currentUser = user;
+            Authenticator.resource.get({}, function (result) {
+                if (result.loggedIn) {
+                    $scope.auth.session = result;
+                } else {
+                    $scope.auth.session = null;
+                }
             });
 
             $scope.logout = function () {
-                $scope.auth.resource.$delete(function () {
-                    $scope.auth.loggedIn = false;
-                    $scope.auth.currentUser = null;
+                $scope.auth.session.$delete(function () {
+                    $scope.auth.session = null;
                     $location.path("/list");
                 });
             };
@@ -123,7 +125,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                'Authenticator',
                                'Alert',
                                'Photo', function ($scope, $location, $window, Authenticator, Alert, Photo) {
-        if (!Authenticator.currentUser) {
+        if (!Authenticator.session) {
             $location.path("/list");
             return;
         }
@@ -140,7 +142,8 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 },
                 function () {
                     $scope.formDisabled = false;
-                });
+                }
+            );
         };
 
     }])
@@ -151,13 +154,11 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                               'Alert', function ($scope, $location, Authenticator, Alert) {
         $scope.loginCreds = new Authenticator.resource();
         $scope.login = function () {
-            $scope.loginCreds.$save(function () {
-                Authenticator.currentUser = $scope.loginCreds;
-                Authenticator.loggedIn = Authenticator.currentUser !== null;
-                //$scope.$emit("login", $scope.loginCreds);
+            $scope.loginCreds.$save(function (result) {
                 $scope.loginCreds = new Authenticator.resource();
-                if (Authenticator.loggedIn) {
-                    Alert.success("Welcome back, " + Authenticator.currentUser.name);
+                if (result.loggedIn) {
+                    Authenticator.session = result;
+                    Alert.success("Welcome back, " + Authenticator.session.name);
                     $location.path("/list");
                 }
             });

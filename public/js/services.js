@@ -6,24 +6,23 @@ angular.module('photoshare.services', [])
     .service('Authenticator', ['$resource', 'urls', function ($resource, urls) {
 
         function Authenticator() {
-            this.loggedIn = false;
-            this.currentUser = null;
             this.resource = $resource(urls.auth);
+            this.session = null;
         }
 
         Authenticator.prototype.canDelete = function (photo) {
 
-            if (!this.currentUser) {
+            if (!this.session) {
                 return false;
             }
-            return this.canEdit(photo) || this.currentUser.isAdmin;
+            return this.canEdit(photo) || this.session.isAdmin;
         };
         
         Authenticator.prototype.canEdit = function (photo) {
-            if (!this.currentUser) {
+            if (!this.session) {
                 return false;
             }
-            return photo.ownerId === this.currentUser.id;
+            return photo.ownerId === this.session.id;
         };
 
         return new Authenticator();

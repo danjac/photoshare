@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"github.com/coopernurse/gorp"
 	"time"
+    "log"
 )
 
 type UserManager interface {
@@ -79,6 +80,7 @@ func (mgr *defaultUserManager) Authenticate(identifier string, password string) 
 	}
 
 	if !user.CheckPassword(password) {
+        log.Println("PASSWORDFAIL")
 		return nil, nil
 	}
 
@@ -102,12 +104,14 @@ type User struct {
 }
 
 func (user *User) PreInsert(s gorp.SqlExecutor) error {
+    user.IsActive = true
 	user.CreatedAt = time.Now()
+    user.EncryptPassword()
 	return nil
 }
 
-func (user *User) SetPassword(password string) error {
-	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func (user *User) EncryptPassword() error {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}

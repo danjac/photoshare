@@ -30,7 +30,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             });
 
             $scope.logout = function () {
-                $scope.auth.currentUser.$delete(function () {
+                $scope.auth.resource.$delete(function () {
                     $scope.auth.loggedIn = false;
                     $scope.auth.currentUser = null;
                     $location.path("/list");

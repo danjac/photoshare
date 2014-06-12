@@ -42,7 +42,7 @@ func deletePhoto(c *AppContext) error {
 
 func photoDetail(c *AppContext) error {
 
-	photo, err := photoMgr.Get(c.Param("id"))
+	photo, err := photoMgr.GetDetail(c.Param("id"))
 	if err != nil {
 		return err
 	}

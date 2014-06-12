@@ -12,12 +12,12 @@ var userMgr = models.NewUserManager()
 func GetCurrentUser(r *http.Request) (*models.User, error) {
 	cookie, err := r.Cookie(UserCookieName)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	var userID int
 	if err := sCookie.Decode(UserCookieName, cookie.Value, &userID); err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	if userID == 0 {

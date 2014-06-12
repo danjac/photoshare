@@ -3,11 +3,10 @@ package routes
 import (
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/session"
+	"github.com/danjac/photoshare/api/settings"
 	"github.com/gorilla/mux"
 	"net/http"
 )
-
-const PublicDir = "./public/"
 
 var (
 	photoMgr = models.NewPhotoManager()
@@ -36,7 +35,7 @@ func GetHandler() http.Handler {
 
 	user.HandleFunc("/", MakeAppHandler(signup, false)).Methods("POST")
 
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir(PublicDir)))
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir(settings.PublicDir)))
 
 	return session.NewCSRF(r)
 }

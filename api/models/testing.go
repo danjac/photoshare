@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"os"
+	"github.com/danjac/photoshare/api/settings"
 )
 
 type TestDB struct {
@@ -19,9 +19,9 @@ func (tdb *TestDB) Clean() {
 
 func MakeTestDB() (tdb *TestDB) {
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s",
-		os.Getenv("TEST_DB_USER"),
-		os.Getenv("TEST_DB_NAME"),
-		os.Getenv("TEST_DB_PASS"),
+		settings.TestDBUser,
+		settings.TestDBName,
+		settings.TestDBPassword,
 	))
 
 	if err != nil {

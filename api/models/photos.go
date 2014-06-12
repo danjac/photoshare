@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql"
 	"github.com/coopernurse/gorp"
-	"github.com/danjac/photoshare/api/storage"
+	"github.com/danjac/photoshare/api/settings"
 	"os"
 	"path"
 	"time"
@@ -47,11 +47,11 @@ func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
 }
 
 func (photo *Photo) GetFilePath() string {
-	return path.Join(storage.UploadsDir, photo.Photo)
+	return path.Join(settings.UploadsDir, photo.Photo)
 }
 
 func (photo *Photo) GetThumbnailPath() string {
-	return path.Join(storage.ThumbnailsDir, photo.Photo)
+	return path.Join(settings.ThumbnailsDir, photo.Photo)
 }
 
 func (photo *Photo) CanDelete(user *User) bool {

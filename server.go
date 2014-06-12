@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/routes"
+	"github.com/danjac/photoshare/api/settings"
 	"log"
 	"net/http"
 	"os"
@@ -13,9 +14,9 @@ import (
 func main() {
 
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PASS"),
+		settings.DBUser,
+		settings.DBName,
+		settings.DBPassword,
 	))
 
 	if err != nil {

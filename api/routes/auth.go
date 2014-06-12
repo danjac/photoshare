@@ -76,6 +76,6 @@ func signup(c *AppContext) error {
 		return err
 	}
 
-	return c.OK(user)
+	return c.OK(session.NewSessionInfo(user))
 
 }

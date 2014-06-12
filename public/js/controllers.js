@@ -170,10 +170,10 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
         $scope.newUser = new User();
         $scope.signup = function () {
-            $scope.newUser.$save(function () {
-                Authenticator.currentUser = $scope.newUser;
-                Authenticator.loggedIn = true;
-                Alert.success("Welcome, " + $scope.newUser.name);
+            $scope.newUser.$save(function (result) {
+                Authenticator.session = result;
+                $scope.newUser = new User();
+                Alert.success("Welcome, " + result.name);
                 $location.path("/list");
             });
         };

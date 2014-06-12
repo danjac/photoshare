@@ -3,12 +3,9 @@ package models
 import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
-	"errors"
 	"github.com/coopernurse/gorp"
 	"time"
 )
-
-var MissingLoginFields = errors.New("Missing login fields")
 
 type UserManager interface {
 	Insert(user *User) error
@@ -92,19 +89,6 @@ var userMgr = &defaultUserManager{}
 
 func NewUserManager() UserManager {
 	return userMgr
-}
-
-type Authenticator struct {
-	Identifier string `json:"identifier"`
-	Password   string `json:"password"`
-}
-
-func (auth *Authenticator) Identify(mgr UserManager) (*User, error) {
-
-	if auth.Identifier == "" || auth.Password == "" {
-		return nil, MissingLoginFields
-	}
-	return mgr.Authenticate(auth.Identifier, auth.Password)
 }
 
 type User struct {

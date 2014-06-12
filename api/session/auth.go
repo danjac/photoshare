@@ -1,13 +1,30 @@
 package session
 
 import (
+	"errors"
 	"github.com/danjac/photoshare/api/models"
 	"net/http"
 )
 
 const UserCookieName = "userid"
 
-var userMgr = models.NewUserManager()
+var (
+	MissingLoginFields = errors.New("Missing login fields")
+	userMgr            = models.NewUserManager()
+)
+
+type Authenticator struct {
+	Identifier string `json:"identifier"`
+	Password   string `json:"password"`
+}
+
+func (auth *Authenticator) Identify() (*models.User, error) {
+
+	if auth.Identifier == "" || auth.Password == "" {
+		return nil, MissingLoginFields
+	}
+	return userMgr.Authenticate(auth.Identifier, auth.Password)
+}
 
 func GetCurrentUser(r *http.Request) (*models.User, error) {
 	cookie, err := r.Cookie(UserCookieName)

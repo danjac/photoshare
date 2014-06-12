@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
+	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/validation"
 )
 
@@ -29,13 +30,13 @@ func authenticate(c *AppContext) error {
 
 func login(c *AppContext) error {
 
-	auth := &models.Authenticator{}
+	auth := &session.Authenticator{}
 	if err := c.ParseJSON(auth); err != nil {
 		return err
 	}
-	user, err := auth.Identify(userMgr)
+	user, err := auth.Identify()
 	if err != nil {
-		if err == models.MissingLoginFields {
+		if err == session.MissingLoginFields {
 			return c.BadRequest("Missing email or password")
 		}
 		return err

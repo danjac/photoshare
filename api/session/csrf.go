@@ -27,7 +27,7 @@ func NewCSRF(handler http.Handler) *CSRF {
 
 func (csrf *CSRF) Validate(w http.ResponseWriter, r *http.Request) (bool, error) {
 
-	token, err := cookieMgr.Read(r, XsrfCookieName, false)
+	token, err := cookieReader.Read(r, XsrfCookieName, false)
 	if err != nil {
 		return false, err
 	}
@@ -59,7 +59,7 @@ func (csrf *CSRF) Generate() string {
 }
 
 func (csrf *CSRF) Save(w http.ResponseWriter, token string) error {
-	return cookieMgr.Write(w, XsrfCookieName, token, false)
+	return cookieWriter.Write(w, XsrfCookieName, token, false)
 }
 
 func (csrf *CSRF) ServeHTTP(w http.ResponseWriter, r *http.Request) {

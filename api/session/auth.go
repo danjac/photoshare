@@ -29,7 +29,7 @@ func (auth *Authenticator) Identify() (*models.User, error) {
 
 func GetCurrentUser(r *http.Request) (*models.User, error) {
 
-	userID, err := cookieMgr.Read(r, UserCookieName, true)
+	userID, err := cookieReader.Read(r, UserCookieName, true)
 	if err != nil {
 		return nil, err
 	}
@@ -40,9 +40,9 @@ func GetCurrentUser(r *http.Request) (*models.User, error) {
 }
 
 func Login(w http.ResponseWriter, user *models.User) error {
-	return cookieMgr.Write(w, UserCookieName, strconv.FormatInt(user.ID, 10), true)
+	return cookieWriter.Write(w, UserCookieName, strconv.FormatInt(user.ID, 10), true)
 }
 
 func Logout(w http.ResponseWriter) error {
-	return cookieMgr.Write(w, UserCookieName, "", true)
+	return cookieWriter.Write(w, UserCookieName, "", true)
 }

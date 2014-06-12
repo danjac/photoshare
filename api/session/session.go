@@ -7,15 +7,23 @@ import (
 	"time"
 )
 
-type CookieManager struct {
+type CookieReader interface {
+	Read(*http.Request, string, bool) (string, error)
+}
+
+type CookieWriter interface {
+	Write(http.ResponseWriter, string, string, bool) error
+}
+
+type DefaultCookieReader struct {
 	*securecookie.SecureCookie
 }
 
-func (mgr *CookieManager) Read(r *http.Request, cookieName string, decode bool) (string, error) {
+func (reader *DefaultCookieReader) Read(r *http.Request, name string, decode bool) (string, error) {
 
 	var value string
 
-	cookie, err := r.Cookie(cookieName)
+	cookie, err := r.Cookie(name)
 
 	if err != nil {
 		if err == http.ErrNoCookie {
@@ -29,7 +37,7 @@ func (mgr *CookieManager) Read(r *http.Request, cookieName string, decode bool) 
 	}
 
 	if decode {
-		if err := mgr.Decode(cookieName, cookie.Value, &value); err != nil {
+		if err := reader.Decode(name, cookie.Value, &value); err != nil {
 			return value, err
 		}
 	} else {
@@ -39,11 +47,15 @@ func (mgr *CookieManager) Read(r *http.Request, cookieName string, decode bool) 
 	return value, nil
 }
 
-func (mgr *CookieManager) Write(w http.ResponseWriter, cookieName string, value string, encode bool) error {
+type DefaultCookieWriter struct {
+	*securecookie.SecureCookie
+}
+
+func (writer *DefaultCookieWriter) Write(w http.ResponseWriter, name string, value string, encode bool) error {
 
 	if encode {
 		var err error
-		value, err = mgr.Encode(cookieName, value)
+		value, err = writer.Encode(name, value)
 		if err != nil {
 			return err
 		}
@@ -52,7 +64,7 @@ func (mgr *CookieManager) Write(w http.ResponseWriter, cookieName string, value 
 	expires := time.Now().AddDate(0, 0, 1)
 
 	cookie := &http.Cookie{
-		Name:       cookieName,
+		Name:       name,
 		Value:      value,
 		Path:       "/",
 		MaxAge:     86400,
@@ -63,11 +75,8 @@ func (mgr *CookieManager) Write(w http.ResponseWriter, cookieName string, value 
 	return nil
 }
 
-func NewCookieManager(hashKey, blockKey string) *CookieManager {
-	return &CookieManager{
-		securecookie.New([]byte(hashKey),
-			[]byte(blockKey)),
-	}
-}
+var sCookie = securecookie.New([]byte(settings.HashKey),
+	[]byte(settings.BlockKey))
 
-var cookieMgr = NewCookieManager(settings.HashKey, settings.BlockKey)
+var cookieReader = &DefaultCookieReader{sCookie}
+var cookieWriter = &DefaultCookieWriter{sCookie}

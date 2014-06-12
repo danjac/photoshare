@@ -25,16 +25,12 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             });
 
             Authenticator.resource.get({}, function (result) {
-                if (result.loggedIn) {
-                    $scope.auth.session = result;
-                } else {
-                    $scope.auth.session = null;
-                }
+                $scope.auth.session = result;
             });
 
             $scope.logout = function () {
                 $scope.auth.session.$delete(function () {
-                    $scope.auth.session = null;
+                    $scope.auth.session = {loggedIn: false};
                     $location.path("/list");
                 });
             };
@@ -125,8 +121,9 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                'Authenticator',
                                'Alert',
                                'Photo', function ($scope, $location, $window, Authenticator, Alert, Photo) {
-        if (!Authenticator.session) {
-            $location.path("/list");
+        if (!Authenticator.session.loggedIn) {
+            Alert.danger("You must be logged in");
+            $location.path("/login");
             return;
         }
         $scope.newPhoto = new Photo();

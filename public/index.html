@@ -37,10 +37,10 @@
             </li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-            <navtab url="#/login" ng-show="!auth.session">Login</navtab>
-            <navtab url="#/signup" ng-show="!auth.session">Signup</navtab>
-            <li ng-show="auth.session"><p class="navbar-text">You are signed in as {{ auth.session.name }}</p></li>
-            <li><a ng-click="logout()" ng-show="auth.session">Logout</a></li>
+            <navtab url="#/login" ng-show="!auth.session.loggedIn">Login</navtab>
+            <navtab url="#/signup" ng-show="!auth.session.loggedIn">Signup</navtab>
+            <li ng-show="auth.session.loggedIn"><p class="navbar-text">You are signed in as {{ auth.session.name }}</p></li>
+            <li><a ng-click="logout()" ng-show="auth.session.loggedIn">Logout</a></li>
         </ul>
       </div>
     </div>

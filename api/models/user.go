@@ -4,8 +4,8 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
 	"github.com/coopernurse/gorp"
+	"log"
 	"time"
-    "log"
 )
 
 type UserManager interface {
@@ -80,7 +80,7 @@ func (mgr *defaultUserManager) Authenticate(identifier string, password string) 
 	}
 
 	if !user.CheckPassword(password) {
-        log.Println("PASSWORDFAIL")
+		log.Println("PASSWORDFAIL")
 		return nil, nil
 	}
 
@@ -104,9 +104,9 @@ type User struct {
 }
 
 func (user *User) PreInsert(s gorp.SqlExecutor) error {
-    user.IsActive = true
+	user.IsActive = true
 	user.CreatedAt = time.Now()
-    user.EncryptPassword()
+	user.EncryptPassword()
 	return nil
 }
 

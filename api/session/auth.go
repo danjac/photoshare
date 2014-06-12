@@ -20,10 +20,18 @@ type Authenticator struct {
 }
 
 type Session struct {
-    ID int64 `json:"id"`
-    Name string `json:"name"`
-    IsAdmin bool `json:"isAdmin"`
-    LoggedIn bool `json:"loggedIn"`
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	IsAdmin  bool   `json:"isAdmin"`
+	LoggedIn bool   `json:"loggedIn"`
+}
+
+func NewSession(user *models.User) *Session {
+	if user == nil || user.ID == 0 {
+		return &Session{}
+	}
+
+	return &Session{user.ID, user.Name, user.IsAdmin, true}
 }
 
 func (auth *Authenticator) Identify() (*models.User, error) {

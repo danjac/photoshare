@@ -144,7 +144,8 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) ([]Photo, error)
 
 	q = "%" + q + "%"
 	if _, err := dbMap.Select(&photos,
-		"SELECT * FROM photos WHERE title ILIKE $1 "+
+		"SELECT p.* FROM photos p JOIN users u ON u.id = p.owner_id " +
+            "WHERE (p.title ILIKE $1 OR u.name ILIKE $1) "+
 			"ORDER BY created_at DESC LIMIT $2 OFFSET $3",
 		q, PageSize, getOffset(pageNum)); err != nil {
 		return photos, err

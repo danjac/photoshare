@@ -24,13 +24,8 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 }
             });
 
-            Authenticator.resource.get({}, function (result) {
-                $scope.auth.session = result;
-            });
-
             $scope.logout = function () {
-                $scope.auth.session.$delete(function (result) {
-                    $scope.auth.session = result;
+                $scope.auth.logout().then(function () {
                     $location.path("/list");
                 });
             };

@@ -3,12 +3,28 @@
 /* Services */
 
 angular.module('photoshare.services', [])
-    .service('Authenticator', ['$resource', 'urls', function ($resource, urls) {
+    .service('Authenticator', ['$resource', '$q', 'urls', function ($resource, $q, urls) {
 
         function Authenticator() {
             this.resource = $resource(urls.auth);
             this.session = null;
         }
+
+        Authenticator.prototype.init = function () {
+            var $this = this;
+            $this.resource.get({}, function (result) {
+                $this.session = result;
+            });
+        };
+        
+        Authenticator.prototype.logout = function () {
+            var $this = this, d = $q.defer();
+            $this.session.$delete(function (result) {
+                $this.session = result;
+                d.resolve($this.session);
+            });
+            return d.promise;
+        };
 
         Authenticator.prototype.canDelete = function (photo) {
 

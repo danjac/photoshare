@@ -12,7 +12,7 @@ func logout(c *AppContext) error {
 		return err
 	}
 
-	return c.OK("Logged out")
+	return c.OK(session.NewSessionInfo(nil))
 
 }
 

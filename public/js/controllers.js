@@ -29,8 +29,8 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             });
 
             $scope.logout = function () {
-                $scope.auth.session.$delete(function () {
-                    $scope.auth.session = {loggedIn: false};
+                $scope.auth.session.$delete(function (result) {
+                    $scope.auth.session = result;
                     $location.path("/list");
                 });
             };

@@ -1,32 +1,33 @@
-<form name="form" role="form" enctype="multipart/form-data" novalidate>
+<div class="row">
+    <div class="col-md-6">
+        <form name="form" role="form" enctype="multipart/form-data" novalidate>
 
-    <div class="form-group">
-        <label for="">Title</label>
-        <input type="text" 
-               ng-model="newPhoto.title" 
-               required="required"
-               class="form-control" 
-               placeholder="Title"/>
+            <div class="form-group">
+                <label for="">Title</label>
+                <input type="text" 
+                       ng-model="newPhoto.title" 
+                       required="required"
+                       class="form-control" 
+                       placeholder="Title"/>
+            </div>
+
+            <div class="form-group">
+                <label for="">Photo</label>
+                <input type="file" 
+                       files-model="newPhoto.photo">
+            </div>
+
+            <button class="btn-submit btn" 
+                    type="submit" 
+                    ng-click="uploadPhoto()"
+                    ng-disabled="form.$invalid || formDisabled">Upload</button>
+
+   
+        </form>
     </div>
-
-    <div class="form-group">
-        <label for="">Photo</label>
-        <input type="file" 
-               files-model="newPhoto.photo">
-    </div>
-
-    <button class="btn-submit btn" 
-            type="submit" 
-            ng-click="uploadPhoto()"
-            ng-disabled="form.$invalid || formDisabled">Upload</button>
-
-    <div class="row" ng-show="upload.url">
-        <div class="col-xs-6">
-            <div class="thumbnail">
+    <div class="col-md-6" ng-show="upload.url">
+           <div class="thumbnail">
                 <img ng-src="{{upload.url}}">
             </div>
-        </div>
-    </div>
-
-
-</form>
+      </div>
+</div>

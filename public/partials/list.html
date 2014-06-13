@@ -1,4 +1,5 @@
 
+<h2 ng-show="ownerName">Photos uploaded by {{ ownerName }}</h2>
 <h2 ng-show="searchQuery">Search results for '{{ searchQuery }}'</h2>
 <p class="alert alert-warning" ng-show="searchQuery && !photos.length">No results found.</p>
 

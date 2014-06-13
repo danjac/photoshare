@@ -27,7 +27,7 @@
     <div class="col-xs-6">
         <dl>
         	<dt>Owner</dt>
-            <dd>{{photo.ownerName}}</dd>
+            <dd><a href="#/owner/{{ photo.ownerId }}/{{ photo.ownerName }}">{{photo.ownerName}}</a></dd>
         	<dt>Uploaded on</dt>
             <dd>{{photo.createdAt|date:"dd/MM/yyyy"}}</dd>
         </dl>

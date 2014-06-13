@@ -32,6 +32,8 @@ angular.module('photoshare', [
 
             when('/search/:q', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
 
+            when('/owner/:ownerID/:ownerName', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
+
             when('/detail/:id', {templateUrl: 'partials/detail.html', controller: 'DetailCtrl'}).
 
             when('/upload', {templateUrl: 'partials/upload.html', controller: 'UploadCtrl'}).

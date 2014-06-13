@@ -20,6 +20,7 @@ type PhotoManager interface {
 	Get(photoID string) (*Photo, error)
 	GetDetail(photoID string) (*PhotoDetail, error)
 	All(pageNum int64) ([]Photo, error)
+	ByOwnerID(pageNum int64, ownerID string) ([]Photo, error)
 	Search(pageNum int64, q string) ([]Photo, error)
 }
 
@@ -124,16 +125,28 @@ func (mgr *defaultPhotoManager) GetDetail(photoID string) (*PhotoDetail, error) 
 
 }
 
+func (mgr *defaultPhotoManager) ByOwnerID(pageNum int64, ownerID string) ([]Photo, error) {
+
+	var photos []Photo
+	if _, err := dbMap.Select(&photos,
+		"SELECT * FROM photos WHERE owner_id = $1"+
+			"ORDER BY created_at DESC LIMIT $2 OFFSET $3",
+		ownerID, PageSize, getOffset(pageNum)); err != nil {
+		return photos, err
+	}
+	return photos, nil
+
+}
+
 func (mgr *defaultPhotoManager) Search(pageNum int64, q string) ([]Photo, error) {
 
 	var photos []Photo
-	offset := getOffset(pageNum)
 
 	q = "%" + q + "%"
 	if _, err := dbMap.Select(&photos,
 		"SELECT * FROM photos WHERE title ILIKE $1 "+
 			"ORDER BY created_at DESC LIMIT $2 OFFSET $3",
-		q, PageSize, offset); err != nil {
+		q, PageSize, getOffset(pageNum)); err != nil {
 		return photos, err
 	}
 	return photos, nil
@@ -144,11 +157,9 @@ func (mgr *defaultPhotoManager) All(pageNum int64) ([]Photo, error) {
 
 	var photos []Photo
 
-	offset := getOffset(pageNum)
-
 	if _, err := dbMap.Select(&photos,
 		"SELECT * FROM photos "+
-			"ORDER BY created_at DESC LIMIT $1 OFFSET $2", PageSize, offset); err != nil {
+			"ORDER BY created_at DESC LIMIT $1 OFFSET $2", PageSize, getOffset(pageNum)); err != nil {
 		return photos, err
 	}
 	return photos, nil

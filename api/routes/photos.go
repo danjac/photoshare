@@ -147,12 +147,16 @@ func getPhotos(c *AppContext) error {
 	}
 
 	q := c.FormValue("q")
+	ownerID := c.FormValue("ownerID")
 
-	if q == "" {
-		photos, err = photoMgr.All(pageNum)
-	} else {
+	if q != "" {
 		photos, err = photoMgr.Search(pageNum, q)
+	} else if ownerID != "" {
+		photos, err = photoMgr.ByOwnerID(pageNum, ownerID)
+	} else {
+		photos, err = photoMgr.All(pageNum)
 	}
+
 	if err != nil {
 		return err
 	}

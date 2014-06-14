@@ -32,8 +32,10 @@ func GetHandler() http.Handler {
 	photos.HandleFunc("/{id}", MakeAppHandler(deletePhoto, true)).Methods("DELETE")
 
 	user := r.PathPrefix("/api/user").Subrouter()
-
 	user.HandleFunc("/", MakeAppHandler(signup, false)).Methods("POST")
+
+	feeds := r.PathPrefix("/feeds").Subrouter()
+	feeds.HandleFunc("/", MakeAppHandler(latestFeed, false))
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir(settings.PublicDir)))
 

@@ -18,6 +18,8 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.alert = Alert;
             $scope.searchQuery = "";
 
+            $scope.auth.init();
+
             $scope.$watch('alert.message', function (newValue, oldValue) {
                 if (newValue) {
                     $timeout(function () { Alert.dismiss(); }, 3000);
@@ -29,13 +31,6 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                     $location.path("/list");
                 });
             };
-
-            /*
-            $scope.$on("login", function (event, newUser) {
-                $scope.auth.loggedIn = true;
-                $scope.auth.currentUser = newUser;
-            });
-            */
 
             $scope.doSearch = function () {
                 $location.path("/search/" + $scope.searchQuery);

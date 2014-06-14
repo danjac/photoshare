@@ -32,6 +32,10 @@ func (m *MockPhotoManager) All(pageNum int64) ([]models.Photo, error) {
 	return []models.Photo{}, nil
 }
 
+func (m *MockPhotoManager) ByOwnerID(pageNum int64, ownerID string) ([]models.Photo, error) {
+	return []models.Photo{}, nil
+}
+
 func (m *MockPhotoManager) Search(pageNum int64, q string) ([]models.Photo, error) {
 	return []models.Photo{}, nil
 }

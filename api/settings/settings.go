@@ -51,6 +51,10 @@ func init() {
 	TestDBUser = getEnvOrDie("TEST_DB_USER")
 	TestDBPassword = getEnvOrDie("TEST_DB_PASS")
 
+    if TestDBName == DBName {
+        panic("Test DB name same as DB name")
+    }
+
 	PublicDir = getEnvOrElse("PUBLIC_DIR", "./public/")
 	UploadsDir = getEnvOrElse("UPLOADS_DIR", path.Join(PublicDir, "uploads"))
 	ThumbnailsDir = getEnvOrElse("THUMBNAILS_DIR", path.Join(UploadsDir, "thumbnails"))

@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"github.com/gorilla/feeds"
 	"net/http"
+	"strconv"
 	"time"
-    "strconv"
 )
 
 func latestFeed(c *AppContext) error {
 
-    var scheme string
-    if c.Request.TLS == nil {
-        scheme = "http"
-    } else {
-        scheme = "https"
-    }
+	var scheme string
+	if c.Request.TLS == nil {
+		scheme = "http"
+	} else {
+		scheme = "https"
+	}
 
-    baseURL := fmt.Sprintf("%s://%s", scheme, c.Request.Host)
+	baseURL := fmt.Sprintf("%s://%s", scheme, c.Request.Host)
 
 	photos, err := photoMgr.All(1)
 
@@ -34,7 +34,7 @@ func latestFeed(c *AppContext) error {
 	for _, photo := range photos {
 
 		item := &feeds.Item{
-            Id:          strconv.FormatInt(photo.ID, 10),
+			Id:          strconv.FormatInt(photo.ID, 10),
 			Title:       photo.Title,
 			Link:        &feeds.Link{Href: fmt.Sprintf("%s/#/detail/%d", baseURL, photo.ID)},
 			Description: fmt.Sprintf("<img src=\"%s/uploads/thumbnails/%s\">", baseURL, photo.Photo),

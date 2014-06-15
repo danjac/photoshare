@@ -40,6 +40,16 @@ func (m *MockPhotoManager) Search(pageNum int64, q string) ([]models.Photo, erro
 	return []models.Photo{}, nil
 }
 
+func (m *MockPhotoManager) DeletePhotoTags(photo *models.Photo) error {
+	return nil
+}
+
+func (m *MockPhotoManager) UpdatePhotoTags(photo *models.Photo, delete bool) error {
+	return nil
+}
+
+
+
 func (m *MockPhotoManager) Delete(photo *models.Photo) error {
 	return nil
 }

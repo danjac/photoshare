@@ -6,6 +6,7 @@ import (
 	"github.com/danjac/photoshare/api/settings"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -24,12 +25,23 @@ type PhotoManager interface {
 	Search(pageNum int64, q string) ([]Photo, error)
 }
 
+type Tag struct {
+	ID   int64  `db:"id" json:"id"`
+	Name string `db:"name" json "name"`
+}
+
+type PhotoTag struct {
+	PhotoID int64 `db:"photo_id"`
+	TagID   int64 `db:"tag_id"`
+}
+
 type Photo struct {
 	ID        int64     `db:"id" json:"id"`
 	OwnerID   int64     `db:"owner_id" json:"ownerId"`
 	CreatedAt time.Time `db:"created_at" json:"createdAt"`
 	Title     string    `db:"title" json:"title"`
 	Photo     string    `db:"photo" json:"photo"`
+	Tags      []string  `db:"-" json:"tags"`
 }
 
 func (photo *Photo) PreInsert(s gorp.SqlExecutor) error {
@@ -44,7 +56,8 @@ func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
 	if err := os.Remove(photo.GetThumbnailPath()); err != nil {
 		return err
 	}
-	return nil
+	_, err := dbMap.Exec("DELETE FROM photo_tags WHERE photo_id=$1", photo.ID)
+	return err
 }
 
 func (photo *Photo) GetFilePath() string {
@@ -70,6 +83,7 @@ type PhotoDetail struct {
 	CreatedAt time.Time `db:"created_at" json:"createdAt"`
 	Title     string    `db:"title" json:"title"`
 	Photo     string    `db:"photo" json:"photo"`
+	Tags      []string  `db:"-" json:"tags"`
 }
 
 type defaultPhotoManager struct{}
@@ -91,7 +105,26 @@ func (mgr *defaultPhotoManager) Update(photo *Photo) error {
 }
 
 func (mgr *defaultPhotoManager) Insert(photo *Photo) error {
-	return dbMap.Insert(photo)
+	if err := dbMap.Insert(photo); err != nil {
+		return err
+	}
+	for _, tagName := range photo.Tags {
+		tagName = strings.ToLower(tagName)
+		tagId, err := dbMap.SelectInt("SELECT id FROM tags WHERE name=$1", tagName)
+		if tagId == 0 || err == sql.ErrNoRows {
+			tag := &Tag{Name: tagName}
+			if err := dbMap.Insert(tag); err != nil {
+				return err
+			}
+			tagId = tag.ID
+		} else if err != nil {
+			return err
+		}
+		if err := dbMap.Insert(&PhotoTag{photo.ID, tagId}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (mgr *defaultPhotoManager) Get(photoID string) (*Photo, error) {
@@ -121,6 +154,18 @@ func (mgr *defaultPhotoManager) GetDetail(photoID string) (*PhotoDetail, error) 
 		}
 		return nil, err
 	}
+
+	var tags []Tag
+
+	if _, err := dbMap.Select(&tags,
+		"SELECT t.* FROM tags t JOIN photo_tags pt ON pt.tag_id=t.id "+
+			"WHERE pt.photo_id=$1", photo.ID); err != nil {
+		return photo, err
+	}
+	for _, tag := range tags {
+		photo.Tags = append(photo.Tags, tag.Name)
+	}
+
 	return photo, nil
 
 }
@@ -144,8 +189,11 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) ([]Photo, error)
 
 	q = "%" + q + "%"
 	if _, err := dbMap.Select(&photos,
-		"SELECT p.* FROM photos p JOIN users u ON u.id = p.owner_id "+
-			"WHERE (p.title ILIKE $1 OR u.name ILIKE $1) "+
+		"SELECT DISTINCT p.* FROM photos p "+
+			"INNER JOIN users u ON u.id = p.owner_id "+
+			"LEFT JOIN photo_tags pt ON pt.photo_id=p.id "+
+			"LEFT JOIN tags t ON t.id = pt.tag_id "+
+			"WHERE (p.title ILIKE $1 OR u.name ILIKE $1 OR t.name ILIKE $1) "+
 			"ORDER BY created_at DESC LIMIT $2 OFFSET $3",
 		q, PageSize, getOffset(pageNum)); err != nil {
 		return photos, err

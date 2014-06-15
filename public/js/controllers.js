@@ -124,6 +124,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         $scope.formDisabled = false;
         $scope.uploadPhoto = function () {
             $scope.formDisabled = true;
+            $scope.newPhoto.tags = $scope.newPhoto.taglist.split(" ");
             $scope.newPhoto.$save(
                 function () {
                     $scope.newPhoto = new Photo();

@@ -6,6 +6,7 @@ import (
 	"github.com/danjac/photoshare/api/validation"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 var allowedContentTypes = []string{"image/png", "image/jpeg"}
@@ -95,6 +96,9 @@ func editPhoto(c *AppContext) error {
 func upload(c *AppContext) error {
 
 	title := c.FormValue("title")
+	taglist := c.FormValue("taglist")
+	tags := strings.Split(taglist, " ")
+
 	src, hdr, err := c.FormFile("photo")
 	if err != nil {
 		if err == http.ErrMissingFile {
@@ -118,7 +122,7 @@ func upload(c *AppContext) error {
 	}
 
 	photo := &models.Photo{Title: title,
-		OwnerID: c.User.ID, Photo: filename}
+		OwnerID: c.User.ID, Photo: filename, Tags: tags}
 
 	validator := &validation.PhotoValidator{photo}
 	if result, err := validator.Validate(); err != nil || !result.OK {

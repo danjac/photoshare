@@ -12,6 +12,14 @@
             </div>
 
             <div class="form-group">
+                <label for="">Tags</label>
+                <input type="text" 
+                       ng-model="newPhoto.taglist" 
+                       class="form-control" 
+                       placeholder="Tags (separate with spaces)"/>
+            </div>
+
+            <div class="form-group">
                 <label for="">Photo</label>
                 <input type="file" 
                        files-model="newPhoto.photo">

@@ -96,6 +96,9 @@ func NewPhotoManager() PhotoManager {
 }
 
 func (mgr *defaultPhotoManager) Delete(photo *Photo) error {
+	if err := mgr.DeletePhotoTags(photo); err != nil {
+		return err
+	}
 	_, err := dbMap.Delete(photo)
 	return err
 }

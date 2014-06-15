@@ -48,8 +48,6 @@ func (m *MockPhotoManager) UpdatePhotoTags(photo *models.Photo, delete bool) err
 	return nil
 }
 
-
-
 func (m *MockPhotoManager) Delete(photo *models.Photo) error {
 	return nil
 }

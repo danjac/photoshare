@@ -30,11 +30,31 @@
             <dd><a href="#/owner/{{photo.ownerId}}/{{photo.ownerName}}">{{photo.ownerName}}</a></dd>
         	<dt>Uploaded on</dt>
             <dd>{{photo.createdAt|date:"dd/MM/yyyy"}}</dd>
-            <dt>Tags</td>
-            <dd>
-            <span ng-repeat="tag in photo.tags"><a ng-href="#/search/{{tag}}">{{tag}}</a>&nbsp;</span>
-            <span ng-show="!photo.tags">None</span>
+            <dt ng-click="showEditTagsForm()">Tags</td>
+            <dd ng-show="!editTags">
+                <span ng-repeat="tag in photo.tags"><a ng-href="#/search/{{tag}}">{{tag}}</a>&nbsp;</span>
+                <span ng-show="!photo.tags" ng-click="showEditTagsForm()">None</span>
             </dd>
+            <dd ng-show="editTags">
+                <form role="form" 
+                      action=""
+                      name="tagsForm" 
+                      ng-show="editTags" 
+                      novalidate>
+                      <div class="form-group">
+                      <input type="text" class="form-control" ng-model="photo.taglist">
+                  </div>
+                      <button type="submit" 
+                              class="btn btn-primary"
+                              ng-click="updateTags()" 
+                              ng-disabled="tagsForm.$invalid">Save</button>
+                      <button type="cancel" 
+                              class="btn btn-default"
+                              ng-click="hideEditTagsForm()">Cancel</button>
+                  </form>
+
+
+                </dd>
         </dl>
     </div>
 </div>

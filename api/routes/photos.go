@@ -34,6 +34,9 @@ func deletePhoto(c *AppContext) error {
 	if !photo.CanDelete(c.User) {
 		return c.Forbidden("You can't delete this photo")
 	}
+	if err := photoMgr.DeletePhotoTags(photo); err != nil {
+		return err
+	}
 	if err := photoMgr.Delete(photo); err != nil {
 		return err
 	}
@@ -76,6 +79,7 @@ func editPhoto(c *AppContext) error {
 	}
 
 	photo.Title = newPhoto.Title
+	photo.Tags = newPhoto.Tags
 
 	validator := &validation.PhotoValidator{photo}
 

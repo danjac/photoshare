@@ -23,6 +23,8 @@ type PhotoManager interface {
 	All(pageNum int64) ([]Photo, error)
 	ByOwnerID(pageNum int64, ownerID string) ([]Photo, error)
 	Search(pageNum int64, q string) ([]Photo, error)
+	DeletePhotoTags(*Photo) error
+	UpdatePhotoTags(*Photo, bool) error
 }
 
 type Tag struct {
@@ -56,8 +58,7 @@ func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
 	if err := os.Remove(photo.GetThumbnailPath()); err != nil {
 		return err
 	}
-	_, err := dbMap.Exec("DELETE FROM photo_tags WHERE photo_id=$1", photo.ID)
-	return err
+	return nil
 }
 
 func (photo *Photo) GetFilePath() string {
@@ -100,13 +101,29 @@ func (mgr *defaultPhotoManager) Delete(photo *Photo) error {
 }
 
 func (mgr *defaultPhotoManager) Update(photo *Photo) error {
-	_, err := dbMap.Update(photo)
-	return err
+	if _, err := dbMap.Update(photo); err != nil {
+		return err
+	}
+	return mgr.UpdatePhotoTags(photo, true)
 }
 
 func (mgr *defaultPhotoManager) Insert(photo *Photo) error {
 	if err := dbMap.Insert(photo); err != nil {
 		return err
+	}
+	return mgr.UpdatePhotoTags(photo, false)
+}
+
+func (mgr *defaultPhotoManager) DeletePhotoTags(photo *Photo) error {
+	_, err := dbMap.Exec("DELETE FROM photo_tags WHERE photo_id=$1", photo.ID)
+	return err
+}
+
+func (mgr *defaultPhotoManager) UpdatePhotoTags(photo *Photo, delete bool) error {
+	if delete {
+		if err := mgr.DeletePhotoTags(photo); err != nil {
+			return err
+		}
 	}
 	for _, tagName := range photo.Tags {
 		tagName = strings.ToLower(tagName)

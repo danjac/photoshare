@@ -78,12 +78,23 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                'Authenticator',
                                'Alert',
                                function ($scope, $routeParams, $location, Photo, Authenticator, Alert) {
+
+            function doUpdate(onSuccess) {
+                Photo.update({id: $scope.photo.id,
+                              title: $scope.photo.title,
+                              tags: $scope.photo.taglist.split(" ")}, function () {
+                    onSuccess();
+                });
+            }
+
             $scope.photo = null;
             $scope.editTitle = false;
+            $scope.editTags = false;
             Photo.get({id: $routeParams.id}).$promise.then(function (photo) {
                 $scope.photo = photo;
                 $scope.canDelete = Authenticator.canDelete($scope.photo);
                 $scope.canEdit = Authenticator.canEdit($scope.photo);
+                $scope.photo.taglist = $scope.photo.tags.join(" ");
             });
             $scope.deletePhoto = function () {
                 $scope.photo.$delete(function () {
@@ -99,10 +110,21 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.hideEditForm = function () {
                 $scope.editTitle = false;
             };
+            $scope.showEditTagsForm = function () {
+                if ($scope.canEdit) {
+                    $scope.editTags = true;
+                }
+            };
+            $scope.hideEditTagsForm = function () {
+                $scope.editTags = false;
+            };
             $scope.updateTitle = function () {
-                Photo.update({id: $scope.photo.id,
-                              title: $scope.photo.title}, function () {
-                    $scope.editTitle = false;
+                doUpdate(function () { $scope.editTitle = false; });
+            };
+            $scope.updateTags = function () {
+                doUpdate(function () {
+                    $scope.editTags = false;
+                    $scope.photo.tags = $scope.photo.taglist.split(" ");
                 });
             };
 

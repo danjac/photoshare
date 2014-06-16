@@ -135,6 +135,9 @@ func (mgr *defaultPhotoManager) UpdateTags(photo *Photo) error {
 		args   = []string{"$1"}
 		params = []interface{}{interface{}(photo.ID)}
 	)
+    if len(photo.Tags) == 0 {
+        return nil
+    }
 	for i, name := range photo.Tags {
 		args = append(args, fmt.Sprintf("$%d", i+2))
 		params = append(params, interface{}(name))

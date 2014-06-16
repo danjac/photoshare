@@ -48,7 +48,6 @@ func (m *MockPhotoManager) GetTagCounts() ([]models.TagCount, error) {
 	return []models.TagCount{}, nil
 }
 
-
 func (m *MockPhotoManager) Delete(photo *models.Photo) error {
 	return nil
 }

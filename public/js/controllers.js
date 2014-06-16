@@ -80,9 +80,15 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                function ($scope, $routeParams, $location, Photo, Authenticator, Alert) {
 
             function doUpdate(onSuccess) {
+                var taglist = $scope.photo.taglist || "";
+                if (!taglist) {
+                    $scope.photo.tags = [];
+                } else {
+                    $scope.photo.tags = taglist.trim().split(" ");
+                }
                 Photo.update({id: $scope.photo.id,
                               title: $scope.photo.title,
-                              tags: $scope.photo.taglist.split(" ")}, function () {
+                              tags: $scope.photo.tags}, function () {
                     onSuccess();
                 });
             }
@@ -94,7 +100,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 $scope.photo = photo;
                 $scope.canDelete = Authenticator.canDelete($scope.photo);
                 $scope.canEdit = Authenticator.canEdit($scope.photo);
-                $scope.photo.taglist = $scope.photo.tags.join(" ");
+                $scope.photo.taglist = $scope.photo.tags ? $scope.photo.tags.join(" ") : "";
             });
             $scope.deletePhoto = function () {
                 $scope.photo.$delete(function () {
@@ -124,7 +130,6 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.updateTags = function () {
                 doUpdate(function () {
                     $scope.editTags = false;
-                    $scope.photo.tags = $scope.photo.taglist.split(" ");
                 });
             };
 
@@ -166,7 +171,12 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         $scope.formDisabled = false;
         $scope.uploadPhoto = function () {
             $scope.formDisabled = true;
-            $scope.newPhoto.tags = $scope.newPhoto.taglist.split(" ");
+            var taglist = $scope.newPhoto.taglist || "";
+            if (!taglist) {
+                $scope.newPhoto.tags = [];
+            } else {
+                $scope.newPhoto.tags = taglist.trim().split(" ");
+            }
             $scope.newPhoto.$save(
                 function () {
                     $scope.newPhoto = new Photo();

@@ -11,17 +11,17 @@ type TestDB struct {
 }
 
 func (tdb *TestDB) Clean() {
-    /*
-	if err := dbMap.TruncateTables(); err != nil {
-		panic(err)
+	/*
+		if err := dbMap.TruncateTables(); err != nil {
+			panic(err)
+		}
+	*/
+	var tables = []string{"photo_tags", "tags", "photos", "users"}
+	for _, table := range tables {
+		if _, err := dbMap.Exec("DELETE FROM " + table); err != nil {
+			panic(err)
+		}
 	}
-    */
-    var tables = []string{"photo_tags", "tags", "photos", "users"}
-    for _, table := range tables {
-        if _, err := dbMap.Exec("DELETE FROM " + table); err != nil {
-            panic(err)
-        }
-    }
 	defer tdb.DB.Close()
 }
 

@@ -132,15 +132,21 @@ func (mgr *defaultPhotoManager) Insert(photo *Photo) error {
 func (mgr *defaultPhotoManager) UpdateTags(photo *Photo) error {
 
 	var (
-		args   = []string{"$1"}
-		params = []interface{}{interface{}(photo.ID)}
+		args    = []string{"$1"}
+		params  = []interface{}{interface{}(photo.ID)}
+		isEmpty = true
 	)
-    if len(photo.Tags) == 0 {
-        return nil
-    }
 	for i, name := range photo.Tags {
-		args = append(args, fmt.Sprintf("$%d", i+2))
-		params = append(params, interface{}(name))
+		name = strings.TrimSpace(name)
+		if name != "" {
+			args = append(args, fmt.Sprintf("$%d", i+2))
+			params = append(params, interface{}(name))
+			isEmpty = false
+		}
+	}
+	if isEmpty {
+		_, err := dbMap.Exec("DELETE FROM photo_tags WHERE photo_id=$1", photo.ID)
+		return err
 	}
 	_, err := dbMap.Exec(fmt.Sprintf("SELECT add_tags(%s)", strings.Join(args, ",")), params...)
 	return err

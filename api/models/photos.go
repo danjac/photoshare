@@ -37,9 +37,9 @@ type PhotoTag struct {
 }
 
 type TagCount struct {
-	Name  string `db:"name" json:"name"`
-	Photo string `db:"photo" json:"photo"`
-    NumPhotos int64 `db:"num_photos" json:"numPhotos"`
+	Name      string `db:"name" json:"name"`
+	Photo     string `db:"photo" json:"photo"`
+	NumPhotos int64  `db:"num_photos" json:"numPhotos"`
 }
 
 type Photo struct {

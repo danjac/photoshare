@@ -52,7 +52,8 @@ func (photo *Photo) PreInsert(s gorp.SqlExecutor) error {
 }
 
 func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
-	return photoCleaner.Clean(photo.Photo)
+	go photoCleaner.Clean(photo.Photo)
+	return nil
 }
 
 func (photo *Photo) CanDelete(user *User) bool {
@@ -141,15 +142,8 @@ func (mgr *defaultPhotoManager) UpdatePhotoTags(photo *Photo, delete bool) error
 		}
 	}
 	for _, tagName := range photo.Tags {
-		tagName = strings.ToLower(tagName)
-		tagId, err := dbMap.SelectInt("SELECT id FROM tags WHERE name=$1", tagName)
-		if tagId == 0 || err == sql.ErrNoRows {
-			tag := &Tag{Name: tagName}
-			if err := dbMap.Insert(tag); err != nil {
-				return err
-			}
-			tagId = tag.ID
-		} else if err != nil {
+		tagId, err := dbMap.SelectInt("SELECT add_tag($1)", strings.ToLower(tagName))
+		if err != nil {
 			return err
 		}
 		if err := dbMap.Insert(&PhotoTag{photo.ID, tagId}); err != nil {

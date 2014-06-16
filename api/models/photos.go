@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/coopernurse/gorp"
 	"github.com/danjac/photoshare/api/storage"
 	"strings"
@@ -21,8 +22,7 @@ type PhotoManager interface {
 	All(pageNum int64) ([]Photo, error)
 	ByOwnerID(pageNum int64, ownerID string) ([]Photo, error)
 	Search(pageNum int64, q string) ([]Photo, error)
-	DeletePhotoTags(*Photo) error
-	UpdatePhotoTags(*Photo, bool) error
+	UpdatePhotoTags(*Photo) error
 }
 
 type Tag struct {
@@ -87,9 +87,6 @@ func (mgr *defaultPhotoManager) Delete(photo *Photo) error {
 	if err != nil {
 		return err
 	}
-	if err := mgr.DeletePhotoTags(photo); err != nil {
-		return err
-	}
 	if _, err := dbMap.Delete(photo); err != nil {
 		return err
 	}
@@ -105,7 +102,7 @@ func (mgr *defaultPhotoManager) Update(photo *Photo) error {
 	if _, err := dbMap.Update(photo); err != nil {
 		return err
 	}
-	if err := mgr.UpdatePhotoTags(photo, true); err != nil {
+	if err := mgr.UpdatePhotoTags(photo); err != nil {
 		return err
 	}
 	return t.Commit()
@@ -119,38 +116,23 @@ func (mgr *defaultPhotoManager) Insert(photo *Photo) error {
 	if err := dbMap.Insert(photo); err != nil {
 		return err
 	}
-	if err := mgr.UpdatePhotoTags(photo, false); err != nil {
+	if err := mgr.UpdatePhotoTags(photo); err != nil {
 		return err
 	}
 	return t.Commit()
 }
 
-func (mgr *defaultPhotoManager) DeletePhotoTags(photo *Photo) error {
-	_, err := dbMap.Exec("DELETE FROM photo_tags WHERE photo_id=$1", photo.ID)
+func (mgr *defaultPhotoManager) UpdatePhotoTags(photo *Photo) error {
+
+	var args = []string{"$1"}
+	var params = []interface{}{interface{}(photo.ID)}
+	for i, name := range photo.Tags {
+		args = append(args, fmt.Sprintf("$%d", i+2))
+		params = append(params, interface{}(name))
+	}
+	_, err := dbMap.Exec(fmt.Sprintf("SELECT add_tags(%s)", strings.Join(args, ",")), params...)
 	return err
-}
 
-func (mgr *defaultPhotoManager) UpdatePhotoTags(photo *Photo, delete bool) error {
-	t, err := dbMap.Begin()
-	if err != nil {
-		return err
-	}
-
-	if delete {
-		if err := mgr.DeletePhotoTags(photo); err != nil {
-			return err
-		}
-	}
-	for _, tagName := range photo.Tags {
-		tagId, err := dbMap.SelectInt("SELECT add_tag($1)", strings.ToLower(tagName))
-		if err != nil {
-			return err
-		}
-		if err := dbMap.Insert(&PhotoTag{photo.ID, tagId}); err != nil {
-			return err
-		}
-	}
-	return t.Commit()
 }
 
 func (mgr *defaultPhotoManager) Get(photoID string) (*Photo, error) {

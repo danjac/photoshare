@@ -3,9 +3,7 @@ package models
 import (
 	"database/sql"
 	"github.com/coopernurse/gorp"
-	"github.com/danjac/photoshare/api/settings"
-	"os"
-	"path"
+	"github.com/danjac/photoshare/api/storage"
 	"strings"
 	"time"
 )
@@ -46,27 +44,15 @@ type Photo struct {
 	Tags      []string  `db:"-" json:"tags"`
 }
 
+var photoCleaner = storage.NewPhotoCleaner()
+
 func (photo *Photo) PreInsert(s gorp.SqlExecutor) error {
 	photo.CreatedAt = time.Now()
 	return nil
 }
 
 func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
-	if err := os.Remove(photo.GetFilePath()); err != nil {
-		return err
-	}
-	if err := os.Remove(photo.GetThumbnailPath()); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (photo *Photo) GetFilePath() string {
-	return path.Join(settings.UploadsDir, photo.Photo)
-}
-
-func (photo *Photo) GetThumbnailPath() string {
-	return path.Join(settings.ThumbnailsDir, photo.Photo)
+	return photoCleaner.Clean(photo.Photo)
 }
 
 func (photo *Photo) CanDelete(user *User) bool {
@@ -96,25 +82,46 @@ func NewPhotoManager() PhotoManager {
 }
 
 func (mgr *defaultPhotoManager) Delete(photo *Photo) error {
+	t, err := dbMap.Begin()
+	if err != nil {
+		return err
+	}
 	if err := mgr.DeletePhotoTags(photo); err != nil {
 		return err
 	}
-	_, err := dbMap.Delete(photo)
-	return err
+	if _, err := dbMap.Delete(photo); err != nil {
+		return err
+	}
+
+	return t.Commit()
 }
 
 func (mgr *defaultPhotoManager) Update(photo *Photo) error {
+	t, err := dbMap.Begin()
+	if err != nil {
+		return err
+	}
 	if _, err := dbMap.Update(photo); err != nil {
 		return err
 	}
-	return mgr.UpdatePhotoTags(photo, true)
+	if err := mgr.UpdatePhotoTags(photo, true); err != nil {
+		return err
+	}
+	return t.Commit()
 }
 
 func (mgr *defaultPhotoManager) Insert(photo *Photo) error {
+	t, err := dbMap.Begin()
+	if err != nil {
+		return err
+	}
 	if err := dbMap.Insert(photo); err != nil {
 		return err
 	}
-	return mgr.UpdatePhotoTags(photo, false)
+	if err := mgr.UpdatePhotoTags(photo, false); err != nil {
+		return err
+	}
+	return t.Commit()
 }
 
 func (mgr *defaultPhotoManager) DeletePhotoTags(photo *Photo) error {
@@ -123,6 +130,11 @@ func (mgr *defaultPhotoManager) DeletePhotoTags(photo *Photo) error {
 }
 
 func (mgr *defaultPhotoManager) UpdatePhotoTags(photo *Photo, delete bool) error {
+	t, err := dbMap.Begin()
+	if err != nil {
+		return err
+	}
+
 	if delete {
 		if err := mgr.DeletePhotoTags(photo); err != nil {
 			return err
@@ -144,7 +156,7 @@ func (mgr *defaultPhotoManager) UpdatePhotoTags(photo *Photo, delete bool) error
 			return err
 		}
 	}
-	return nil
+	return t.Commit()
 }
 
 func (mgr *defaultPhotoManager) Get(photoID string) (*Photo, error) {

@@ -124,8 +124,10 @@ func (mgr *defaultPhotoManager) Insert(photo *Photo) error {
 
 func (mgr *defaultPhotoManager) UpdatePhotoTags(photo *Photo) error {
 
-	var args = []string{"$1"}
-	var params = []interface{}{interface{}(photo.ID)}
+	var (
+		args   = []string{"$1"}
+		params = []interface{}{interface{}(photo.ID)}
+	)
 	for i, name := range photo.Tags {
 		args = append(args, fmt.Sprintf("$%d", i+2))
 		params = append(params, interface{}(name))

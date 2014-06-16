@@ -23,7 +23,7 @@ type PhotoManager interface {
 	All(pageNum int64) ([]Photo, error)
 	ByOwnerID(pageNum int64, ownerID string) ([]Photo, error)
 	Search(pageNum int64, q string) ([]Photo, error)
-	UpdatePhotoTags(*Photo) error
+	UpdateTags(*Photo) error
 }
 
 type Tag struct {
@@ -109,7 +109,7 @@ func (mgr *defaultPhotoManager) Update(photo *Photo) error {
 	if _, err := dbMap.Update(photo); err != nil {
 		return err
 	}
-	if err := mgr.UpdatePhotoTags(photo); err != nil {
+	if err := mgr.UpdateTags(photo); err != nil {
 		return err
 	}
 	return t.Commit()
@@ -123,13 +123,13 @@ func (mgr *defaultPhotoManager) Insert(photo *Photo) error {
 	if err := dbMap.Insert(photo); err != nil {
 		return err
 	}
-	if err := mgr.UpdatePhotoTags(photo); err != nil {
+	if err := mgr.UpdateTags(photo); err != nil {
 		return err
 	}
 	return t.Commit()
 }
 
-func (mgr *defaultPhotoManager) UpdatePhotoTags(photo *Photo) error {
+func (mgr *defaultPhotoManager) UpdateTags(photo *Photo) error {
 
 	var (
 		args   = []string{"$1"}

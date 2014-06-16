@@ -11,9 +11,9 @@
 <div class="row" ng-show="tags.length">
     <div ng-repeat="tag in tags|orderBy:orderField" class="col-xs-6 col-md-3">
         <div class="thumbnail" ng-click="doSearch(tag.name)">
-            <img alt="{{tag.name}}" class="media-object" ng-src="uploads/thumbnails/{{tag.photo}}" />
+            <img alt="{{tag.name}}" class="img-responsive" ng-src="uploads/thumbnails/{{tag.photo}}" />
             <div class="caption">
-            <h3>{{tag.name|limitTo:30}}</h3>
+            <h3>{{tag.name}}</h3>
         </div>
     </div>
 </div>

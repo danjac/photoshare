@@ -28,3 +28,10 @@
   content: "";
   padding: 0;
 }
+
+.caption {
+    position:absolute;
+    width:90%;
+    top:0;
+    background-color:rgba(255, 255, 255, 0.5);
+}

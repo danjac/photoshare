@@ -3,14 +3,14 @@
 <h2 ng-show="searchQuery">Search results for '{{ searchQuery }}'</h2>
 <p class="alert alert-warning" ng-show="searchQuery && !photos.length">No results found.</p>
 
-<div class="row" ng-show="photos.length">
+<div class="row-fluid" ng-show="photos.length">
     <div infinite-scroll="nextPage()" infinite-scroll-distance="2">
     <div ng-repeat="photo in photos" class="col-xs-6 col-md-3">
         <div class="thumbnail" ng-click="getDetail(photo)">
-            <img alt="{{photo.title}}" class="media-object" ng-src="uploads/thumbnails/{{photo.photo}}" />
+            <img alt="{{photo.title}}" class="img-responsive" ng-src="uploads/thumbnails/{{photo.photo}}" />
             <div class="caption">
-            <h3>{{photo.title|limitTo:30}}</h3>
+                <h3>{{photo.title}}</h3>
+           </div>
         </div>
-        </div.
     </div>
 </div>

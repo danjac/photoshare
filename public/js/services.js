@@ -50,6 +50,9 @@ angular.module('photoshare.services', [])
     .service('User', ['$resource', 'urls', function ($resource, urls) {
         return $resource(urls.users);
     }])
+    .service('Tag', ['$resource', 'urls', function ($resource, urls) {
+        return $resource(urls.tags);
+    }])
     .service('Alert', [function () {
 
         function Alert() {

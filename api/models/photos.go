@@ -19,6 +19,7 @@ type PhotoManager interface {
 	Delete(*Photo) error
 	Get(photoID string) (*Photo, error)
 	GetDetail(photoID string) (*PhotoDetail, error)
+	GetTagCounts() ([]TagCount, error)
 	All(pageNum int64) ([]Photo, error)
 	ByOwnerID(pageNum int64, ownerID string) ([]Photo, error)
 	Search(pageNum int64, q string) ([]Photo, error)
@@ -27,12 +28,18 @@ type PhotoManager interface {
 
 type Tag struct {
 	ID   int64  `db:"id" json:"id"`
-	Name string `db:"name" json "name"`
+	Name string `db:"name" json:"name"`
 }
 
 type PhotoTag struct {
 	PhotoID int64 `db:"photo_id"`
 	TagID   int64 `db:"tag_id"`
+}
+
+type TagCount struct {
+	Name  string `db:"name" json:"name"`
+	Photo string `db:"photo" json:"photo"`
+    NumPhotos int64 `db:"num_photos" json:"numPhotos"`
 }
 
 type Photo struct {
@@ -222,6 +229,14 @@ func (mgr *defaultPhotoManager) All(pageNum int64) ([]Photo, error) {
 		return photos, err
 	}
 	return photos, nil
+}
+
+func (mgr *defaultPhotoManager) GetTagCounts() ([]TagCount, error) {
+	var tags []TagCount
+	if _, err := dbMap.Select(&tags, "SELECT name, photo, num_photos FROM tag_counts"); err != nil {
+		return tags, err
+	}
+	return tags, nil
 }
 
 func getOffset(pageNum int64) int64 {

@@ -14,7 +14,8 @@ angular.module('photoshare', [
     constant('urls', {
         auth: '/api/auth/',
         photos: '/api/photos/:id',
-        users: '/api/user/'
+        users: '/api/user/',
+        tags: '/api/tags/'
     }).
     constant('pageSize', 32).
     config(['$routeProvider',
@@ -29,6 +30,8 @@ angular.module('photoshare', [
         $routeProvider.
         
             when('/list', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
+
+            when('/tags', {templateUrl: 'partials/tags.html', controller: 'TagsCtrl'}).
 
             when('/search/:q', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
 

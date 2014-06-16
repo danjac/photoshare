@@ -130,6 +130,26 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
         }])
 
+    .controller('TagsCtrl', ['$scope',
+                             '$location',
+                             'Tag', function ($scope, $location, Tag) {
+        $scope.tags = [];
+        $scope.orderField = 'name';
+
+        Tag.query().$promise.then(function (tags) {
+            $scope.tags = tags;
+        });
+
+        $scope.doSearch = function (tag) {
+            $location.path("/search/" + tag);
+        };
+
+        $scope.orderTags = function (field) {
+            $scope.orderField = field;
+        };
+
+    }])
+
     .controller('UploadCtrl', ['$scope',
                                '$location',
                                '$window',

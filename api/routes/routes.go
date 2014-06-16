@@ -34,6 +34,9 @@ func GetHandler() http.Handler {
 	user := r.PathPrefix("/api/user").Subrouter()
 	user.HandleFunc("/", MakeAppHandler(signup, false)).Methods("POST")
 
+	tags := r.PathPrefix("/api/tags").Subrouter()
+	tags.HandleFunc("/", MakeAppHandler(getTags, false)).Methods("GET")
+
 	feeds := r.PathPrefix("/feeds").Subrouter()
 	feeds.HandleFunc("/", MakeAppHandler(latestFeed, false))
 

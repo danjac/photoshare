@@ -167,3 +167,11 @@ func getPhotos(c *AppContext) error {
 	}
 	return c.OK(photos)
 }
+
+func getTags(c *AppContext) error {
+	tags, err := photoMgr.GetTagCounts()
+	if err != nil {
+		return err
+	}
+	return c.OK(tags)
+}

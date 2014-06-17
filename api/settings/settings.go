@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	HashKey,
-	BlockKey,
+	PrivKeyFile,
+	PubKeyFile,
 	DBHost,
 	DBName,
 	DBUser,
@@ -39,8 +39,8 @@ func getEnvOrElse(name, defaultValue string) string {
 
 func init() {
 
-	HashKey = getEnvOrDie("HASH_KEY")
-	BlockKey = getEnvOrDie("BLOCK_KEY")
+	PrivKeyFile = getEnvOrDie("PRIVATE_KEY")
+	PubKeyFile = getEnvOrDie("PUBLIC_KEY")
 
 	DBName = getEnvOrDie("DB_NAME")
 	DBUser = getEnvOrDie("DB_USER")

@@ -3,7 +3,10 @@
 /* Services */
 
 angular.module('photoshare.services', [])
-    .service('Authenticator', ['$resource', '$q', 'urls', function ($resource, $q, urls) {
+    .service('Authenticator', ['$resource',
+                               '$q',
+                               '$window',
+                               'urls', function ($resource, $q, $window, urls) {
 
         function Authenticator() {
             this.resource = $resource(urls.auth);
@@ -17,8 +20,16 @@ angular.module('photoshare.services', [])
             });
         };
         
+        Authenticator.prototype.login = function (result) {
+            this.session = result;
+            if (result.token) {
+                $window.sessionStorage.token = result.token;
+            }
+        };
+
         Authenticator.prototype.logout = function () {
             var $this = this, d = $q.defer();
+            delete $window.sessionStorage.token;
             $this.session.$delete(function (result) {
                 $this.session = result;
                 d.resolve($this.session);

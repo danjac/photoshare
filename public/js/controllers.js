@@ -159,10 +159,9 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
     .controller('UploadCtrl', ['$scope',
                                '$location',
-                               '$window',
                                'Authenticator',
                                'Alert',
-                               'Photo', function ($scope, $location, $window, Authenticator, Alert, Photo) {
+                               'Photo', function ($scope, $location, Authenticator, Alert, Photo) {
         if (!Authenticator.session.loggedIn) {
             Alert.danger("You must be logged in");
             $location.path("/login");
@@ -195,16 +194,14 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
     .controller('LoginCtrl', ['$scope',
                               '$location',
-                              '$window',
                               'Authenticator',
-                              'Alert', function ($scope, $location, $window, Authenticator, Alert) {
+                              'Alert', function ($scope, $location, Authenticator, Alert) {
         $scope.loginCreds = new Authenticator.resource();
         $scope.login = function () {
             $scope.loginCreds.$save(function (result) {
                 $scope.loginCreds = new Authenticator.resource();
                 if (result.loggedIn) {
-                    Authenticator.session = result;
-                    $window.sessionStorage.token = result.token;
+                    Authenticator.login(result);
                     Alert.success("Welcome back, " + Authenticator.session.name);
                     $location.path("/list");
                 }
@@ -221,7 +218,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         $scope.newUser = new User();
         $scope.signup = function () {
             $scope.newUser.$save(function (result) {
-                Authenticator.session = result;
+                Authenticator.login(result);
                 $scope.newUser = new User();
                 Alert.success("Welcome, " + result.name);
                 $location.path("/list");

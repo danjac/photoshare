@@ -3,17 +3,12 @@ package session
 import (
 	"errors"
 	"github.com/danjac/photoshare/api/models"
+	"github.com/danjac/photoshare/api/settings"
 	jwt "github.com/dgrijalva/jwt-go"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
-    "fmt"
-)
-
-const (
-	privKeyFile = "sample_key"
-	pubKeyFile  = "sample_key.pub"
 )
 
 var (
@@ -24,11 +19,11 @@ var (
 
 func init() {
 	var err error
-	signKey, err = ioutil.ReadFile(privKeyFile)
+	signKey, err = ioutil.ReadFile(settings.PrivKeyFile)
 	if err != nil {
 		panic(err)
 	}
-	verifyKey, err = ioutil.ReadFile(pubKeyFile)
+	verifyKey, err = ioutil.ReadFile(settings.PubKeyFile)
 	if err != nil {
 		panic(err)
 	}
@@ -69,7 +64,6 @@ func (auth *Authenticator) Identify() (*models.User, error) {
 func GetCurrentUser(r *http.Request) (*models.User, error) {
 
 	userID, err := readToken(r)
-    fmt.Printf("UID:", userID)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +82,7 @@ func Logout(w http.ResponseWriter) (string, error) {
 }
 
 func readToken(r *http.Request) (string, error) {
-	tokenString := r.Header["X-Auth-Token"][0]
+	tokenString := r.Header.Get("X-Auth-Token")
 	if tokenString == "" {
 		return "", nil
 	}

@@ -3,16 +3,36 @@ package session
 import (
 	"errors"
 	"github.com/danjac/photoshare/api/models"
+	jwt "github.com/dgrijalva/jwt-go"
+	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 )
 
-const UserCookieName = "userid"
+const (
+	privKeyFile = "sample_key"
+	pubKeyFile  = "sample_key.pub"
+)
 
 var (
+	verifyKey, signKey []byte
 	MissingLoginFields = errors.New("Missing login fields")
 	userMgr            = models.NewUserManager()
 )
+
+func init() {
+	var err error
+	signKey, err = ioutil.ReadFile(privKeyFile)
+	if err != nil {
+		panic(err)
+	}
+	verifyKey, err = ioutil.ReadFile(pubKeyFile)
+	if err != nil {
+		panic(err)
+	}
+
+}
 
 // Basic user session info
 type SessionInfo struct {
@@ -20,14 +40,15 @@ type SessionInfo struct {
 	Name     string `json:"name"`
 	IsAdmin  bool   `json:"isAdmin"`
 	LoggedIn bool   `json:"loggedIn"`
+	Token    string `json:"token"`
 }
 
-func NewSessionInfo(user *models.User) *SessionInfo {
+func NewSessionInfo(user *models.User, token string) *SessionInfo {
 	if user == nil || user.ID == 0 {
 		return &SessionInfo{}
 	}
 
-	return &SessionInfo{user.ID, user.Name, user.IsAdmin, true}
+	return &SessionInfo{user.ID, user.Name, user.IsAdmin, true, token}
 }
 
 // Handles user authentication
@@ -46,7 +67,7 @@ func (auth *Authenticator) Identify() (*models.User, error) {
 
 func GetCurrentUser(r *http.Request) (*models.User, error) {
 
-	userID, err := cookieReader.Read(r, UserCookieName, true)
+	userID, err := readToken(r)
 	if err != nil {
 		return nil, err
 	}
@@ -56,10 +77,43 @@ func GetCurrentUser(r *http.Request) (*models.User, error) {
 	return userMgr.GetActive(userID)
 }
 
-func Login(w http.ResponseWriter, user *models.User) error {
-	return cookieWriter.Write(w, UserCookieName, strconv.FormatInt(user.ID, 10), true)
+func Login(w http.ResponseWriter, user *models.User) (string, error) {
+	return createToken(w, strconv.FormatInt(user.ID, 10))
 }
 
-func Logout(w http.ResponseWriter) error {
-	return cookieWriter.Write(w, UserCookieName, "", true)
+func Logout(w http.ResponseWriter) (string, error) {
+	return createToken(w, "")
+}
+
+func readToken(r *http.Request) (string, error) {
+	tokenString := r.Header["X-Auth-Token"][0]
+	if tokenString == "" {
+		return "", nil
+	}
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) ([]byte, error) {
+		return verifyKey, nil
+	})
+	switch err.(type) {
+	case nil:
+		if !token.Valid {
+			return "", nil
+		}
+		return token.Claims["uid"].(string), nil
+	case *jwt.ValidationError:
+		return "", nil
+	default:
+		return "", err
+	}
+}
+
+func createToken(w http.ResponseWriter, userID string) (string, error) {
+	token := jwt.New(jwt.GetSigningMethod("RS256"))
+	token.Claims["uid"] = userID
+	token.Claims["exp"] = time.Now().Add(time.Minute * 1).Unix()
+	tokenString, err := token.SignedString(signKey)
+	if err != nil {
+		return "", err
+	}
+	w.Header().Set("X-Auth-Token", tokenString)
+	return tokenString, nil
 }

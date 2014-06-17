@@ -8,11 +8,16 @@ import (
 
 func logout(c *AppContext) error {
 
-	if err := c.Logout(); err != nil {
+	var (
+		token string
+		err   error
+	)
+
+	if token, err = c.Logout(); err != nil {
 		return err
 	}
 
-	return c.OK(session.NewSessionInfo(nil))
+	return c.OK(session.NewSessionInfo(nil, token))
 
 }
 
@@ -23,7 +28,7 @@ func authenticate(c *AppContext) error {
 		return err
 	}
 
-	return c.OK(session.NewSessionInfo(user))
+	return c.OK(session.NewSessionInfo(user, ""))
 }
 
 func login(c *AppContext) error {
@@ -42,10 +47,12 @@ func login(c *AppContext) error {
 	if user == nil {
 		return c.BadRequest("Invalid email or password")
 	}
-	if err := c.Login(user); err != nil {
+
+	token, err := c.Login(user)
+	if err != nil {
 		return err
 	}
-	return c.OK(session.NewSessionInfo(user))
+	return c.OK(session.NewSessionInfo(user, token))
 }
 
 func signup(c *AppContext) error {
@@ -72,10 +79,11 @@ func signup(c *AppContext) error {
 		return err
 	}
 
-	if err := c.Login(user); err != nil {
+	token, err := c.Login(user)
+	if err != nil {
 		return err
 	}
 
-	return c.OK(session.NewSessionInfo(user))
+	return c.OK(session.NewSessionInfo(user, token))
 
 }

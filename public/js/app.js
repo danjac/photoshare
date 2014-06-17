@@ -51,8 +51,8 @@ angular.module('photoshare', [
         //
         $resourceProvider.defaults.stripTrailingSlashes = false;
 
-        $httpProvider.defaults.xsrfCookieName = "csrf_token";
-        $httpProvider.defaults.xsrfHeaderName = "X-CSRF-Token";
+        //$httpProvider.defaults.xsrfCookieName = "csrf_token";
+        //$httpProvider.defaults.xsrfHeaderName = "X-CSRF-Token";
 
         // handle file uploads
 
@@ -88,14 +88,31 @@ angular.module('photoshare', [
             return JSON.stringify(data);
         };
 
-        // handle errors
-        $httpProvider.interceptors.push([
-            '$injector', function ($injector) {
-                return $injector.get('ErrorInterceptor');
-            }
-        ]);
-    }]).factory('ErrorInterceptor', function ($q, $location, Alert) {
+        var interceptors = ['AuthInterceptor', 'ErrorInterceptor'];
+
+        angular.forEach(interceptors, function (interceptor) {
+            $httpProvider.interceptors.push([
+                '$injector', function ($injector) {
+                    return $injector.get(interceptor);
+                }
+            ]);
+        });
+
+    }]).factory('AuthInterceptor', function ($window) {
+        
         return {
+            request: function (config) {
+                config.headers = config.headers || {};
+                if ($window.sessionStorage.token) {
+                    config.headers['X-Auth-Token'] = $window.sessionStorage.token;
+                }
+                return config;
+            }
+        };
+
+    }).factory('ErrorInterceptor', function ($q, $location, Alert) {
+        return {
+
             response: function (response) {
                 return response;
             },

@@ -195,14 +195,16 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
     .controller('LoginCtrl', ['$scope',
                               '$location',
+                              '$window',
                               'Authenticator',
-                              'Alert', function ($scope, $location, Authenticator, Alert) {
+                              'Alert', function ($scope, $location, $window, Authenticator, Alert) {
         $scope.loginCreds = new Authenticator.resource();
         $scope.login = function () {
             $scope.loginCreds.$save(function (result) {
                 $scope.loginCreds = new Authenticator.resource();
                 if (result.loggedIn) {
                     Authenticator.session = result;
+                    $window.sessionStorage.token = result.token;
                     Alert.success("Welcome back, " + Authenticator.session.name);
                     $location.path("/list");
                 }

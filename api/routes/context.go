@@ -27,12 +27,12 @@ func (c *AppContext) GetCurrentUser() (*models.User, error) {
 	return c.User, err
 }
 
-func (c *AppContext) Login(user *models.User) error {
+func (c *AppContext) Login(user *models.User) (string, error) {
 	c.User = user
 	return session.Login(c.Response, user)
 }
 
-func (c *AppContext) Logout() error {
+func (c *AppContext) Logout() (string, error) {
 	c.User = nil
 	return session.Logout(c.Response)
 }

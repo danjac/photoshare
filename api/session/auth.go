@@ -11,7 +11,10 @@ import (
 	"time"
 )
 
-const tokenHeader = "X-Auth-Token"
+const (
+	tokenHeader = "X-Auth-Token"
+	expiry      = 60 // minutes
+)
 
 var (
 	verifyKey, signKey []byte
@@ -107,7 +110,7 @@ func readToken(r *http.Request) (string, error) {
 func createToken(w http.ResponseWriter, userID string) (string, error) {
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 	token.Claims["uid"] = userID
-	token.Claims["exp"] = time.Now().Add(time.Minute * 1).Unix()
+	token.Claims["exp"] = time.Now().Add(time.Minute * expiry).Unix()
 	tokenString, err := token.SignedString(signKey)
 	if err != nil {
 		return "", err

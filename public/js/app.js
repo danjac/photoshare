@@ -130,7 +130,7 @@ angular.module('photoshare', [
                         Alert.danger("Sorry, your form contains errors, please try again");
                     } else {
                         Alert.danger(angular.fromJson(response.data));
-                    } 
+                    }
                 }
                 if (response.status === 500) {
                     Alert.danger("Sorry, an error has occurred");

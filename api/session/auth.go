@@ -41,15 +41,14 @@ type SessionInfo struct {
 	Name     string `json:"name"`
 	IsAdmin  bool   `json:"isAdmin"`
 	LoggedIn bool   `json:"loggedIn"`
-	Token    string `json:"token"`
 }
 
-func NewSessionInfo(user *models.User, token string) *SessionInfo {
+func NewSessionInfo(user *models.User) *SessionInfo {
 	if user == nil || user.ID == 0 {
 		return &SessionInfo{}
 	}
 
-	return &SessionInfo{user.ID, user.Name, user.IsAdmin, true, token}
+	return &SessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
 // Handles user authentication

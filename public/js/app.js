@@ -19,6 +19,7 @@ angular.module('photoshare', [
         tags: '/api/tags/'
     }).
     constant('pageSize', 32).
+    constant('authToken', 'X-Auth-Token').
     config(['$routeProvider',
             '$locationProvider',
             '$httpProvider',

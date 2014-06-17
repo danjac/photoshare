@@ -195,13 +195,14 @@ angular.module('photoshare.controllers', ['photoshare.services'])
     .controller('LoginCtrl', ['$scope',
                               '$location',
                               'Authenticator',
-                              'Alert', function ($scope, $location, Authenticator, Alert) {
+                              'Alert',
+                              'authToken', function ($scope, $location, Authenticator, Alert, authToken) {
         $scope.loginCreds = new Authenticator.resource();
         $scope.login = function () {
-            $scope.loginCreds.$save(function (result) {
+            $scope.loginCreds.$save(function (result, headers) {
                 $scope.loginCreds = new Authenticator.resource();
                 if (result.loggedIn) {
-                    Authenticator.login(result);
+                    Authenticator.login(result, headers(authToken));
                     Alert.success("Welcome back, " + Authenticator.session.name);
                     $location.path("/list");
                 }
@@ -213,12 +214,13 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                '$location',
                                'User',
                                'Authenticator',
-                               'Alert', function ($scope, $location, User, Authenticator, Alert) {
+                               'Alert',
+                               'authToken', function ($scope, $location, User, Authenticator, Alert, authToken) {
 
         $scope.newUser = new User();
         $scope.signup = function () {
-            $scope.newUser.$save(function (result) {
-                Authenticator.login(result);
+            $scope.newUser.$save(function (result, headers) {
+                Authenticator.login(result, headers(authToken));
                 $scope.newUser = new User();
                 Alert.success("Welcome, " + result.name);
                 $location.path("/list");

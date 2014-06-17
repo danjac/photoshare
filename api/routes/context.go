@@ -27,14 +27,16 @@ func (c *AppContext) GetCurrentUser() (*models.User, error) {
 	return c.User, err
 }
 
-func (c *AppContext) Login(user *models.User) (string, error) {
+func (c *AppContext) Login(user *models.User) error {
 	c.User = user
-	return session.Login(c.Response, user)
+	_, err := session.Login(c.Response, user)
+	return err
 }
 
-func (c *AppContext) Logout() (string, error) {
+func (c *AppContext) Logout() error {
 	c.User = nil
-	return session.Logout(c.Response)
+	_, err := session.Logout(c.Response)
+	return err
 }
 
 func (c *AppContext) Render(status int, value interface{}) error {

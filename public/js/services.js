@@ -20,10 +20,10 @@ angular.module('photoshare.services', [])
             });
         };
         
-        Authenticator.prototype.login = function (result) {
+        Authenticator.prototype.login = function (result, token) {
             this.session = result;
-            if (result.token) {
-                $window.sessionStorage.token = result.token;
+            if (token) {
+                $window.sessionStorage.token = token;
             }
         };
 

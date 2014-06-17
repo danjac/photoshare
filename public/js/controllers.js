@@ -75,9 +75,10 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                '$routeParams',
                                '$location',
                                'Photo',
+                               'Tag',
                                'Authenticator',
                                'Alert',
-                               function ($scope, $routeParams, $location, Photo, Authenticator, Alert) {
+                               function ($scope, $routeParams, $location, Photo, Tag, Authenticator, Alert) {
 
             function doUpdate(onSuccess) {
                 var taglist = $scope.photo.taglist || "";
@@ -96,6 +97,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.photo = null;
             $scope.editTitle = false;
             $scope.editTags = false;
+
             Photo.get({id: $routeParams.id}).$promise.then(function (photo) {
                 $scope.photo = photo;
                 $scope.canDelete = Authenticator.canDelete($scope.photo);

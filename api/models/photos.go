@@ -140,7 +140,7 @@ func (mgr *defaultPhotoManager) UpdateTags(photo *Photo) error {
 		name = strings.TrimSpace(name)
 		if name != "" {
 			args = append(args, fmt.Sprintf("$%d", i+2))
-			params = append(params, interface{}(name))
+			params = append(params, interface{}(strings.ToLower(name)))
 			isEmpty = false
 		}
 	}

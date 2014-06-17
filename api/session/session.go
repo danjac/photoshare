@@ -70,6 +70,7 @@ func (writer *DefaultCookieWriter) Write(w http.ResponseWriter, name string, val
 		MaxAge:     86400,
 		Expires:    expires,
 		RawExpires: expires.Format(time.UnixDate),
+		HttpOnly:   true,
 	}
 	http.SetCookie(w, cookie)
 	return nil

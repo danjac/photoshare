@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+const tokenHeader = "X-Auth-Token"
+
 var (
 	verifyKey, signKey []byte
 	MissingLoginFields = errors.New("Missing login fields")
@@ -82,7 +84,7 @@ func Logout(w http.ResponseWriter) (string, error) {
 }
 
 func readToken(r *http.Request) (string, error) {
-	tokenString := r.Header.Get("X-Auth-Token")
+	tokenString := r.Header.Get(tokenHeader)
 	if tokenString == "" {
 		return "", nil
 	}
@@ -110,6 +112,6 @@ func createToken(w http.ResponseWriter, userID string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	w.Header().Set("X-Auth-Token", tokenString)
+	w.Header().Set(tokenHeader, tokenString)
 	return tokenString, nil
 }

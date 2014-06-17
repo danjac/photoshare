@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+    "fmt"
 )
 
 const (
@@ -68,6 +69,7 @@ func (auth *Authenticator) Identify() (*models.User, error) {
 func GetCurrentUser(r *http.Request) (*models.User, error) {
 
 	userID, err := readToken(r)
+    fmt.Printf("UID:", userID)
 	if err != nil {
 		return nil, err
 	}

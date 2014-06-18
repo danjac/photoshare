@@ -66,7 +66,7 @@ angular.module('photoshare.services', [])
         Authenticator.prototype.init = function () {
             var $this = this;
             $this.resource.get({}, function (result) {
-                Session.set(result);
+                $this.login(result);
             });
         };
         

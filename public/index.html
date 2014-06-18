@@ -39,7 +39,7 @@
             </li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-            <navtab url="#/login" ng-show="!session.loggedIn">Login</navtab>
+            <navtab url="#/login" ng-click="login()" ng-show="!session.loggedIn">Login</navtab>
             <navtab url="#/signup" ng-show="!session.loggedIn">Signup</navtab>
             <li ng-show="session.loggedIn"><p class="navbar-text">You are signed in as {{ session.name }}</p></li>
             <li><a ng-click="logout()" ng-show="session.loggedIn">Logout</a></li>

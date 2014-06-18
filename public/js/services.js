@@ -3,11 +3,22 @@
 /* Services */
 
 angular.module('photoshare.services', [])
-    .service('Session', function () {
+    .service('Session', ['$location', function ($location) {
         
         function Session() {
             this.clear();
+            this.lastLoginUrl = null;
         }
+
+        Session.prototype.setLastLoginUrl = function () {
+            this.lastLoginUrl = $location.path();
+        };
+
+        Session.prototype.getLastLoginUrl = function () {
+            var url = this.lastLoginUrl;
+            this.lastLoginUrl = null;
+            return url;
+        };
 
         Session.prototype.clear = function () {
             this.loggedIn = false;
@@ -42,7 +53,7 @@ angular.module('photoshare.services', [])
  
         return new Session();
 
-    })
+    }])
     .service('Authenticator', ['$resource',
                                '$q',
                                '$window',

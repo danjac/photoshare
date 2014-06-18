@@ -34,6 +34,11 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 });
             };
 
+            $scope.login = function () {
+                Session.setLastLoginUrl();
+                $location.path("/login");
+            };
+
             $scope.doSearch = function () {
                 $location.path("/search/" + $scope.searchQuery);
                 $scope.searchQuery = "";
@@ -101,7 +106,6 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.editTags = false;
 
             Photo.get({id: $routeParams.id}).$promise.then(function (photo) {
-                console.log(Session);
                 $scope.photo = photo;
                 $scope.canDelete = Session.canDelete($scope.photo);
                 $scope.canEdit = Session.canEdit($scope.photo);
@@ -167,6 +171,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                'Photo', function ($scope, $location, Session, Alert, Photo) {
         if (!Session.loggedIn) {
             Alert.danger("You must be logged in");
+            Session.setLastLoginUrl();
             $location.path("/login");
             return;
         }
@@ -197,9 +202,10 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
     .controller('LoginCtrl', ['$scope',
                               '$location',
+                              'Session',
                               'Authenticator',
                               'Alert',
-                              'authToken', function ($scope, $location, Authenticator, Alert, authToken) {
+                              'authToken', function ($scope, $location, Session, Authenticator, Alert, authToken) {
         $scope.loginCreds = new Authenticator.resource();
         $scope.login = function () {
             $scope.loginCreds.$save(function (result, headers) {
@@ -207,7 +213,8 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 if (result.loggedIn) {
                     Authenticator.login(result, headers(authToken));
                     Alert.success("Welcome back, " + result.name);
-                    $location.path("/list");
+                    var path = Session.getLastLoginUrl() || "/list";
+                    $location.path(path);
                 }
             });
         };

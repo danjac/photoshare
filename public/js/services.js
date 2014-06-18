@@ -32,7 +32,6 @@ angular.module('photoshare.services', [])
             this.name = session.name;
             this.id = session.id;
             this.isAdmin = session.isAdmin;
-            this.$delete = session.$delete;
         };
 
         Session.prototype.canDelete = function (photo) {
@@ -73,6 +72,7 @@ angular.module('photoshare.services', [])
         
         Authenticator.prototype.login = function (result, token) {
             Session.set(result);
+            this.$delete = result.$delete;
             if (token) {
                 $window.sessionStorage.token = token;
             }
@@ -81,7 +81,7 @@ angular.module('photoshare.services', [])
         Authenticator.prototype.logout = function () {
             var $this = this, d = $q.defer();
             delete $window.sessionStorage.token;
-            Session.$delete(function (result) {
+            $this.$delete(function (result) {
                 Session.clear();
                 d.resolve(result);
             });

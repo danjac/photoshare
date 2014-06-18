@@ -16,7 +16,7 @@ describe('controllers', function (){
         var scope = $rootScope.$new(),
             httpBackend = _$httpBackend_;
 
-        httpBackend.expectGET("/api/photos/?page=1").respond([
+        httpBackend.expectGET("/api/photos/?ownerID=&page=1&q=").respond([
             {
                 'title': 'this is a photo',
                 'photo': 'test.jpg'
@@ -30,12 +30,13 @@ describe('controllers', function (){
         expect(scope.photos.length).toBe(1);
     }));
 
-    it('should show upload form', inject(function ($location, $rootScope, $controller, _$httpBackend_, Authenticator) {
+    it('should show upload form', inject(function ($location, $rootScope, $controller, _$httpBackend_, Session) {
         var scope = $rootScope.$new(), 
             httpBackend = _$httpBackend_,
             data = {
                 title: 'test',
-                photo: 'test.png'
+                photo: 'test.png',
+                tags: []
             };
 
         
@@ -44,8 +45,7 @@ describe('controllers', function (){
             'title': 'test'
         });
 
-        Authenticator.currentUser = {id : 1};
-        Authenticator.loggedIn = true;
+        Session.loggedIn = true;
 
         $controller('UploadCtrl', { $scope: scope });
 

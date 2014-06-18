@@ -39,30 +39,30 @@ func (c *AppContext) Logout() error {
 	return err
 }
 
-func (c *AppContext) Render(status int, value interface{}) error {
+func (c *AppContext) RenderJSON(status int, value interface{}) error {
 	c.Response.WriteHeader(status)
 	c.Response.Header().Set("Content-type", "application/json")
 	return json.NewEncoder(c.Response).Encode(value)
 }
 
 func (c *AppContext) OK(value interface{}) error {
-	return c.Render(http.StatusOK, value)
+	return c.RenderJSON(http.StatusOK, value)
 }
 
 func (c *AppContext) Unauthorized(value interface{}) error {
-	return c.Render(http.StatusUnauthorized, value)
+	return c.RenderJSON(http.StatusUnauthorized, value)
 }
 
 func (c *AppContext) Forbidden(value interface{}) error {
-	return c.Render(http.StatusForbidden, value)
+	return c.RenderJSON(http.StatusForbidden, value)
 }
 
 func (c *AppContext) BadRequest(value interface{}) error {
-	return c.Render(http.StatusBadRequest, value)
+	return c.RenderJSON(http.StatusBadRequest, value)
 }
 
 func (c *AppContext) NotFound(value interface{}) error {
-	return c.Render(http.StatusNotFound, value)
+	return c.RenderJSON(http.StatusNotFound, value)
 }
 
 func (c *AppContext) ParseJSON(value interface{}) error {

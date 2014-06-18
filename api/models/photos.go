@@ -211,17 +211,37 @@ func (mgr *defaultPhotoManager) ByOwnerID(pageNum int64, ownerID string) ([]Phot
 
 func (mgr *defaultPhotoManager) Search(pageNum int64, q string) ([]Photo, error) {
 
-	var photos []Photo
+	var (
+		photos  []Photo
+		clauses []string
+		params  []interface{}
+	)
 
-	q = "%" + q + "%"
-	if _, err := dbMap.Select(&photos,
-		"SELECT DISTINCT p.* FROM photos p "+
-			"INNER JOIN users u ON u.id = p.owner_id "+
-			"LEFT JOIN photo_tags pt ON pt.photo_id=p.id "+
-			"LEFT JOIN tags t ON t.id = pt.tag_id "+
-			"WHERE (p.title ILIKE $1 OR u.name ILIKE $1 OR t.name ILIKE $1) "+
-			"ORDER BY created_at DESC LIMIT $2 OFFSET $3",
-		q, PageSize, getOffset(pageNum)); err != nil {
+	for num, word := range strings.Split(q, " ") {
+		word = strings.TrimSpace(word)
+		if word == "" || num > 6 {
+			break
+		}
+		word = "%" + word + "%"
+		num += 1
+		clauses = append(clauses, fmt.Sprintf(
+			"SELECT  DISTINCT p.* FROM photos p "+
+				"INNER JOIN users u ON u.id = p.owner_id  "+
+				"LEFT JOIN photo_tags pt ON pt.photo_id = p.id "+
+				"LEFT JOIN tags t ON pt.tag_id=t.id "+
+				"WHERE p.title ILIKE $%d OR u.name LIKE $%d OR t.name ILIKE $%d", num, num, num))
+		params = append(params, interface{}(word))
+	}
+
+	numParams := len(params)
+
+	sql := fmt.Sprintf("%s LIMIT $%d OFFSET $%d",
+		strings.Join(clauses, " INTERSECT "), numParams+1, numParams+2)
+
+	params = append(params, interface{}(PageSize))
+	params = append(params, interface{}(getOffset(pageNum)))
+
+	if _, err := dbMap.Select(&photos, sql, params...); err != nil {
 		return photos, err
 	}
 	return photos, nil

@@ -29,7 +29,7 @@ angular.module('photoshare', [
         $resourceProvider
     ) {
         $routeProvider.
-        
+
             when('/list', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
 
             when('/tags', {templateUrl: 'partials/tags.html', controller: 'TagsCtrl'}).
@@ -98,19 +98,19 @@ angular.module('photoshare', [
             ]);
         });
 
-    }]).factory('AuthInterceptor', function ($window) {
-        
+    }]).factory('AuthInterceptor', function ($window, authToken) {
+
         return {
             request: function (config) {
                 config.headers = config.headers || {};
                 if ($window.sessionStorage.token) {
-                    config.headers['X-Auth-Token'] = $window.sessionStorage.token;
+                    config.headers[authToken] = $window.sessionStorage.token;
                 }
                 return config;
             }
         };
 
-    }).factory('ErrorInterceptor', function ($q, $location, $window, Session, Alert) {
+    }).factory('ErrorInterceptor', function ($q, $location, Session, Alert) {
         return {
 
             response: function (response) {
@@ -119,23 +119,26 @@ angular.module('photoshare', [
 
             responseError: function (response) {
                 var rejection = $q.reject(response);
-
-                if (response.status === 401) {
-                    Alert.danger(angular.fromJson(response.data));
-                    Session.clear();
-                    Session.setLastLoginUrl();
-                    $location.path("/login");
-                }
-                if (response.status === 400) {
-                    if (response.data.errors) {
-                        // TBD: render the specific form errors  
-                        Alert.danger("Sorry, your form contains errors, please try again");
-                    } else {
+                switch (response.status){
+                    case 401:
                         Alert.danger(angular.fromJson(response.data));
-                    }
-                }
-                if (response.status === 500) {
-                    Alert.danger("Sorry, an error has occurred");
+                        Session.clear();
+                        Session.setLastLoginUrl();
+                        $location.path("/login");
+                        break;
+
+                    case 400:
+                        if (response.data.errors) {
+                            // TBD: render the specific form errors
+                            Alert.danger("Sorry, your form contains errors, please try again");
+                        } else {
+                            Alert.danger(angular.fromJson(response.data));
+                        }
+                        break;
+                    case 500:
+                        Alert.danger("Sorry, an error has occurred");
+                    default:
+                        Alert.danger(angular.fromJson(response.data));
                 }
                 return rejection;
             }

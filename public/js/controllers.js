@@ -50,7 +50,11 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                              '$routeParams',
                              'Photo',
                              'pageSize',
-                             function ($scope, $location, $routeParams, Photo, pageSize) {
+                             function ($scope,
+                                       $location,
+                                       $routeParams,
+                                       Photo,
+                                       pageSize) {
             var page = 1,
                 stopScrolling = false,
                 q = $routeParams.q || "",
@@ -85,7 +89,13 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                'Tag',
                                'Session',
                                'Alert',
-                               function ($scope, $routeParams, $location, Photo, Tag, Session, Alert) {
+                               function ($scope,
+                                         $routeParams,
+                                         $location,
+                                         Photo,
+                                         Tag,
+                                         Session,
+                                         Alert) {
 
             function doUpdate(onSuccess) {
                 var taglist = $scope.photo.taglist || "";
@@ -168,7 +178,11 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                '$location',
                                'Session',
                                'Alert',
-                               'Photo', function ($scope, $location, Session, Alert, Photo) {
+                               'Photo', function ($scope,
+                                                  $location,
+                                                  Session,
+                                                  Alert,
+                                                  Photo) {
         if (!Session.loggedIn) {
             Alert.danger("You must be logged in");
             Session.setLastLoginUrl();
@@ -205,7 +219,13 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                               'Session',
                               'Authenticator',
                               'Alert',
-                              'authToken', function ($scope, $location, Session, Authenticator, Alert, authToken) {
+                              'authToken', function ($scope,
+                                                     $location,
+                                                     Session,
+                                                     Authenticator,
+                                                     Alert,
+                                                     authToken) {
+
         $scope.loginCreds = new Authenticator.resource();
         $scope.login = function () {
             $scope.loginCreds.$save(function (result, headers) {
@@ -225,7 +245,12 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                'User',
                                'Authenticator',
                                'Alert',
-                               'authToken', function ($scope, $location, User, Authenticator, Alert, authToken) {
+                               'authToken', function ($scope,
+                                                      $location,
+                                                      User,
+                                                      Authenticator,
+                                                      Alert,
+                                                      authToken) {
 
         $scope.newUser = new User();
         $scope.signup = function () {

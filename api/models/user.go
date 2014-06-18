@@ -4,7 +4,6 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
 	"github.com/coopernurse/gorp"
-	"log"
 	"time"
 )
 
@@ -80,7 +79,6 @@ func (mgr *defaultUserManager) Authenticate(identifier string, password string) 
 	}
 
 	if !user.CheckPassword(password) {
-		log.Println("PASSWORDFAIL")
 		return nil, nil
 	}
 

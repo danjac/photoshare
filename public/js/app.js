@@ -111,7 +111,7 @@ angular.module('photoshare', [
             }
         };
 
-    }).factory('ErrorInterceptor', function ($q, $location, Alert) {
+    }).factory('ErrorInterceptor', function ($q, $location, Session, Alert) {
         return {
 
             response: function (response) {
@@ -123,6 +123,7 @@ angular.module('photoshare', [
 
                 if (response.status === 401) {
                     Alert.danger(angular.fromJson(response.data));
+                    Session.clear();
                     $location.path("/login");
                 }
                 if (response.status === 400) {

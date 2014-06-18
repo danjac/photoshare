@@ -6,19 +6,21 @@ angular.module('photoshare.controllers', ['photoshare.services'])
     .controller('AppCtrl', ['$scope',
                             '$location',
                             '$timeout',
+                            'Session',
                             'Authenticator',
                             'Alert',
                             function ($scope,
                                       $location,
                                       $timeout,
+                                      Session,
                                       Authenticator,
                                       Alert) {
 
-            $scope.auth = Authenticator;
+            $scope.session = Session;
             $scope.alert = Alert;
             $scope.searchQuery = "";
 
-            $scope.auth.init();
+            Authenticator.init();
 
             $scope.$watch('alert.message', function (newValue, oldValue) {
                 if (newValue) {
@@ -27,7 +29,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             });
 
             $scope.logout = function () {
-                $scope.auth.logout().then(function () {
+                Authenticator.logout().then(function () {
                     $location.path("/list");
                 });
             };
@@ -76,9 +78,9 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                '$location',
                                'Photo',
                                'Tag',
-                               'Authenticator',
+                               'Session',
                                'Alert',
-                               function ($scope, $routeParams, $location, Photo, Tag, Authenticator, Alert) {
+                               function ($scope, $routeParams, $location, Photo, Tag, Session, Alert) {
 
             function doUpdate(onSuccess) {
                 var taglist = $scope.photo.taglist || "";
@@ -99,9 +101,10 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.editTags = false;
 
             Photo.get({id: $routeParams.id}).$promise.then(function (photo) {
+                console.log(Session);
                 $scope.photo = photo;
-                $scope.canDelete = Authenticator.canDelete($scope.photo);
-                $scope.canEdit = Authenticator.canEdit($scope.photo);
+                $scope.canDelete = Session.canDelete($scope.photo);
+                $scope.canEdit = Session.canEdit($scope.photo);
                 $scope.photo.taglist = $scope.photo.tags ? $scope.photo.tags.join(" ") : "";
             });
             $scope.deletePhoto = function () {
@@ -159,10 +162,10 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
     .controller('UploadCtrl', ['$scope',
                                '$location',
-                               'Authenticator',
+                               'Session',
                                'Alert',
-                               'Photo', function ($scope, $location, Authenticator, Alert, Photo) {
-        if (!Authenticator.session.loggedIn) {
+                               'Photo', function ($scope, $location, Session, Alert, Photo) {
+        if (!Session.loggedIn) {
             Alert.danger("You must be logged in");
             $location.path("/login");
             return;
@@ -203,7 +206,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 $scope.loginCreds = new Authenticator.resource();
                 if (result.loggedIn) {
                     Authenticator.login(result, headers(authToken));
-                    Alert.success("Welcome back, " + Authenticator.session.name);
+                    Alert.success("Welcome back, " + result.name);
                     $location.path("/list");
                 }
             });

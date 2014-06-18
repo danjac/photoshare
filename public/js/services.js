@@ -3,25 +3,65 @@
 /* Services */
 
 angular.module('photoshare.services', [])
+    .service('Session', function () {
+        
+        function Session() {
+            this.clear();
+        }
+
+        Session.prototype.clear = function () {
+            this.loggedIn = false;
+            this.name = null;
+            this.id = null;
+            this.isAdmin = false;
+        };
+
+        Session.prototype.set = function (session) {
+            this.loggedIn = session.loggedIn;
+            this.name = session.name;
+            this.id = session.id;
+            this.isAdmin = session.isAdmin;
+            this.$delete = session.$delete;
+        };
+
+        Session.prototype.canDelete = function (photo) {
+
+            if (!this.loggedIn) {
+                return false;
+            }
+            return this.canEdit(photo) || this.isAdmin;
+        };
+        
+        Session.prototype.canEdit = function (photo) {
+            if (!this.loggedIn) {
+                return false;
+            }
+            return photo.ownerId === this.id;
+        };
+
+ 
+        return new Session();
+
+    })
     .service('Authenticator', ['$resource',
                                '$q',
                                '$window',
-                               'urls', function ($resource, $q, $window, urls) {
+                               'urls',
+                               'Session', function ($resource, $q, $window, urls, Session) {
 
         function Authenticator() {
             this.resource = $resource(urls.auth);
-            this.session = null;
         }
 
         Authenticator.prototype.init = function () {
             var $this = this;
             $this.resource.get({}, function (result) {
-                $this.session = result;
+                Session.set(result);
             });
         };
         
         Authenticator.prototype.login = function (result, token) {
-            this.session = result;
+            Session.set(result);
             if (token) {
                 $window.sessionStorage.token = token;
             }
@@ -30,26 +70,11 @@ angular.module('photoshare.services', [])
         Authenticator.prototype.logout = function () {
             var $this = this, d = $q.defer();
             delete $window.sessionStorage.token;
-            $this.session.$delete(function (result) {
-                $this.session = result;
-                d.resolve($this.session);
+            Session.$delete(function (result) {
+                Session.clear();
+                d.resolve(result);
             });
             return d.promise;
-        };
-
-        Authenticator.prototype.canDelete = function (photo) {
-
-            if (!this.session) {
-                return false;
-            }
-            return this.canEdit(photo) || this.session.isAdmin;
-        };
-        
-        Authenticator.prototype.canEdit = function (photo) {
-            if (!this.session) {
-                return false;
-            }
-            return photo.ownerId === this.session.id;
         };
 
         return new Authenticator();

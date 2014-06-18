@@ -28,7 +28,7 @@
         <ul class="nav navbar-nav">
             <navtab url="#/list">Latest photos</navtab>
             <navtab url="#/tags">Tags</navtab>
-            <navtab url="#/upload" ng-show="auth.session">Upload a photo</navtab>
+            <navtab url="#/upload" ng-show="session.loggedIn">Upload a photo</navtab>
             <li>
             <form class="navbar-form navbar-left" role="search" name="searchForm" novalidate>
               <div class="form-group">
@@ -39,10 +39,10 @@
             </li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-            <navtab url="#/login" ng-show="!auth.session.loggedIn">Login</navtab>
-            <navtab url="#/signup" ng-show="!auth.session.loggedIn">Signup</navtab>
-            <li ng-show="auth.session.loggedIn"><p class="navbar-text">You are signed in as {{ auth.session.name }}</p></li>
-            <li><a ng-click="logout()" ng-show="auth.session.loggedIn">Logout</a></li>
+            <navtab url="#/login" ng-show="!session.loggedIn">Login</navtab>
+            <navtab url="#/signup" ng-show="!session.loggedIn">Signup</navtab>
+            <li ng-show="session.loggedIn"><p class="navbar-text">You are signed in as {{ session.name }}</p></li>
+            <li><a ng-click="logout()" ng-show="session.loggedIn">Logout</a></li>
         </ul>
       </div>
     </div>

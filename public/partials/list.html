@@ -1,7 +1,7 @@
 
 <h2 ng-show="ownerName">Photos uploaded by {{ ownerName }}</h2>
 <h2 ng-show="searchQuery">Search results for '{{ searchQuery }}'</h2>
-<p class="alert alert-warning" ng-show="searchQuery && !photos.length">No results found.</p>
+<p class="alert alert-warning" ng-show="searchQuery && searchComplete && !photos.length">No results found.</p>
 
 <div class="row-fluid" ng-show="photos.length">
     <div infinite-scroll="nextPage()" infinite-scroll-distance="2">

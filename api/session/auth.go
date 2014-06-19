@@ -44,7 +44,7 @@ type SessionInfo struct {
 }
 
 func NewSessionInfo(user *models.User) *SessionInfo {
-	if user == nil || user.ID == 0 {
+	if user == nil || user.ID == 0 || !user.IsAuthenticated {
 		return &SessionInfo{}
 	}
 

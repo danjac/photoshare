@@ -61,10 +61,11 @@ func (mgr *defaultUserManager) GetActive(userID string) (*User, error) {
 	user := &User{}
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil
+			return user, nil
 		}
-		return nil, err
+		return user, err
 	}
+	user.IsAuthenticated = true
 	return user, nil
 
 }
@@ -73,14 +74,16 @@ func (mgr *defaultUserManager) Authenticate(identifier string, password string) 
 	user := &User{}
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil
+			return user, nil
 		}
-		return nil, err
+		return user, err
 	}
 
 	if !user.CheckPassword(password) {
-		return nil, nil
+		return user, nil
 	}
+
+	user.IsAuthenticated = true
 
 	return user, nil
 }
@@ -92,13 +95,14 @@ func NewUserManager() UserManager {
 }
 
 type User struct {
-	ID        int64     `db:"id" json:"id"`
-	CreatedAt time.Time `db:"created_at" json:"createdAt"`
-	Name      string    `db:"name" json:"name"`
-	Password  string    `db:"password" json:"password,omitempty"`
-	Email     string    `db:"email" json:"email"`
-	IsAdmin   bool      `db:"admin" json:"isAdmin"`
-	IsActive  bool      `db:"active" json:"isActive"`
+	ID              int64     `db:"id" json:"id"`
+	CreatedAt       time.Time `db:"created_at" json:"createdAt"`
+	Name            string    `db:"name" json:"name"`
+	Password        string    `db:"password" json:"password,omitempty"`
+	Email           string    `db:"email" json:"email"`
+	IsAdmin         bool      `db:"admin" json:"isAdmin"`
+	IsActive        bool      `db:"active" json:"isActive"`
+	IsAuthenticated bool      `db:"-" json:"isAuthenticated"`
 }
 
 func (user *User) PreInsert(s gorp.SqlExecutor) error {

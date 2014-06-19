@@ -39,7 +39,7 @@ func login(c *Context) *Result {
 		}
 		return c.Error(err)
 	}
-	if user == nil {
+	if !user.IsAuthenticated {
 		return c.BadRequest("Invalid email or password")
 	}
 

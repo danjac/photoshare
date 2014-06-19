@@ -19,15 +19,18 @@ type Result struct {
 }
 
 func (r *Result) Render() error {
-	if r.Payload != nil {
-		r.Context.Response.WriteHeader(r.Code)
-		r.Context.Response.Header().Set("Content-type", "application/json")
-		return json.NewEncoder(r.Context.Response).Encode(r.Payload)
-	}
 	if r.Error != nil {
 		http.Error(r.Context.Response, "Sorry, an error has occurred", r.Code)
 		return r.Error
 	}
+
+	r.Context.Response.WriteHeader(r.Code)
+
+	if r.Payload != nil {
+		r.Context.Response.Header().Set("Content-type", "application/json")
+		return json.NewEncoder(r.Context.Response).Encode(r.Payload)
+	}
+
 	return nil
 }
 
@@ -72,6 +75,9 @@ func (c *Context) BaseURL() string {
 
 func (c *Context) GetCurrentUser() (*models.User, error) {
 	var err error
+	if c.User != nil {
+		return c.User, nil
+	}
 	c.User, err = session.GetCurrentUser(c.Request)
 	return c.User, err
 }
@@ -83,7 +89,9 @@ func (c *Context) Login(user *models.User) error {
 }
 
 func (c *Context) Logout() error {
-	c.User = nil
+	if c.User != nil {
+		c.User.IsAuthenticated = false
+	}
 	_, err := session.Logout(c.Response)
 	return err
 }
@@ -145,6 +153,7 @@ func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 		result := fn(c)
 
 		if err := result.Render(); err != nil {
+			log.Println("ERROR:", c.Request)
 			panic(err)
 		}
 	}

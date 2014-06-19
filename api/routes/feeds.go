@@ -3,21 +3,13 @@ package routes
 import (
 	"fmt"
 	"github.com/gorilla/feeds"
-	"net/http"
 	"strconv"
 	"time"
 )
 
 func latestFeed(c *Context) *Result {
 
-	var scheme string
-	if c.Request.TLS == nil {
-		scheme = "http"
-	} else {
-		scheme = "https"
-	}
-
-	baseURL := fmt.Sprintf("%s://%s", scheme, c.Request.Host)
+	baseURL := c.BaseURL()
 
 	photos, err := photoMgr.All(1)
 
@@ -43,14 +35,6 @@ func latestFeed(c *Context) *Result {
 		feed.Add(item)
 	}
 
-	atom, err := feed.ToAtom()
-	if err != nil {
-		return c.Error(err)
-	}
-
-	c.Response.WriteHeader(http.StatusOK)
-	c.Response.Header().Set("Content-Type", "application/atom+xml")
-	c.Response.Write([]byte(atom))
-	return nil
+	return c.HandleFeed(feed)
 
 }

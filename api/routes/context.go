@@ -2,11 +2,13 @@ package routes
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/session"
+	"github.com/gorilla/feeds"
 	"github.com/gorilla/mux"
-	"net/http"
 	"log"
+	"net/http"
 )
 
 type Result struct {
@@ -40,8 +42,31 @@ func (c *Context) Result(code int, payload interface{}, err error) *Result {
 	return &Result{c, code, payload, err}
 }
 
+func (c *Context) HandleFeed(feed *feeds.Feed) *Result {
+	atom, err := feed.ToAtom()
+	if err != nil {
+		return c.Error(err)
+	}
+
+	c.Response.Header().Set("Content-Type", "application/atom+xml")
+	c.Response.Write([]byte(atom))
+
+	return c.Result(http.StatusOK, nil, nil)
+}
+
 func (c *Context) Param(name string) string {
 	return c.Params[name]
+}
+
+func (c *Context) Scheme() string {
+	if c.Request.TLS == nil {
+		return "http"
+	}
+	return "https"
+}
+
+func (c *Context) BaseURL() string {
+	return fmt.Sprintf("%s://%s", c.Scheme(), c.Request.Host)
 }
 
 func (c *Context) GetCurrentUser() (*models.User, error) {
@@ -98,7 +123,7 @@ type AppHandlerFunc func(c *Context) *Result
 
 func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 
-	defer func () {
+	defer func() {
 		if r := recover(); r != nil {
 			log.Println(r)
 		}
@@ -125,4 +150,3 @@ func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 	}
 
 }
-

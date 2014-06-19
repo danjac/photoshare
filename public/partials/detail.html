@@ -1,17 +1,17 @@
 <h2 ng-show="!editTitle">{{photo.title}} <span class="glyphicon glyphicon-pencil" ng-show="canEdit" type="button" ng-click="showEditForm()"></span></h2>
-    <form role="form" 
+    <form role="form"
           action=""
-          name="form" 
-          ng-show="editTitle" 
+          name="form"
+          ng-show="editTitle"
           novalidate>
           <div class="form-group">
           <input type="text" class="form-control" ng-model="photo.title">
       </div>
-          <button type="submit" 
+          <button type="submit"
                   class="btn btn-primary"
-                  ng-click="updateTitle()" 
+                  ng-click="updateTitle()"
                   ng-disabled="form.$invalid">Save</button>
-          <button type="cancel" 
+          <button type="cancel"
                   class="btn btn-default"
                   ng-click="hideEditForm()">Cancel</button>
       </form>
@@ -32,23 +32,23 @@
             <dd>{{photo.createdAt|date:"dd/MM/yyyy"}}</dd>
             <dt ng-click="showEditTagsForm()">Tags <span ng-show="!editTags && canEdit" ng-click="showEditTagsForm()" class="glyphicon glyphicon-pencil"></span></dt>
             <dd ng-show="!editTags">
-                <span ng-repeat="tag in photo.tags"><a ng-href="#/search/{{tag}}">{{tag}}</a>&nbsp;</span>
+                <span ng-repeat="tag in photo.tags"><a ng-href="#/search/{{tag}}">#{{tag}}</a>&nbsp;</span>
                 <span ng-show="!photo.tags.length" ng-click="showEditTagsForm()">None</span>
             </dd>
             <dd ng-show="editTags">
-                <form role="form" 
+                <form role="form"
                       action=""
-                      name="tagsForm" 
-                      ng-show="editTags" 
+                      name="tagsForm"
+                      ng-show="editTags"
                       novalidate>
                       <div class="form-group">
                           <input type="text" class="form-control" ng-model="photo.taglist">
                   </div>
-                      <button type="submit" 
+                      <button type="submit"
                               class="btn btn-primary"
-                              ng-click="updateTags()" 
+                              ng-click="updateTags()"
                               ng-disabled="tagsForm.$invalid">Save</button>
-                      <button type="cancel" 
+                      <button type="cancel"
                               class="btn btn-default"
                               ng-click="hideEditTagsForm()">Cancel</button>
                   </form>

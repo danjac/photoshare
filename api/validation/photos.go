@@ -20,7 +20,7 @@ func (v *PhotoValidator) Validate() (*ValidationResult, error) {
 		result.Error("title", "Title is too long")
 	}
 	if v.Photo.Photo == "" {
-		result.Error("photo", "v.Photo filename not set")
+		result.Error("photo", "Photo filename not set")
 	}
 	return result, nil
 }

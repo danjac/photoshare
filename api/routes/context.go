@@ -7,7 +7,6 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"runtime/debug"
 )
 
 type AppContext struct {
@@ -70,8 +69,7 @@ func (c *AppContext) ParseJSON(value interface{}) error {
 }
 
 func (c *AppContext) Error(err error) {
-	stack := debug.Stack()
-	log.Printf("ERROR: %s\n%s\n%s", c.Request, err, stack)
+	log.Printf("ERROR: %s\n%s", c.Request, err)
 	http.Error(c.Response, "Sorry, an error has occurred", http.StatusInternalServerError)
 }
 

@@ -183,12 +183,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                                   Session,
                                                   Alert,
                                                   Photo) {
-        if (!Session.loggedIn) {
-            Alert.danger("You must be logged in");
-            Session.setLastLoginUrl();
-            $location.path("/login");
-            return;
-        }
+        Session.check();
         $scope.newPhoto = new Photo();
         $scope.upload = null;
         $scope.formDisabled = false;

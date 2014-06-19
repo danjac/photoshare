@@ -3,11 +3,21 @@
 /* Services */
 
 angular.module('photoshare.services', [])
-    .service('Session', ['$location', function ($location) {
-        
+    .service('Session', ['$location', 'Alert', function ($location, Alert) {
+
         function Session() {
             this.clear();
             this.lastLoginUrl = null;
+        }
+
+        Session.prototype.check = function () {
+            if (!this.loggedIn) {
+                Alert.danger("You must be logged in");
+                this.setLastLoginUrl();
+                $location.path("/login");
+                return false;
+            }
+            return true;
         }
 
         Session.prototype.setLastLoginUrl = function () {
@@ -41,7 +51,7 @@ angular.module('photoshare.services', [])
             }
             return this.canEdit(photo) || this.isAdmin;
         };
-        
+
         Session.prototype.canEdit = function (photo) {
             if (!this.loggedIn) {
                 return false;
@@ -49,7 +59,7 @@ angular.module('photoshare.services', [])
             return photo.ownerId === this.id;
         };
 
- 
+
         return new Session();
 
     }])
@@ -69,7 +79,7 @@ angular.module('photoshare.services', [])
                 $this.login(result);
             });
         };
-        
+
         Authenticator.prototype.login = function (result, token) {
             Session.set(result);
             this.$delete = result.$delete;
@@ -116,7 +126,7 @@ angular.module('photoshare.services', [])
         }
 
         return new Alert();
-        
+
     }]);
 
-    
+

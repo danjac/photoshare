@@ -225,7 +225,7 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) ([]Photo, error)
 		word = "%" + word + "%"
 		num += 1
 		clauses = append(clauses, fmt.Sprintf(
-			"SELECT  DISTINCT p.* FROM photos p "+
+			"SELECT DISTINCT p.* FROM photos p "+
 				"INNER JOIN users u ON u.id = p.owner_id  "+
 				"LEFT JOIN photo_tags pt ON pt.photo_id = p.id "+
 				"LEFT JOIN tags t ON pt.tag_id=t.id "+
@@ -235,7 +235,7 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) ([]Photo, error)
 
 	numParams := len(params)
 
-	sql := fmt.Sprintf("%s LIMIT $%d OFFSET $%d",
+	sql := fmt.Sprintf("SELECT * FROM (%s) q ORDER BY created_at DESC LIMIT $%d OFFSET $%d",
 		strings.Join(clauses, " INTERSECT "), numParams+1, numParams+2)
 
 	params = append(params, interface{}(PageSize))

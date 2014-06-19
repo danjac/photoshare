@@ -6,6 +6,7 @@ import (
 	"github.com/danjac/photoshare/api/session"
 	"github.com/gorilla/mux"
 	"net/http"
+	"log"
 )
 
 type Result struct {
@@ -93,9 +94,15 @@ func NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	return &Context{r, w, mux.Vars(r), nil}
 }
 
+type AppHandlerFunc func(c *Context) *Result
+
 func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 
-	// tbd defer ...
+	defer func () {
+		if r := recover(); r != nil {
+			log.Println(r)
+		}
+	}()
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := NewContext(w, r)
 		if loginRequired {
@@ -119,4 +126,3 @@ func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 
 }
 
-type AppHandlerFunc func(c *Context) *Result

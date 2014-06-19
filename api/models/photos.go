@@ -47,11 +47,6 @@ type Tag struct {
 	Name string `db:"name" json:"name"`
 }
 
-type PhotoTag struct {
-	PhotoID int64 `db:"photo_id"`
-	TagID   int64 `db:"tag_id"`
-}
-
 type TagCount struct {
 	Name      string `db:"name" json:"name"`
 	Photo     string `db:"photo" json:"photo"`

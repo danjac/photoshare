@@ -21,11 +21,11 @@ func isAllowedContentType(contentType string) bool {
 	return false
 }
 
-func deletePhoto(c *AppContext) error {
+func deletePhoto(c *Context) *Result {
 
 	photo, err := photoMgr.Get(c.Param("id"))
 	if err != nil {
-		return err
+		return c.Error(err)
 	}
 	if photo == nil {
 		return c.NotFound("Photo not found")
@@ -35,17 +35,17 @@ func deletePhoto(c *AppContext) error {
 		return c.Forbidden("You can't delete this photo")
 	}
 	if err := photoMgr.Delete(photo); err != nil {
-		return err
+		return c.Error(err)
 	}
 
 	return c.OK("Photo deleted")
 }
 
-func photoDetail(c *AppContext) error {
+func photoDetail(c *Context) *Result {
 
 	photo, err := photoMgr.GetDetail(c.Param("id"))
 	if err != nil {
-		return err
+		return c.Error(err)
 	}
 	if photo == nil {
 		return c.NotFound("Photo not found")
@@ -54,11 +54,11 @@ func photoDetail(c *AppContext) error {
 	return c.OK(photo)
 }
 
-func editPhoto(c *AppContext) error {
+func editPhoto(c *Context) *Result {
 
 	photo, err := photoMgr.Get(c.Param("id"))
 	if err != nil {
-		return err
+		return c.Error(err)
 	}
 
 	if photo == nil {
@@ -72,7 +72,7 @@ func editPhoto(c *AppContext) error {
 	newPhoto := &models.Photo{}
 
 	if err := c.ParseJSON(newPhoto); err != nil {
-		return err
+		return c.Error(err)
 	}
 
 	photo.Title = newPhoto.Title
@@ -82,19 +82,19 @@ func editPhoto(c *AppContext) error {
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
-			return err
+			return c.Error(err)
 		}
 		return c.BadRequest(result)
 	}
 
 	if err := photoMgr.Update(photo); err != nil {
-		return err
+		return c.Error(err)
 	}
 
 	return c.OK(photo)
 }
 
-func upload(c *AppContext) error {
+func upload(c *Context) *Result {
 
 	title := c.FormValue("title")
 	taglist := c.FormValue("taglist")
@@ -105,7 +105,7 @@ func upload(c *AppContext) error {
 		if err == http.ErrMissingFile {
 			return c.BadRequest("No image was posted")
 		}
-		return err
+		return c.Error(err)
 	}
 	contentType := hdr.Header["Content-Type"][0]
 
@@ -119,7 +119,7 @@ func upload(c *AppContext) error {
 	filename, err := processor.Process(src, contentType)
 
 	if err != nil {
-		return err
+		return c.Error(err)
 	}
 
 	photo := &models.Photo{Title: title,
@@ -128,19 +128,19 @@ func upload(c *AppContext) error {
 	validator := &validation.PhotoValidator{photo}
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
-			return err
+			return c.Error(err)
 		}
 		return c.BadRequest(result)
 	}
 
 	if err := photoMgr.Insert(photo); err != nil {
-		return err
+		return c.Error(err)
 	}
 
 	return c.OK(photo)
 }
 
-func getPhotos(c *AppContext) error {
+func getPhotos(c *Context) *Result {
 	var (
 		err    error
 		photos []models.Photo
@@ -163,15 +163,15 @@ func getPhotos(c *AppContext) error {
 	}
 
 	if err != nil {
-		return err
+		return c.Error(err)
 	}
 	return c.OK(photos)
 }
 
-func getTags(c *AppContext) error {
+func getTags(c *Context) *Result {
 	tags, err := photoMgr.GetTagCounts()
 	if err != nil {
-		return err
+		return c.Error(err)
 	}
 	return c.OK(tags)
 }

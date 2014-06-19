@@ -7,13 +7,13 @@ import (
 	"testing"
 )
 
-func MakeMockAppContext(user *models.User) *AppContext {
+func MakeMockContext(user *models.User) *Context {
 
 	req := &http.Request{}
 	params := make(map[string]string)
 	res := httptest.NewRecorder()
 
-	return &AppContext{req, res, params, user}
+	return &Context{req, res, params, user}
 
 }
 
@@ -62,7 +62,7 @@ func (m *MockPhotoManager) Update(photo *models.Photo) error {
 
 func TestGetPhotos(t *testing.T) {
 	photoMgr = &MockPhotoManager{}
-	c := MakeMockAppContext(nil)
+	c := MakeMockContext(nil)
 	if err := getPhotos(c); err != nil {
 		t.Error(err)
 	}

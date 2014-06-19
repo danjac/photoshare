@@ -5,86 +5,103 @@ import (
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/gorilla/mux"
-	"log"
 	"net/http"
 )
 
-type AppContext struct {
+type Result struct {
+	Context *Context
+	Code    int
+	Payload interface{}
+	Error   error
+}
+
+func (r *Result) Render() error {
+	if r.Payload != nil {
+		r.Context.Response.WriteHeader(r.Code)
+		r.Context.Response.Header().Set("Content-type", "application/json")
+		return json.NewEncoder(r.Context.Response).Encode(r.Payload)
+	}
+	if r.Error != nil {
+		http.Error(r.Context.Response, "Sorry, an error has occurred", r.Code)
+		return r.Error
+	}
+	return nil
+}
+
+type Context struct {
 	*http.Request
 	Response http.ResponseWriter
 	Params   map[string]string
 	User     *models.User
 }
 
-func (c *AppContext) Param(name string) string {
+func (c *Context) Result(code int, payload interface{}, err error) *Result {
+	return &Result{c, code, payload, err}
+}
+
+func (c *Context) Param(name string) string {
 	return c.Params[name]
 }
 
-func (c *AppContext) GetCurrentUser() (*models.User, error) {
+func (c *Context) GetCurrentUser() (*models.User, error) {
 	var err error
 	c.User, err = session.GetCurrentUser(c.Request)
 	return c.User, err
 }
 
-func (c *AppContext) Login(user *models.User) error {
+func (c *Context) Login(user *models.User) error {
 	c.User = user
 	_, err := session.Login(c.Response, user)
 	return err
 }
 
-func (c *AppContext) Logout() error {
+func (c *Context) Logout() error {
 	c.User = nil
 	_, err := session.Logout(c.Response)
 	return err
 }
 
-func (c *AppContext) RenderJSON(status int, value interface{}) error {
-	c.Response.WriteHeader(status)
-	c.Response.Header().Set("Content-type", "application/json")
-	return json.NewEncoder(c.Response).Encode(value)
+func (c *Context) OK(value interface{}) *Result {
+	return c.Result(http.StatusOK, value, nil)
 }
 
-func (c *AppContext) OK(value interface{}) error {
-	return c.RenderJSON(http.StatusOK, value)
+func (c *Context) Unauthorized(value interface{}) *Result {
+	return c.Result(http.StatusUnauthorized, value, nil)
 }
 
-func (c *AppContext) Unauthorized(value interface{}) error {
-	return c.RenderJSON(http.StatusUnauthorized, value)
+func (c *Context) Forbidden(value interface{}) *Result {
+	return c.Result(http.StatusForbidden, value, nil)
 }
 
-func (c *AppContext) Forbidden(value interface{}) error {
-	return c.RenderJSON(http.StatusForbidden, value)
+func (c *Context) BadRequest(value interface{}) *Result {
+	return c.Result(http.StatusBadRequest, value, nil)
 }
 
-func (c *AppContext) BadRequest(value interface{}) error {
-	return c.RenderJSON(http.StatusBadRequest, value)
+func (c *Context) NotFound(value interface{}) *Result {
+	return c.Result(http.StatusNotFound, value, nil)
 }
 
-func (c *AppContext) NotFound(value interface{}) error {
-	return c.RenderJSON(http.StatusNotFound, value)
+func (c *Context) Error(err error) *Result {
+	return c.Result(http.StatusInternalServerError, nil, err)
 }
 
-func (c *AppContext) ParseJSON(value interface{}) error {
+func (c *Context) ParseJSON(value interface{}) error {
 	return json.NewDecoder(c.Request.Body).Decode(value)
 }
 
-func (c *AppContext) Error(err error) {
-	log.Printf("ERROR: %s\n%s", c.Request, err)
-	http.Error(c.Response, "Sorry, an error has occurred", http.StatusInternalServerError)
-}
-
-func NewAppContext(w http.ResponseWriter, r *http.Request) *AppContext {
-	return &AppContext{r, w, mux.Vars(r), nil}
+func NewContext(w http.ResponseWriter, r *http.Request) *Context {
+	return &Context{r, w, mux.Vars(r), nil}
 }
 
 func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 
+	// tbd defer ...
 	return func(w http.ResponseWriter, r *http.Request) {
-		c := NewAppContext(w, r)
+		c := NewContext(w, r)
 		if loginRequired {
 			if user, err := c.GetCurrentUser(); err != nil || user == nil {
 				if err != nil {
-					c.Error(err)
+					panic(err)
 					return
 				}
 				c.Unauthorized("You must be logged in")
@@ -92,11 +109,14 @@ func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 			}
 		}
 
-		if err := fn(c); err != nil {
-			c.Error(err)
+		result := fn(c)
+		if result != nil {
+			if err := result.Render(); err != nil {
+				panic(err)
+			}
 		}
 	}
 
 }
 
-type AppHandlerFunc func(c *AppContext) error
+type AppHandlerFunc func(c *Context) *Result

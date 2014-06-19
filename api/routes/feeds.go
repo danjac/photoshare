@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func latestFeed(c *AppContext) error {
+func latestFeed(c *Context) *Result {
 
 	var scheme string
 	if c.Request.TLS == nil {
@@ -22,7 +22,7 @@ func latestFeed(c *AppContext) error {
 	photos, err := photoMgr.All(1)
 
 	if err != nil {
-		return err
+		return c.Error(err)
 	}
 	feed := &feeds.Feed{
 		Title:       "Latest photos",
@@ -45,7 +45,7 @@ func latestFeed(c *AppContext) error {
 
 	atom, err := feed.ToAtom()
 	if err != nil {
-		return err
+		return c.Error(err)
 	}
 
 	c.Response.WriteHeader(http.StatusOK)

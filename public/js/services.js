@@ -44,22 +44,6 @@ angular.module('photoshare.services', [])
             this.isAdmin = session.isAdmin;
         };
 
-        Session.prototype.canDelete = function (photo) {
-
-            if (!this.loggedIn) {
-                return false;
-            }
-            return this.canEdit(photo) || this.isAdmin;
-        };
-
-        Session.prototype.canEdit = function (photo) {
-            if (!this.loggedIn) {
-                return false;
-            }
-            return photo.ownerId === this.id;
-        };
-
-
         return new Session();
 
     }])

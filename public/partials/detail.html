@@ -1,4 +1,4 @@
-<h2 ng-show="!editTitle">{{photo.title}} <span class="glyphicon glyphicon-pencil" ng-show="canEdit" type="button" ng-click="showEditForm()"></span></h2>
+<h2 ng-show="!editTitle">{{photo.title}} <span class="glyphicon glyphicon-pencil" ng-show="photo.canEdit" type="button" ng-click="showEditForm()"></span></h2>
     <form role="form"
           action=""
           name="form"
@@ -30,7 +30,7 @@
             <dd><a href="#/owner/{{photo.ownerId}}/{{photo.ownerName}}">{{photo.ownerName}}</a></dd>
         	<dt>Uploaded on</dt>
             <dd>{{photo.createdAt|date:"dd/MM/yyyy"}}</dd>
-            <dt ng-click="showEditTagsForm()">Tags <span ng-show="!editTags && canEdit" ng-click="showEditTagsForm()" class="glyphicon glyphicon-pencil"></span></dt>
+            <dt ng-click="showEditTagsForm()">Tags <span ng-show="!editTags && photo.canEdit" ng-click="showEditTagsForm()" class="glyphicon glyphicon-pencil"></span></dt>
             <dd ng-show="!editTags">
                 <span ng-repeat="tag in photo.tags"><a ng-href="#/search/{{tag}}">#{{tag}}</a>&nbsp;</span>
                 <span ng-show="!photo.tags.length" ng-click="showEditTagsForm()">None</span>
@@ -59,4 +59,4 @@
     </div>
 </div>
 
-<button type="button" ng-show="canDelete" class="btn btn-danger" ng-click="deletePhoto()">Delete this photo</button>
+<button type="button" ng-show="photo.canDelete" class="btn btn-danger" ng-click="deletePhoto()">Delete this photo</button>

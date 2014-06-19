@@ -117,18 +117,19 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
             Photo.get({id: $routeParams.id}).$promise.then(function (photo) {
                 $scope.photo = photo;
-                $scope.canDelete = Session.canDelete($scope.photo);
-                $scope.canEdit = Session.canEdit($scope.photo);
                 $scope.photo.taglist = $scope.photo.tags ? $scope.photo.tags.join(" ") : "";
             });
             $scope.deletePhoto = function () {
+                if (!$scope.photo.canDelete) {
+                    return;
+                }
                 $scope.photo.$delete(function () {
                     Alert.warning('Your photo has been deleted');
                     $location.path("/");
                 });
             };
             $scope.showEditForm = function () {
-                if ($scope.canEdit) {
+                if ($scope.photo.canEdit) {
                     $scope.editTitle = true;
                 }
             };
@@ -136,7 +137,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 $scope.editTitle = false;
             };
             $scope.showEditTagsForm = function () {
-                if ($scope.canEdit) {
+                if ($scope.photo.canEdit) {
                     $scope.editTags = true;
                 }
             };

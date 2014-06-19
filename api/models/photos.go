@@ -13,16 +13,32 @@ const (
 	PageSize = 32
 )
 
+type PhotoPermissions struct {
+	User    *User
+	OwnerID int64
+}
+
+func (perm *PhotoPermissions) CanEdit() bool {
+	if perm.User == nil {
+		return false
+	}
+	return perm.User.IsAdmin || perm.OwnerID == perm.User.ID
+}
+
+func (perm *PhotoPermissions) CanDelete() bool {
+	return perm.CanEdit()
+}
+
 type PhotoManager interface {
 	Insert(*Photo) error
 	Update(*Photo) error
 	Delete(*Photo) error
-	Get(photoID string) (*Photo, error)
-	GetDetail(photoID string) (*PhotoDetail, error)
+	Get(string) (*Photo, error)
+	GetDetail(string, *User) (*PhotoDetail, error)
 	GetTagCounts() ([]TagCount, error)
-	All(pageNum int64) ([]Photo, error)
-	ByOwnerID(pageNum int64, ownerID string) ([]Photo, error)
-	Search(pageNum int64, q string) ([]Photo, error)
+	All(int64) ([]Photo, error)
+	ByOwnerID(int64, string) ([]Photo, error)
+	Search(int64, string) ([]Photo, error)
 	UpdateTags(*Photo) error
 }
 
@@ -63,12 +79,8 @@ func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
 	return nil
 }
 
-func (photo *Photo) CanDelete(user *User) bool {
-	return user.ID == photo.OwnerID || user.IsAdmin
-}
-
-func (photo *Photo) CanEdit(user *User) bool {
-	return user.ID == photo.OwnerID
+func (photo *Photo) Permissions(user *User) *PhotoPermissions {
+	return &PhotoPermissions{user, photo.OwnerID}
 }
 
 type PhotoDetail struct {
@@ -79,6 +91,12 @@ type PhotoDetail struct {
 	Title     string    `db:"title" json:"title"`
 	Photo     string    `db:"photo" json:"photo"`
 	Tags      []string  `db:"-" json:"tags"`
+	CanEdit   bool      `db:"-" json:"canEdit"`
+	CanDelete bool      `db:"-" json:"canDelete"`
+}
+
+func (photo *PhotoDetail) Permissions(user *User) *PhotoPermissions {
+	return &PhotoPermissions{user, photo.OwnerID}
 }
 
 type defaultPhotoManager struct{}
@@ -166,7 +184,7 @@ func (mgr *defaultPhotoManager) Get(photoID string) (*Photo, error) {
 	return obj.(*Photo), nil
 }
 
-func (mgr *defaultPhotoManager) GetDetail(photoID string) (*PhotoDetail, error) {
+func (mgr *defaultPhotoManager) GetDetail(photoID string, user *User) (*PhotoDetail, error) {
 
 	photo := &PhotoDetail{}
 
@@ -191,6 +209,11 @@ func (mgr *defaultPhotoManager) GetDetail(photoID string) (*PhotoDetail, error) 
 	for _, tag := range tags {
 		photo.Tags = append(photo.Tags, tag.Name)
 	}
+
+	perm := photo.Permissions(user)
+
+	photo.CanEdit = perm.CanEdit()
+	photo.CanDelete = perm.CanDelete()
 
 	return photo, nil
 

@@ -31,7 +31,8 @@ func deletePhoto(c *Context) *Result {
 		return c.NotFound("Photo not found")
 	}
 
-	if !photo.CanDelete(c.User) {
+	perm := photo.Permissions(c.User)
+	if !perm.CanDelete() {
 		return c.Forbidden("You can't delete this photo")
 	}
 	if err := photoMgr.Delete(photo); err != nil {
@@ -43,7 +44,11 @@ func deletePhoto(c *Context) *Result {
 
 func photoDetail(c *Context) *Result {
 
-	photo, err := photoMgr.GetDetail(c.Param("id"))
+	user, err := c.GetCurrentUser()
+	if err != nil {
+		return c.Error(err)
+	}
+	photo, err := photoMgr.GetDetail(c.Param("id"), user)
 	if err != nil {
 		return c.Error(err)
 	}
@@ -65,7 +70,8 @@ func editPhoto(c *Context) *Result {
 		return c.NotFound("No photo found")
 	}
 
-	if !photo.CanEdit(c.User) {
+	perm := photo.Permissions(c.User)
+	if !perm.CanEdit() {
 		return c.Forbidden("You can't edit this photo")
 	}
 

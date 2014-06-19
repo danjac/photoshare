@@ -35,6 +35,6 @@ func latestFeed(c *Context) *Result {
 		feed.Add(item)
 	}
 
-	return c.HandleFeed(feed)
+	return c.Atomize(feed)
 
 }

@@ -42,7 +42,8 @@ func (c *Context) Result(code int, payload interface{}, err error) *Result {
 	return &Result{c, code, payload, err}
 }
 
-func (c *Context) HandleFeed(feed *feeds.Feed) *Result {
+// Renders feed in Atom format
+func (c *Context) Atomize(feed *feeds.Feed) *Result {
 	atom, err := feed.ToAtom()
 	if err != nil {
 		return c.Error(err)
@@ -142,10 +143,9 @@ func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 		}
 
 		result := fn(c)
-		if result != nil {
-			if err := result.Render(); err != nil {
-				panic(err)
-			}
+
+		if err := result.Render(); err != nil {
+			panic(err)
 		}
 	}
 

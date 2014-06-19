@@ -12,26 +12,23 @@ import (
 )
 
 type Result struct {
-	Context *Context
-	Code    int
-	Payload interface{}
-	Error   error
+	http.ResponseWriter
+	Status      int
+	Body        []byte
+	ContentType string
+	Error       error
 }
 
 func (r *Result) Render() error {
 	if r.Error != nil {
-		http.Error(r.Context.Response, "Sorry, an error has occurred", r.Code)
+		http.Error(r.ResponseWriter, string(r.Body), r.Status)
 		return r.Error
 	}
 
-	r.Context.Response.WriteHeader(r.Code)
-
-	if r.Payload != nil {
-		r.Context.Response.Header().Set("Content-type", "application/json")
-		return json.NewEncoder(r.Context.Response).Encode(r.Payload)
-	}
-
-	return nil
+	r.WriteHeader(r.Status)
+	r.Header().Set("Content-type", r.ContentType)
+	_, err := r.Write(r.Body)
+	return err
 }
 
 type Context struct {
@@ -41,8 +38,16 @@ type Context struct {
 	User     *models.User
 }
 
-func (c *Context) Result(code int, payload interface{}, err error) *Result {
-	return &Result{c, code, payload, err}
+func (c *Context) Result(status int, body []byte, contentType string, err error) *Result {
+	return &Result{c.Response, status, body, contentType, err}
+}
+
+func (c *Context) Json(status int, value interface{}) *Result {
+	body, err := json.Marshal(value)
+	if err != nil {
+		return c.Error(err)
+	}
+	return c.Result(status, body, "application/json", nil)
 }
 
 // Renders feed in Atom format
@@ -51,11 +56,7 @@ func (c *Context) Atomize(feed *feeds.Feed) *Result {
 	if err != nil {
 		return c.Error(err)
 	}
-
-	c.Response.Header().Set("Content-Type", "application/atom+xml")
-	c.Response.Write([]byte(atom))
-
-	return c.Result(http.StatusOK, nil, nil)
+	return c.Result(http.StatusOK, []byte(atom), "application/atom+xml", nil)
 }
 
 func (c *Context) Param(name string) string {
@@ -97,27 +98,27 @@ func (c *Context) Logout() error {
 }
 
 func (c *Context) OK(value interface{}) *Result {
-	return c.Result(http.StatusOK, value, nil)
+	return c.Json(http.StatusOK, value)
 }
 
 func (c *Context) Unauthorized(value interface{}) *Result {
-	return c.Result(http.StatusUnauthorized, value, nil)
+	return c.Json(http.StatusUnauthorized, value)
 }
 
 func (c *Context) Forbidden(value interface{}) *Result {
-	return c.Result(http.StatusForbidden, value, nil)
+	return c.Json(http.StatusForbidden, value)
 }
 
 func (c *Context) BadRequest(value interface{}) *Result {
-	return c.Result(http.StatusBadRequest, value, nil)
+	return c.Json(http.StatusBadRequest, value)
 }
 
 func (c *Context) NotFound(value interface{}) *Result {
-	return c.Result(http.StatusNotFound, value, nil)
+	return c.Json(http.StatusNotFound, value)
 }
 
 func (c *Context) Error(err error) *Result {
-	return c.Result(http.StatusInternalServerError, nil, err)
+	return c.Result(http.StatusInternalServerError, []byte("error"), "text/plain", err)
 }
 
 func (c *Context) ParseJSON(value interface{}) error {
@@ -139,6 +140,7 @@ func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 	}()
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := NewContext(w, r)
+		defer c.Request.Body.Close()
 		if loginRequired {
 			if user, err := c.GetCurrentUser(); err != nil || user == nil {
 				if err != nil {

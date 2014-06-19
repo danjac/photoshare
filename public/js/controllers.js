@@ -161,7 +161,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                              '$location',
                              'Tag', function ($scope, $location, Tag) {
         $scope.tags = [];
-        $scope.orderField = 'name';
+        $scope.orderField = '-numPhotos';
 
         Tag.query().$promise.then(function (tags) {
             $scope.tags = tags;

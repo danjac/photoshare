@@ -108,7 +108,7 @@ func upload(c *Context) *Result {
 
 	src, hdr, err := c.FormFile("photo")
 	if err != nil {
-		if err == http.ErrMissingFile {
+		if err == http.ErrMissingFile || err == http.ErrNotMultipart {
 			return c.BadRequest("No image was posted")
 		}
 		return c.Error(err)

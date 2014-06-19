@@ -63,8 +63,9 @@ func (m *MockPhotoManager) Update(photo *models.Photo) error {
 func TestGetPhotos(t *testing.T) {
 	photoMgr = &MockPhotoManager{}
 	c := MakeMockContext(nil)
-	if err := getPhotos(c); err != nil {
-		t.Error(err)
+	result := getPhotos(c)
+	if result.Error != nil {
+		t.Error(result.Error)
 	}
 
 }

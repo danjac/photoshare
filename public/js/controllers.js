@@ -125,8 +125,13 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             var vote = function () {
                 $scope.photo.canVote = false;
             }
-            $scope.voteUp = function () { vote(); }
-            $scope.voteDown = function () { vote(); }
+            $scope.voteUp = function () {
+                Photo.upvote({id: $scope.photo.id}, function () { $scope.photo.canVote = false; });
+            }
+
+            $scope.voteDown = function () {
+                Photo.downvote({id: $scope.photo.id}, function () { $scope.photo.canVote = false; });
+            }
 
             $scope.deletePhoto = function () {
                 if (!$scope.photo.canDelete) {

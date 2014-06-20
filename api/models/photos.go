@@ -36,7 +36,8 @@ func (perm *PhotoPermissions) CanVote() bool {
 	if perm.Photo.OwnerID == perm.User.ID {
 		return false
 	}
-	return true
+
+	return !perm.User.HasVoted(perm.Photo.ID)
 }
 
 type PhotoManager interface {

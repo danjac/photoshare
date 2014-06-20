@@ -143,6 +143,14 @@ func (user *User) AddVote(photoID int64) {
 	user.SetVotes(append(user.GetVotes(), photoID))
 }
 
+func (user *User) HasVoted(photoID int64) bool {
+	for _, value := range user.GetVotes() {
+		if value == photoID {
+			return true
+		}
+	}
+	return false
+}
 func (user *User) GetVotes() []int64 {
 	var votes []int64
 
@@ -161,5 +169,5 @@ func (user *User) SetVotes(votes []int64) {
 	for _, value := range votes {
 		s = append(s, strconv.FormatInt(value, 10))
 	}
-	user.Votes = "{" + strings.Join(s, " ") + "}"
+	user.Votes = "{" + strings.Join(s, ",") + "}"
 }

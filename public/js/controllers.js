@@ -94,6 +94,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
     .controller('DetailCtrl', ['$scope',
                                '$routeParams',
                                '$location',
+                               '$window',
                                'Photo',
                                'Tag',
                                'Session',
@@ -101,6 +102,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                function ($scope,
                                          $routeParams,
                                          $location,
+                                         $window,
                                          Photo,
                                          Tag,
                                          Session,
@@ -140,7 +142,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             }
 
             $scope.deletePhoto = function () {
-                if (!$scope.photo.canDelete) {
+                if (!$scope.photo.canDelete || !$window.confirm('You sure you want to delete this?')) {
                     return;
                 }
                 $scope.photo.$delete(function () {

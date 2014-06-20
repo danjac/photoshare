@@ -9,9 +9,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 )
 
 func main() {
+
+	runtime.GOMAXPROCS(4)
 
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s",
 		settings.DBUser,

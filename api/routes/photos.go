@@ -93,7 +93,7 @@ func editPhoto(c *Context) *Result {
 		return c.BadRequest(result)
 	}
 
-	if err := photoMgr.Update(photo); err != nil {
+	if err := photoMgr.Update(photo, true); err != nil {
 		return c.Error(err)
 	}
 
@@ -129,7 +129,7 @@ func upload(c *Context) *Result {
 	}
 
 	photo := &models.Photo{Title: title,
-		OwnerID: c.User.ID, Photo: filename, Tags: tags}
+		OwnerID: c.User.ID, Filename: filename, Tags: tags}
 
 	validator := &validation.PhotoValidator{photo}
 	if result, err := validator.Validate(); err != nil || !result.OK {
@@ -180,4 +180,54 @@ func getTags(c *Context) *Result {
 		return c.Error(err)
 	}
 	return c.OK(tags)
+}
+
+func voteDown(c *Context) *Result {
+	return vote(c, func(photo *models.Photo) { photo.DownVotes += 1 })
+}
+
+func voteUp(c *Context) *Result {
+	return vote(c, func(photo *models.Photo) { photo.UpVotes += 1 })
+}
+
+func vote(c *Context, fn func(photo *models.Photo)) *Result {
+	var (
+		photo *models.Photo
+		user  *models.User
+		err   error
+	)
+
+	photo, err = photoMgr.Get(c.Param("id"))
+	if err != nil {
+		return c.Error(err)
+	}
+	if photo == nil {
+		return c.NotFound("Photo not found")
+	}
+
+	if user, err = c.GetCurrentUser(); err != nil {
+		return c.Error(err)
+	}
+
+	if !user.IsAuthenticated {
+		return c.Unauthorized("You must be logged in to vote")
+	}
+
+	perm := photo.Permissions(user)
+
+	if !perm.CanVote() {
+		return c.Forbidden("You can't vote on this photo")
+	}
+
+	fn(photo)
+
+	user.Votes = append(user.Votes, photo.ID)
+
+	if err = photoMgr.Update(photo, false); err != nil {
+		return c.Error(err)
+	}
+	if err = userMgr.Update(user); err != nil {
+		return c.Error(err)
+	}
+	return c.OK("OK")
 }

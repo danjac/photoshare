@@ -14,24 +14,34 @@ const (
 )
 
 type PhotoPermissions struct {
-	User    *User
-	OwnerID int64
+	User  *User
+	Photo *Photo
 }
 
 func (perm *PhotoPermissions) CanEdit() bool {
-	if perm.User == nil {
+	if perm.User == nil || !perm.User.IsAuthenticated {
 		return false
 	}
-	return perm.User.IsAdmin || perm.OwnerID == perm.User.ID
+	return perm.User.IsAdmin || perm.Photo.OwnerID == perm.User.ID
 }
 
 func (perm *PhotoPermissions) CanDelete() bool {
 	return perm.CanEdit()
 }
 
+func (perm *PhotoPermissions) CanVote() bool {
+	if perm.User == nil || !perm.User.IsAuthenticated {
+		return false
+	}
+	if perm.Photo.OwnerID == perm.User.ID {
+		return false
+	}
+	return true
+}
+
 type PhotoManager interface {
 	Insert(*Photo) error
-	Update(*Photo) error
+	Update(*Photo, bool) error
 	Delete(*Photo) error
 	Get(string) (*Photo, error)
 	GetDetail(string, *User) (*PhotoDetail, error)
@@ -58,8 +68,10 @@ type Photo struct {
 	OwnerID   int64     `db:"owner_id" json:"ownerId"`
 	CreatedAt time.Time `db:"created_at" json:"createdAt"`
 	Title     string    `db:"title" json:"title"`
-	Photo     string    `db:"photo" json:"photo"`
+	Filename  string    `db:"photo" json:"photo"`
 	Tags      []string  `db:"-" json:"tags"`
+	UpVotes   int64     `db:"up_votes"`
+	DownVotes int64     `db:"down_votes"`
 }
 
 var photoCleaner = storage.NewPhotoCleaner()
@@ -70,28 +82,20 @@ func (photo *Photo) PreInsert(s gorp.SqlExecutor) error {
 }
 
 func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
-	go photoCleaner.Clean(photo.Photo)
+	go photoCleaner.Clean(photo.Filename)
 	return nil
 }
 
 func (photo *Photo) Permissions(user *User) *PhotoPermissions {
-	return &PhotoPermissions{user, photo.OwnerID}
+	return &PhotoPermissions{user, photo}
 }
 
 type PhotoDetail struct {
-	ID        int64     `db:"id" json:"id"`
-	OwnerID   int64     `db:"owner_id" json:"ownerId"`
-	OwnerName string    `db:"owner_name" json:"ownerName"`
-	CreatedAt time.Time `db:"created_at" json:"createdAt"`
-	Title     string    `db:"title" json:"title"`
-	Photo     string    `db:"photo" json:"photo"`
-	Tags      []string  `db:"-" json:"tags"`
-	CanEdit   bool      `db:"-" json:"canEdit"`
-	CanDelete bool      `db:"-" json:"canDelete"`
-}
-
-func (photo *PhotoDetail) Permissions(user *User) *PhotoPermissions {
-	return &PhotoPermissions{user, photo.OwnerID}
+	Photo     `db:"-"`
+	OwnerName string `db:"owner_name" json:"ownerName"`
+	CanEdit   bool   `db:"-" json:"canEdit"`
+	CanDelete bool   `db:"-" json:"canDelete"`
+	CanVote   bool   `db:"_" json:"canVote"`
 }
 
 type defaultPhotoManager struct{}
@@ -114,7 +118,7 @@ func (mgr *defaultPhotoManager) Delete(photo *Photo) error {
 	return t.Commit()
 }
 
-func (mgr *defaultPhotoManager) Update(photo *Photo) error {
+func (mgr *defaultPhotoManager) Update(photo *Photo, updateTags bool) error {
 	t, err := dbMap.Begin()
 	if err != nil {
 		return err
@@ -122,8 +126,10 @@ func (mgr *defaultPhotoManager) Update(photo *Photo) error {
 	if _, err := dbMap.Update(photo); err != nil {
 		return err
 	}
-	if err := mgr.UpdateTags(photo); err != nil {
-		return err
+	if updateTags {
+		if err := mgr.UpdateTags(photo); err != nil {
+			return err
+		}
 	}
 	return t.Commit()
 }
@@ -209,6 +215,7 @@ func (mgr *defaultPhotoManager) GetDetail(photoID string, user *User) (*PhotoDet
 
 	photo.CanEdit = perm.CanEdit()
 	photo.CanDelete = perm.CanDelete()
+	photo.CanVote = perm.CanVote()
 
 	return photo, nil
 

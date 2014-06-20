@@ -30,7 +30,9 @@ angular.module('photoshare', [
     ) {
         $routeProvider.
 
-            when('/list', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
+            when('/popular', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
+
+            when('/latest', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
 
             when('/tags', {templateUrl: 'partials/tags.html', controller: 'TagsCtrl'}).
 
@@ -46,7 +48,7 @@ angular.module('photoshare', [
 
             when('/signup', {templateUrl: 'partials/signup.html', controller: 'SignupCtrl'}).
 
-            otherwise({redirectTo: '/list'});
+            otherwise({redirectTo: '/popular'});
         //$locationProvider.html5Mode(true);
         //
         $resourceProvider.defaults.stripTrailingSlashes = false;

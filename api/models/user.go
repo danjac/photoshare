@@ -9,6 +9,7 @@ import (
 
 type UserManager interface {
 	Insert(user *User) error
+	Update(user *User) error
 	IsNameAvailable(user *User) (bool, error)
 	IsEmailAvailable(user *User) (bool, error)
 	GetActive(userID string) (*User, error)
@@ -19,6 +20,11 @@ type defaultUserManager struct{}
 
 func (mgr *defaultUserManager) Insert(user *User) error {
 	return dbMap.Insert(user)
+}
+
+func (mgr *defaultUserManager) Update(user *User) error {
+	_, err := dbMap.Update(user)
+	return err
 }
 
 func (mgr *defaultUserManager) IsNameAvailable(user *User) (bool, error) {
@@ -100,6 +106,7 @@ type User struct {
 	Name            string    `db:"name" json:"name"`
 	Password        string    `db:"password" json:"password,omitempty"`
 	Email           string    `db:"email" json:"email"`
+	Votes           []int64   `db:"votes" json:""`
 	IsAdmin         bool      `db:"admin" json:"isAdmin"`
 	IsActive        bool      `db:"active" json:"isActive"`
 	IsAuthenticated bool      `db:"-" json:"isAuthenticated"`

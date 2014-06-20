@@ -29,7 +29,7 @@ func latestFeed(c *Context) *Result {
 			Id:          strconv.FormatInt(photo.ID, 10),
 			Title:       photo.Title,
 			Link:        &feeds.Link{Href: fmt.Sprintf("%s/#/detail/%d", baseURL, photo.ID)},
-			Description: fmt.Sprintf("<img src=\"%s/uploads/thumbnails/%s\">", baseURL, photo.Photo),
+			Description: fmt.Sprintf("<img src=\"%s/uploads/thumbnails/%s\">", baseURL, photo.Filename),
 			Created:     photo.CreatedAt,
 		}
 		feed.Add(item)

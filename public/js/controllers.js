@@ -121,6 +121,13 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 $scope.photo = photo;
                 $scope.photo.taglist = $scope.photo.tags ? $scope.photo.tags.join(" ") : "";
             });
+
+            var vote = function () {
+                $scope.photo.canVote = false;
+            }
+            $scope.voteUp = function () { vote(); }
+            $scope.voteDown = function () { vote(); }
+
             $scope.deletePhoto = function () {
                 if (!$scope.photo.canDelete) {
                     return;

@@ -18,11 +18,17 @@
 
 <hr>
 
+
 <div class="row">
     <div class="col-xs-6 col-md-3">
         <a target="_blank" class="thumbnail" title="{{photo.title}}" ng-href="uploads/{{photo.photo}}">
             <img alt="{{photo.title}}" ng-src="uploads/thumbnails/{{photo.photo}}" />
         </a>
+        <div class="btn-group">
+          <button type="button" class="btn btn-default" ng-show="photo.canVote" ng-click="voteUp()"><span class="glyphicon glyphicon-thumbs-up"></span></button>
+          <button type="button" class="btn btn-default" ng-show="photo.canVote" ng-click="voteDown()"><span class="glyphicon glyphicon-thumbs-down"></span></button>
+          <button type="button" ng-show="photo.canDelete" class="btn btn-danger" ng-click="deletePhoto()"><span class="glyphicon glyphicon-remove"></span></button>
+      </div>
     </div>
     <div class="col-xs-6">
         <dl>
@@ -59,4 +65,3 @@
     </div>
 </div>
 
-<button type="button" ng-show="photo.canDelete" class="btn btn-danger" ng-click="deletePhoto()">Delete this photo</button>

@@ -31,8 +31,7 @@ func deletePhoto(c *Context) *Result {
 		return c.NotFound("Photo not found")
 	}
 
-	perm := photo.Permissions(c.User)
-	if !perm.CanDelete() {
+	if !photo.CanDelete(c.User) {
 		return c.Forbidden("You can't delete this photo")
 	}
 	if err := photoMgr.Delete(photo); err != nil {
@@ -70,8 +69,7 @@ func editPhoto(c *Context) *Result {
 		return c.NotFound("No photo found")
 	}
 
-	perm := photo.Permissions(c.User)
-	if !perm.CanEdit() {
+	if !photo.CanEdit(c.User) {
 		return c.Forbidden("You can't edit this photo")
 	}
 
@@ -205,9 +203,7 @@ func vote(c *Context, fn func(photo *models.Photo)) *Result {
 		return c.NotFound("Photo not found")
 	}
 
-	perm := photo.Permissions(c.User)
-
-	if !perm.CanVote() {
+	if !photo.CanVote(c.User) {
 		return c.Forbidden("You can't vote on this photo")
 	}
 

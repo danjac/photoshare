@@ -16,6 +16,7 @@ var (
 	TestDBName,
 	TestDBUser,
 	TestDBPassword,
+	TestDBHost,
 	PublicDir,
 	UploadsDir,
 	ThumbnailsDir string
@@ -50,7 +51,7 @@ func init() {
 	TestDBName = getEnvOrDie("TEST_DB_NAME")
 	TestDBUser = getEnvOrDie("TEST_DB_USER")
 	TestDBPassword = getEnvOrDie("TEST_DB_PASS")
-	TestDBHOst = getEnvOrElse("TEST_DB_HOST", "localhost")
+	TestDBHost = getEnvOrElse("TEST_DB_HOST", "localhost")
 
 	if TestDBName == DBName {
 		panic("Test DB name same as DB name")

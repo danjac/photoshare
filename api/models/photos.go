@@ -9,36 +9,7 @@ import (
 	"time"
 )
 
-const (
-	PageSize = 32
-)
-
-type PhotoPermissions struct {
-	User  *User
-	Photo *Photo
-}
-
-func (perm *PhotoPermissions) CanEdit() bool {
-	if perm.User == nil || !perm.User.IsAuthenticated {
-		return false
-	}
-	return perm.User.IsAdmin || perm.Photo.OwnerID == perm.User.ID
-}
-
-func (perm *PhotoPermissions) CanDelete() bool {
-	return perm.CanEdit()
-}
-
-func (perm *PhotoPermissions) CanVote() bool {
-	if perm.User == nil || !perm.User.IsAuthenticated {
-		return false
-	}
-	if perm.Photo.OwnerID == perm.User.ID {
-		return false
-	}
-
-	return !perm.User.HasVoted(perm.Photo.ID)
-}
+const PageSize = 32
 
 type PhotoManager interface {
 	Insert(*Photo) error
@@ -87,16 +58,34 @@ func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
 	return nil
 }
 
-func (photo *Photo) Permissions(user *User) *PhotoPermissions {
-	return &PhotoPermissions{user, photo}
+func (photo *Photo) CanEdit(user *User) bool {
+	if user == nil || !user.IsAuthenticated {
+		return false
+	}
+	return user.IsAdmin || photo.OwnerID == user.ID
+}
+
+func (photo *Photo) CanDelete(user *User) bool {
+	return photo.CanEdit(user)
+}
+
+func (photo *Photo) CanVote(user *User) bool {
+	if user == nil || !user.IsAuthenticated {
+		return false
+	}
+	if photo.OwnerID == user.ID {
+		return false
+	}
+
+	return !user.HasVoted(photo.ID)
 }
 
 type PhotoDetail struct {
 	Photo     `db:"-"`
 	OwnerName string `db:"owner_name" json:"ownerName"`
-	CanEdit   bool   `db:"-" json:"canEdit"`
-	CanDelete bool   `db:"-" json:"canDelete"`
-	CanVote   bool   `db:"_" json:"canVote"`
+	Editable  bool   `db:"-" json:"canEdit"`
+	Deletable bool   `db:"-" json:"canDelete"`
+	Voteable  bool   `db:"_" json:"canVote"`
 }
 
 type defaultPhotoManager struct{}
@@ -212,11 +201,9 @@ func (mgr *defaultPhotoManager) GetDetail(photoID string, user *User) (*PhotoDet
 		photo.Tags = append(photo.Tags, tag.Name)
 	}
 
-	perm := photo.Permissions(user)
-
-	photo.CanEdit = perm.CanEdit()
-	photo.CanDelete = perm.CanDelete()
-	photo.CanVote = perm.CanVote()
+	photo.Editable = photo.CanEdit(user)
+	photo.Deletable = photo.CanDelete(user)
+	photo.Voteable = photo.CanVote(user)
 
 	return photo, nil
 

@@ -129,15 +129,14 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 $scope.photo.taglist = $scope.photo.tags ? $scope.photo.tags.join(" ") : "";
             });
 
-            var vote = function () {
-                $scope.photo.canVote = false;
-            }
             $scope.voteUp = function () {
-                Photo.upvote({id: $scope.photo.id}, function () { $scope.photo.canVote = false; });
+                $scope.photo.canVote = false;
+                Photo.upvote({id: $scope.photo.id});
             }
 
             $scope.voteDown = function () {
-                Photo.downvote({id: $scope.photo.id}, function () { $scope.photo.canVote = false; });
+                $scope.photo.canVote = false;
+                Photo.downvote({id: $scope.photo.id});
             }
 
             $scope.deletePhoto = function () {

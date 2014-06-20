@@ -2,10 +2,10 @@
 -- +goose Up
 -- SQL in section 'Up' is executed when this migration is applied
 
-ALTER TABLE users ADD COLUMN votes int[];
+ALTER TABLE users ADD COLUMN votes int[] DEFAULT '{}';
 ALTER TABLE photos
-	ADD COLUMN up_votes int,
-	ADD COLUMN down_votes int;
+	ADD COLUMN up_votes int DEFAULT 0,
+	ADD COLUMN down_votes int DEFAULT 0;
 
 -- +goose Down
 -- SQL section 'Down' is executed when this migration is rolled back

@@ -156,7 +156,7 @@ func (user *User) GetVotes() []int64 {
 
 	s := strings.TrimRight(strings.TrimLeft(user.Votes, "{"), "}")
 
-	for _, value := range strings.Split(s, " ") {
+	for _, value := range strings.Split(s, ",") {
 		if photoID, err := strconv.Atoi(value); err == nil {
 			votes = append(votes, int64(photoID))
 		}

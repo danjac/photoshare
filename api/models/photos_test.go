@@ -102,3 +102,31 @@ func TestGetPhotos(t *testing.T) {
 		t.Error("There should be 1 photo")
 	}
 }
+
+func TestCanEdit(t *testing.T) {
+	user := &User{ID: 1}
+	photo := &Photo{ID: 1, OwnerID: 1}
+
+	perm := photo.Permissions(user)
+
+	if perm.CanEdit() {
+		t.Error("Non-authenticated should not be able to edit")
+	}
+
+	user.IsAuthenticated = true
+
+	if !perm.CanEdit() {
+		t.Error("User should be able to edit")
+	}
+
+	photo.OwnerID = 2
+
+	if perm.CanEdit() {
+		t.Error("User should not be able to edit")
+	}
+
+	user.IsAdmin = true
+	if !perm.CanEdit() {
+		t.Error("Admin should be able to edit")
+	}
+}

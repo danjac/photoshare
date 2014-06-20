@@ -1,10 +1,10 @@
 <div class="row">
 <h2 class="col-xs-9" ng-show="!editTitle">{{photo.title}}</h2>
 <div class="button-group col-xs-3 pull-right" ng-show="!editTitle">
-  <button type="button" class="btn btn-default"  ng-show="photo.canEdit" ng-click="showEditForm()"> <span class="glyphicon glyphicon-pencil"></span></button>
-  <button type="button" class="btn btn-default" ng-show="photo.canVote" ng-click="voteUp()"><span class="glyphicon glyphicon-thumbs-up"></span></button>
-  <button type="button" class="btn btn-default" ng-show="photo.canVote" ng-click="voteDown()"><span class="glyphicon glyphicon-thumbs-down"></span></button>
-  <button type="button" ng-show="photo.canDelete" class="btn btn-danger" ng-click="deletePhoto()"><span class="glyphicon glyphicon-remove"></span></button>
+  <button type="button" class="btn btn-default"  ng-show="photo.perms.edit" ng-click="showEditForm()"> <span class="glyphicon glyphicon-pencil"></span></button>
+  <button type="button" class="btn btn-default" ng-show="photo.perms.vote" ng-click="voteUp()"><span class="glyphicon glyphicon-thumbs-up"></span></button>
+  <button type="button" class="btn btn-default" ng-show="photo.perms.vote" ng-click="voteDown()"><span class="glyphicon glyphicon-thumbs-down"></span></button>
+  <button type="button" ng-show="photo.perms.delete" class="btn btn-danger" ng-click="deletePhoto()"><span class="glyphicon glyphicon-remove"></span></button>
 </div>
 </div>
     <form role="form"

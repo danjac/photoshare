@@ -132,17 +132,23 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             });
 
             $scope.voteUp = function () {
-                $scope.photo.canVote = false;
+                if (!$scope.photo.perms.delete) {
+                    return;
+                }
+                $scope.photo.perms.delete = false;
                 Photo.upvote({id: $scope.photo.id});
             }
 
             $scope.voteDown = function () {
-                $scope.photo.canVote = false;
+                if (!$scope.photo.perms.delete) {
+                    return;
+                }
+                $scope.photo.perms.delete = false;
                 Photo.downvote({id: $scope.photo.id});
             }
 
             $scope.deletePhoto = function () {
-                if (!$scope.photo.canDelete || !$window.confirm('You sure you want to delete this?')) {
+                if (!$scope.photo.perms.delete || !$window.confirm('You sure you want to delete this?')) {
                     return;
                 }
                 $scope.photo.$delete(function () {
@@ -151,7 +157,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 });
             };
             $scope.showEditForm = function () {
-                if ($scope.photo.canEdit) {
+                if ($scope.photo.perms.edit) {
                     $scope.editTitle = true;
                 }
             };
@@ -159,7 +165,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 $scope.editTitle = false;
             };
             $scope.showEditTagsForm = function () {
-                if ($scope.photo.canEdit) {
+                if ($scope.photo.perms.edit) {
                     $scope.editTags = true;
                 }
             };

@@ -36,14 +36,15 @@ type TagCount struct {
 }
 
 type Photo struct {
-	ID        int64     `db:"id" json:"id"`
-	OwnerID   int64     `db:"owner_id" json:"ownerId"`
-	CreatedAt time.Time `db:"created_at" json:"createdAt"`
-	Title     string    `db:"title" json:"title"`
-	Filename  string    `db:"photo" json:"photo"`
-	Tags      []string  `db:"-" json:"tags"`
-	UpVotes   int64     `db:"up_votes"`
-	DownVotes int64     `db:"down_votes"`
+	ID          int64        `db:"id" json:"id"`
+	OwnerID     int64        `db:"owner_id" json:"ownerId"`
+	CreatedAt   time.Time    `db:"created_at" json:"createdAt"`
+	Title       string       `db:"title" json:"title"`
+	Filename    string       `db:"photo" json:"photo"`
+	Tags        []string     `db:"-" json:"tags"`
+	UpVotes     int64        `db:"up_votes" json:"upVotes"`
+	DownVotes   int64        `db:"down_votes" json:"downVotes"`
+	Permissions *Permissions `db:"-" json:"perms"`
 }
 
 var photoCleaner = storage.NewPhotoCleaner()
@@ -80,12 +81,25 @@ func (photo *Photo) CanVote(user *User) bool {
 	return !user.HasVoted(photo.ID)
 }
 
+// fetch all the permissions into a single struct,
+// e.g. for passing to JSON
+func (photo *Photo) SetPermissions(user *User) {
+	photo.Permissions = &Permissions{
+		photo.CanEdit(user),
+		photo.CanDelete(user),
+		photo.CanVote(user),
+	}
+}
+
+type Permissions struct {
+	Edit   bool `db:"-" json:"edit"`
+	Delete bool `db:"-" json:"delete"`
+	Vote   bool `db:"_" json:"vote"`
+}
+
 type PhotoDetail struct {
 	Photo     `db:"-"`
 	OwnerName string `db:"owner_name" json:"ownerName"`
-	Editable  bool   `db:"-" json:"canEdit"`
-	Deletable bool   `db:"-" json:"canDelete"`
-	Voteable  bool   `db:"_" json:"canVote"`
 }
 
 type defaultPhotoManager struct{}
@@ -201,9 +215,7 @@ func (mgr *defaultPhotoManager) GetDetail(photoID string, user *User) (*PhotoDet
 		photo.Tags = append(photo.Tags, tag.Name)
 	}
 
-	photo.Editable = photo.CanEdit(user)
-	photo.Deletable = photo.CanDelete(user)
-	photo.Voteable = photo.CanVote(user)
+	photo.SetPermissions(user)
 
 	return photo, nil
 

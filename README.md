@@ -26,5 +26,7 @@ You need Go (1.3), node.js/npm and PostgreSQL (9.1+).
 - `go get && go build`
 - Set the correct environment variables. See sample_env for a template.
 - `npm install bower && bower install`
-- Run the ./photoshare executable.
-
+- `go get goose`
+- Copy and edit db/db.yml.sample to point to the correct databases.
+- `goose -env=development up`
+- `./photoshare`

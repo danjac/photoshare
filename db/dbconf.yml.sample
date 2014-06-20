@@ -1,0 +1,7 @@
+development:
+    driver: postgres
+    open: user=**** password=**** dbname=photoshare_dev sslmode=disable
+
+test:
+    driver: postgres
+    open: user=**** password=**** dbname=photoshare_test sslmode=disable

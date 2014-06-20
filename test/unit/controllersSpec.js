@@ -16,13 +16,13 @@ describe('controllers', function (){
         var scope = $rootScope.$new(),
             httpBackend = _$httpBackend_;
 
-        httpBackend.expectGET("/api/photos/?ownerID=&page=1&q=").respond([
+        httpBackend.expectGET("/api/photos/?orderBy=&ownerID=&page=1&q=").respond([
             {
                 'title': 'this is a photo',
                 'photo': 'test.jpg'
             }
         ]);
-        var listCtrl = $controller('ListCtrl', { 
+        var listCtrl = $controller('ListCtrl', {
             $scope: scope,
         });
         scope.nextPage();
@@ -31,7 +31,7 @@ describe('controllers', function (){
     }));
 
     it('should show upload form', inject(function ($location, $rootScope, $controller, _$httpBackend_, Session) {
-        var scope = $rootScope.$new(), 
+        var scope = $rootScope.$new(),
             httpBackend = _$httpBackend_,
             data = {
                 title: 'test',
@@ -39,7 +39,7 @@ describe('controllers', function (){
                 tags: []
             };
 
-        
+
         httpBackend.expectPOST("/api/photos/", data).respond({
             'id': 1,
             'title': 'test'
@@ -56,7 +56,7 @@ describe('controllers', function (){
         httpBackend.flush();
 
         expect(scope.newPhoto.title).toBe(undefined);
-        expect($location.path()).toBe("/list");
+        expect($location.path()).toBe("/latest");
 
     }));
 });

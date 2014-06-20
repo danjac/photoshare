@@ -29,6 +29,8 @@ func GetHandler() http.Handler {
 	photos.HandleFunc("/{id}", MakeAppHandler(photoDetail, false)).Methods("GET")
 	photos.HandleFunc("/{id}", MakeAppHandler(editPhoto, true)).Methods("PUT")
 	photos.HandleFunc("/{id}", MakeAppHandler(deletePhoto, true)).Methods("DELETE")
+	photos.HandleFunc("/{id}/upvote", MakeAppHandler(voteUp, true)).Methods("PUT")
+	photos.HandleFunc("/{id}/downvote", MakeAppHandler(voteDown, true)).Methods("PUT")
 
 	user := r.PathPrefix("/api/user").Subrouter()
 	user.HandleFunc("/", MakeAppHandler(signup, false)).Methods("POST")

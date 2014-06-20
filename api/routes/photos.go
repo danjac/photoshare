@@ -193,7 +193,6 @@ func voteUp(c *Context) *Result {
 func vote(c *Context, fn func(photo *models.Photo)) *Result {
 	var (
 		photo *models.Photo
-		user  *models.User
 		err   error
 	)
 
@@ -205,15 +204,7 @@ func vote(c *Context, fn func(photo *models.Photo)) *Result {
 		return c.NotFound("Photo not found")
 	}
 
-	if user, err = c.GetCurrentUser(); err != nil {
-		return c.Error(err)
-	}
-
-	if !user.IsAuthenticated {
-		return c.Unauthorized("You must be logged in to vote")
-	}
-
-	perm := photo.Permissions(user)
+	perm := photo.Permissions(c.User)
 
 	if !perm.CanVote() {
 		return c.Forbidden("You can't vote on this photo")
@@ -221,12 +212,12 @@ func vote(c *Context, fn func(photo *models.Photo)) *Result {
 
 	fn(photo)
 
-	user.Votes = append(user.Votes, photo.ID)
+	c.User.Votes = append(c.User.Votes, photo.ID)
 
 	if err = photoMgr.Update(photo, false); err != nil {
 		return c.Error(err)
 	}
-	if err = userMgr.Update(user); err != nil {
+	if err = userMgr.Update(c.User); err != nil {
 		return c.Error(err)
 	}
 	return c.OK("OK")

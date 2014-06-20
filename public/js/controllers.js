@@ -30,7 +30,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
             $scope.logout = function () {
                 Authenticator.logout().then(function () {
-                    $location.path("/list");
+                    $location.path("/popular");
                 });
             };
 
@@ -220,7 +220,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 function () {
                     $scope.newPhoto = new Photo();
                     Alert.success('Your photo has been uploaded');
-                    $location.path("/list");
+                    $location.path("/latest");
                 },
                 function () {
                     $scope.formDisabled = false;
@@ -249,7 +249,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 if (result.loggedIn) {
                     Authenticator.login(result, headers(authToken));
                     Alert.success("Welcome back, " + result.name);
-                    var path = Session.getLastLoginUrl() || "/list";
+                    var path = Session.getLastLoginUrl() || "/popular";
                     $location.path(path);
                 }
             });
@@ -274,7 +274,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 Authenticator.login(result, headers(authToken));
                 $scope.newUser = new User();
                 Alert.success("Welcome, " + result.name);
-                $location.path("/list");
+                $location.path("/popular");
             });
         };
     }]);

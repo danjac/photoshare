@@ -15,7 +15,7 @@ func TestGetIfNotNone(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	photo := &Photo{Title: "test", OwnerID: user.ID, Photo: "test.jpg"}
+	photo := &Photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
 	if err := photoMgr.Insert(photo); err != nil {
 		t.Error(err)
 		return
@@ -60,7 +60,7 @@ func TestSearchPhotos(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	photo := &Photo{Title: "test", OwnerID: user.ID, Photo: "test.jpg"}
+	photo := &Photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
 	if err := photoMgr.Insert(photo); err != nil {
 		t.Error(err)
 		return
@@ -87,12 +87,12 @@ func TestGetPhotos(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	photo := &Photo{Title: "test", OwnerID: user.ID, Photo: "test.jpg"}
+	photo := &Photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
 	if err := photoMgr.Insert(photo); err != nil {
 		t.Error(err)
 		return
 	}
-	photos, err := photoMgr.All(1)
+	photos, err := photoMgr.All(1, "")
 	if err != nil {
 		t.Error(err)
 		return

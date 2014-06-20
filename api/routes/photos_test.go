@@ -24,11 +24,11 @@ func (m *MockPhotoManager) Get(photoID string) (*models.Photo, error) {
 	return nil, nil
 }
 
-func (m *MockPhotoManager) GetDetail(photoID string) (*models.PhotoDetail, error) {
+func (m *MockPhotoManager) GetDetail(photoID string, user *models.User) (*models.PhotoDetail, error) {
 	return nil, nil
 }
 
-func (m *MockPhotoManager) All(pageNum int64) ([]models.Photo, error) {
+func (m *MockPhotoManager) All(pageNum int64, orderBy string) ([]models.Photo, error) {
 	return []models.Photo{}, nil
 }
 
@@ -56,7 +56,7 @@ func (m *MockPhotoManager) Insert(photo *models.Photo) error {
 	return nil
 }
 
-func (m *MockPhotoManager) Update(photo *models.Photo) error {
+func (m *MockPhotoManager) Update(photo *models.Photo, updateTags bool) error {
 	return nil
 }
 

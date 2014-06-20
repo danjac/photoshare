@@ -164,7 +164,7 @@ func (mgr *defaultPhotoManager) UpdateTags(photo *Photo) error {
 			isEmpty = false
 		}
 	}
-	if isEmpty {
+	if isEmpty && photo.ID != 0 {
 		_, err := dbMap.Exec("DELETE FROM photo_tags WHERE photo_id=$1", photo.ID)
 		return err
 	}

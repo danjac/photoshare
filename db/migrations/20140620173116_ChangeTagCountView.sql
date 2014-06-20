@@ -2,8 +2,7 @@
 -- +goose Up
 -- SQL in section 'Up' is executed when this migration is applied
 
-DROP VIEW tag_counts;
-CREATE VIEW tag_counts AS
+CREATE OR REPLACE VIEW tag_counts AS
  SELECT t.id, t.name, ( SELECT count(*) AS count
            FROM photo_tags pt
           WHERE t.id = pt.tag_id) AS num_photos, ( SELECT p.photo
@@ -28,8 +27,7 @@ ALTER TABLE tag_counts
 -- +goose Down
 -- SQL section 'Down' is executed when this migration is rolled back
 
-DROP VIEW tag_counts;
-CREATE VIEW tag_counts AS
+CREATE OR REPLACE VIEW tag_counts AS
  SELECT t.id, t.name, ( SELECT count(*) AS count
            FROM photo_tags pt
           WHERE t.id = pt.tag_id) AS num_photos, ( SELECT p.photo

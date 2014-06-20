@@ -227,7 +227,7 @@ func (mgr *defaultPhotoManager) ByOwnerID(pageNum int64, ownerID string) ([]Phot
 	var photos []Photo
 	if _, err := dbMap.Select(&photos,
 		"SELECT * FROM photos WHERE owner_id = $1"+
-			"ORDER BY created_at DESC LIMIT $2 OFFSET $3",
+			"ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $2 OFFSET $3",
 		ownerID, PageSize, getOffset(pageNum)); err != nil {
 		return photos, err
 	}
@@ -261,7 +261,7 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) ([]Photo, error)
 
 	numParams := len(params)
 
-	sql := fmt.Sprintf("SELECT * FROM (%s) q ORDER BY created_at DESC LIMIT $%d OFFSET $%d",
+	sql := fmt.Sprintf("SELECT * FROM (%s) q ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $%d OFFSET $%d",
 		strings.Join(clauses, " INTERSECT "), numParams+1, numParams+2)
 
 	params = append(params, interface{}(PageSize))

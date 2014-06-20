@@ -59,15 +59,22 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 stopScrolling = false,
                 q = $routeParams.q || "",
                 ownerID = $routeParams.ownerID || "",
-                ownerName = $routeParams.ownerName || "";
+                ownerName = $routeParams.ownerName || "",
+                orderBy = $location.path() == "/popular" ? "votes" : "";
 
             $scope.photos = [];
             $scope.searchQuery = q;
             $scope.ownerName = ownerName;
             $scope.searchComplete = false;
+
             $scope.nextPage = function () {
                 if (!stopScrolling) {
-                    Photo.query({page: page, q: q, ownerID: ownerID}).$promise.then(function (photos) {
+                    Photo.query({
+                            page: page,
+                            q: q,
+                            ownerID: ownerID,
+                            orderBy: orderBy
+                        }).$promise.then(function (photos) {
                         $scope.searchComplete = true;
                         $scope.photos = $scope.photos.concat(photos);
                         if (photos.length < pageSize) {

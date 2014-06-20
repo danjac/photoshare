@@ -11,7 +11,7 @@ func latestFeed(c *Context) *Result {
 
 	baseURL := c.BaseURL()
 
-	photos, err := photoMgr.All(1)
+	photos, err := photoMgr.All(1, "")
 
 	if err != nil {
 		return c.Error(err)

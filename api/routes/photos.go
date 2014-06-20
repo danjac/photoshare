@@ -159,13 +159,14 @@ func getPhotos(c *Context) *Result {
 
 	q := c.FormValue("q")
 	ownerID := c.FormValue("ownerID")
+	orderBy := c.FormValue("orderBy")
 
 	if q != "" {
 		photos, err = photoMgr.Search(pageNum, q)
 	} else if ownerID != "" {
 		photos, err = photoMgr.ByOwnerID(pageNum, ownerID)
 	} else {
-		photos, err = photoMgr.All(pageNum)
+		photos, err = photoMgr.All(pageNum, orderBy)
 	}
 
 	if err != nil {

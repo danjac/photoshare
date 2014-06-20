@@ -47,7 +47,7 @@ type PhotoManager interface {
 	Get(string) (*Photo, error)
 	GetDetail(string, *User) (*PhotoDetail, error)
 	GetTagCounts() ([]TagCount, error)
-	All(int64) ([]Photo, error)
+	All(int64, string) ([]Photo, error)
 	ByOwnerID(int64, string) ([]Photo, error)
 	Search(int64, string) ([]Photo, error)
 	UpdateTags(*Photo) error
@@ -274,13 +274,19 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) ([]Photo, error)
 
 }
 
-func (mgr *defaultPhotoManager) All(pageNum int64) ([]Photo, error) {
+func (mgr *defaultPhotoManager) All(pageNum int64, orderBy string) ([]Photo, error) {
 
 	var photos []Photo
 
+	if orderBy == "votes" {
+		orderBy = "(up_votes - down_votes)"
+	} else {
+		orderBy = "created_at"
+	}
+
 	if _, err := dbMap.Select(&photos,
 		"SELECT * FROM photos "+
-			"ORDER BY created_at DESC LIMIT $1 OFFSET $2", PageSize, getOffset(pageNum)); err != nil {
+			"ORDER BY "+orderBy+" DESC LIMIT $1 OFFSET $2", PageSize, getOffset(pageNum)); err != nil {
 		return photos, err
 	}
 	return photos, nil

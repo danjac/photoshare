@@ -4,7 +4,8 @@
 <hr ng-show="searchQuery">
 <p class="alert alert-warning" ng-show="searchQuery && searchComplete && !photos.length">No results found.</p>
 
-<div class="row-fluid" ng-show="photos.length">
+<p class="lead text-center" ng-show="!pageLoaded">Loading....</p>
+<div class="row" ng-show="photos.length && pageLoaded">
     <div infinite-scroll="nextPage()" infinite-scroll-distance="2">
     <div ng-repeat="photo in photos" class="col-xs-6 col-md-3">
         <div class="thumbnail" ng-click="getDetail(photo)">

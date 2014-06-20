@@ -57,6 +57,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                        pageSize) {
             var page = 1,
                 stopScrolling = false,
+                pageLoaded = false,
                 q = $routeParams.q || "",
                 ownerID = $routeParams.ownerID || "",
                 ownerName = $routeParams.ownerName || "",
@@ -77,6 +78,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                         }).$promise.then(function (photos) {
                         $scope.searchComplete = true;
                         $scope.photos = $scope.photos.concat(photos);
+                        $scope.pageLoaded = true;
                         if (photos.length < pageSize) {
                             stopScrolling = true;
                         }
@@ -125,10 +127,12 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.photo = null;
             $scope.editTitle = false;
             $scope.editTags = false;
+            $scope.pageLoaded = false;
 
             Photo.get({id: $routeParams.id}).$promise.then(function (photo) {
                 $scope.photo = photo;
                 $scope.photo.taglist = $scope.photo.tags ? $scope.photo.tags.join(" ") : "";
+                $scope.pageLoaded = true;
             });
 
             $scope.voteUp = function () {
@@ -188,9 +192,11 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                              'Tag', function ($scope, $location, Tag) {
         $scope.tags = [];
         $scope.orderField = '-numPhotos';
+        $scope.pageLoaded = false;
 
         Tag.query().$promise.then(function (tags) {
             $scope.tags = tags;
+            $scope.pageLoaded = true;
         });
 
         $scope.doSearch = function (tag) {

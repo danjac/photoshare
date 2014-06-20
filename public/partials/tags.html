@@ -1,14 +1,16 @@
 
-<div class="row">
+<div class="row" ng-show="pageLoaded">
 <ul class="nav nav-pills pull-right">
     <li ng-class="{active: orderField=='-numPhotos'}"><a ng-click="orderTags('-numPhotos')">Popularity</a></li>
     <li ng-class="{active: orderField=='name'}"><a ng-click="orderTags('name')">A-Z</a></li>
 </ul>
 </div>
 
-<hr>
+<hr ng-show="pageLoaded">
 
-<div class="row" ng-show="tags.length">
+<p class="lead text-center" ng-show="!pageLoaded">Loading....</p>
+
+<div class="row" ng-show="tags.length && pageLoaded">
     <div ng-repeat="tag in tags|orderBy:orderField" class="col-xs-6 col-md-3">
         <div class="thumbnail" ng-click="doSearch(tag.name)">
             <img alt="{{tag.name}}" class="img-responsive" ng-src="uploads/thumbnails/{{tag.photo}}" />

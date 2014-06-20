@@ -4,6 +4,8 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
 	"github.com/coopernurse/gorp"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -106,7 +108,7 @@ type User struct {
 	Name            string    `db:"name" json:"name"`
 	Password        string    `db:"password" json:"password,omitempty"`
 	Email           string    `db:"email" json:"email"`
-	Votes           []int64   `db:"votes" json:""`
+	Votes           string    `db:"votes" json:""`
 	IsAdmin         bool      `db:"admin" json:"isAdmin"`
 	IsActive        bool      `db:"active" json:"isActive"`
 	IsAuthenticated bool      `db:"-" json:"isAuthenticated"`
@@ -116,6 +118,7 @@ func (user *User) PreInsert(s gorp.SqlExecutor) error {
 	user.IsActive = true
 	user.CreatedAt = time.Now()
 	user.EncryptPassword()
+	user.Votes = "{}"
 	return nil
 }
 
@@ -134,4 +137,29 @@ func (user *User) CheckPassword(password string) bool {
 	}
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	return err == nil
+}
+
+func (user *User) AddVote(photoID int64) {
+	user.SetVotes(append(user.GetVotes(), photoID))
+}
+
+func (user *User) GetVotes() []int64 {
+	var votes []int64
+
+	s := strings.TrimRight(strings.TrimLeft(user.Votes, "{"), "}")
+
+	for _, value := range strings.Split(s, " ") {
+		if photoID, err := strconv.Atoi(value); err == nil {
+			votes = append(votes, int64(photoID))
+		}
+	}
+	return votes
+}
+
+func (user *User) SetVotes(votes []int64) {
+	var s []string
+	for _, value := range votes {
+		s = append(s, strconv.FormatInt(value, 10))
+	}
+	user.Votes = "{" + strings.Join(s, " ") + "}"
 }

@@ -212,7 +212,7 @@ func vote(c *Context, fn func(photo *models.Photo)) *Result {
 
 	fn(photo)
 
-	c.User.Votes = append(c.User.Votes, photo.ID)
+	c.User.AddVote(photo.ID)
 
 	if err = photoMgr.Update(photo, false); err != nil {
 		return c.Error(err)

@@ -77,6 +77,8 @@ func signup(c *Context) *Result {
 		return c.Error(err)
 	}
 
+	user.IsAuthenticated = true
+
 	return c.OK(session.NewSessionInfo(user))
 
 }

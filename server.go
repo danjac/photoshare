@@ -14,7 +14,7 @@ import (
 
 func main() {
 
-	runtime.GOMAXPROCS(4)
+	runtime.GOMAXPROCS((runtime.NumCPU() * 2) + 1)
 
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s",
 		settings.DBUser,

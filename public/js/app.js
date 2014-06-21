@@ -128,7 +128,6 @@ angular.module('photoshare', [
                         Session.setLastLoginUrl();
                         $location.path("/login");
                         break;
-
                     case 400:
                         if (response.data.errors) {
                             // TBD: render the specific form errors
@@ -139,6 +138,7 @@ angular.module('photoshare', [
                         break;
                     case 500:
                         Alert.danger("Sorry, an error has occurred");
+                        break;
                     default:
                         Alert.danger(angular.fromJson(response.data));
                 }

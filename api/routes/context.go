@@ -20,6 +20,7 @@ type Result struct {
 }
 
 func (r *Result) Render() error {
+	log.Println("STATUS", r.Status)
 	if r.Error != nil {
 		http.Error(r.ResponseWriter, string(r.Body), r.Status)
 		return r.Error
@@ -139,20 +140,23 @@ func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 		}
 	}()
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		var result *Result
+
 		c := NewContext(w, r)
 		defer c.Request.Body.Close()
 		if loginRequired {
-			if user, err := c.GetCurrentUser(); err != nil || user == nil {
+			if user, err := c.GetCurrentUser(); err != nil || !user.IsAuthenticated {
 				if err != nil {
-					panic(err)
-					return
+					result = c.Error(err)
 				}
-				c.Unauthorized("You must be logged in")
-				return
+				result = c.Unauthorized("You must be logged in")
 			}
 		}
 
-		result := fn(c)
+		if result == nil {
+			result = fn(c)
+		}
 
 		if err := result.Render(); err != nil {
 			log.Println("ERROR:", c.Request)

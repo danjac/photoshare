@@ -72,7 +72,7 @@ func GetCurrentUser(r *http.Request) (*models.User, error) {
 		return nil, err
 	}
 	if userID == "" {
-		return nil, nil
+		return &models.User{}, nil
 	}
 	return userMgr.GetActive(userID)
 }

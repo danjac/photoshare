@@ -133,7 +133,6 @@ type AppHandlerFunc func(c *Context) *Result
 
 func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 
-
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		var result *Result
@@ -143,6 +142,21 @@ func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 				log.Println(r)
 			}
 		}()
+
+		// basic setup
+
+		r.ParseForm()
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+			w.Header().Set("Access-Control-Max-Age", "1000")
+			w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Access-Token, X-Requested-With, Content-Type, Accept")
+			return
+		}
+
+		// new Context
 
 		c := NewContext(w, r)
 

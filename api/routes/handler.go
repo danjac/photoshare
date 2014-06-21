@@ -147,9 +147,7 @@ func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 			}
 		}()
 
-		// basic setup
-
-		r.ParseForm()
+		// set common headers
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 

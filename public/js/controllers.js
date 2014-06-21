@@ -136,18 +136,18 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             });
 
             $scope.voteUp = function () {
-                if (!$scope.photo.perms.delete) {
+                if (!$scope.photo.perms.vote) {
                     return;
                 }
-                $scope.photo.perms.delete = false;
+                $scope.photo.perms.vote = false;
                 Photo.upvote({id: $scope.photo.id});
             }
 
             $scope.voteDown = function () {
-                if (!$scope.photo.perms.delete) {
+                if (!$scope.photo.perms.vote) {
                     return;
                 }
-                $scope.photo.perms.delete = false;
+                $scope.photo.perms.vote = false;
                 Photo.downvote({id: $scope.photo.id});
             }
 
@@ -264,6 +264,9 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                     Authenticator.login(result, headers(authToken));
                     Alert.success("Welcome back, " + result.name);
                     var path = Session.getLastLoginUrl() || "/popular";
+                    if (path == $locatiom.path()) {
+                        path = "/popular";
+                    }
                     $location.path(path);
                 }
             });

@@ -26,8 +26,8 @@
 
 <hr>
 
+<div class="spinner" ng-show="!pageLoaded"></div>
 
-<p class="lead text-center" ng-show="!pageLoaded">Loading....</p>
 <div class="row" ng-show="pageLoaded">
     <div class="col-xs-6 col-md-3">
         <a target="_blank" class="thumbnail" title="{{photo.title}}" ng-href="uploads/{{photo.photo}}">

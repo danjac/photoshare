@@ -105,7 +105,7 @@ func editPhotoTitle(c *Context) *Result {
 		return c.Error(err)
 	}
 
-	return c.OK("Photo updated")
+	return c.OK("Photo Updated")
 }
 
 func editPhotoTags(c *Context) *Result {
@@ -244,11 +244,12 @@ func vote(c *Context, fn func(photo *models.Photo)) *Result {
 
 	fn(photo)
 
-	c.User.AddVote(photo.ID)
-
 	if err = photoMgr.Update(photo); err != nil {
 		return c.Error(err)
 	}
+
+	c.User.AddVote(photo.ID)
+
 	if err = userMgr.Update(c.User); err != nil {
 		return c.Error(err)
 	}

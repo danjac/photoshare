@@ -1,27 +1,27 @@
 <form role="form" name="form" action="" novalidate>
     <div class="form-group">
-        <input type="name" 
-               ng-model="newUser.name" 
+        <input type="name"
+               ng-model="newUser.name"
                required="required"
-               class="form-control" 
+               class="form-control"
                placeholder="Name"/>
     </div>
 
     <div class="form-group">
-        <input type="email" 
-               ng-model="newUser.email" 
+        <input type="email"
+               ng-model="newUser.email"
                required="required"
-               class="form-control" 
+               class="form-control"
                placeholder="Email address"/>
     </div>
 
     <div class="form-group">
-        <input type="password" 
-               ng-model="newUser.password" 
+        <input type="password"
+               ng-model="newUser.password"
                required="required"
-               class="form-control" 
+               class="form-control"
                placeholder="Password"/>
     </div>
 
-    <button ng-click="signup()" ng-disabled="form.$invalid">Signup</button>
+    <button class="btn btn-primary" ng-click="signup()" ng-disabled="form.$invalid">Signup</button>
 </form>

@@ -110,20 +110,6 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                          Session,
                                          Alert) {
 
-            function doUpdate(onSuccess) {
-                var taglist = $scope.photo.taglist || "";
-                if (!taglist) {
-                    $scope.photo.tags = [];
-                } else {
-                    $scope.photo.tags = taglist.trim().split(" ");
-                }
-                Photo.update({id: $scope.photo.id,
-                              title: $scope.photo.title,
-                              tags: $scope.photo.tags}, function () {
-                    onSuccess();
-                });
-            }
-
             $scope.photo = null;
             $scope.editTitle = false;
             $scope.editTags = false;
@@ -177,12 +163,18 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 $scope.editTags = false;
             };
             $scope.updateTitle = function () {
-                doUpdate(function () { $scope.editTitle = false; });
+                Photo.updateTitle({id: $scope.photo.id, title: $scope.photo.title });
+                $scope.editTitle = false;
             };
             $scope.updateTags = function () {
-                doUpdate(function () {
-                    $scope.editTags = false;
-                });
+                var taglist = $scope.photo.taglist || "";
+                if (!taglist) {
+                    $scope.photo.tags = [];
+                } else {
+                    $scope.photo.tags = taglist.trim().split(" ");
+                }
+                Photo.updateTags({id: $scope.photo.id, tags: $scope.photo.tags });
+                $scope.editTags = false;
             };
 
         }])

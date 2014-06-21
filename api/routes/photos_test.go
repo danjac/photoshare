@@ -13,7 +13,7 @@ func MakeMockContext(user *models.User) *Context {
 	params := make(map[string]string)
 	res := httptest.NewRecorder()
 
-	return &Context{req, res, params, user}
+	return &Context{req, res, params, user, nil}
 
 }
 
@@ -56,7 +56,7 @@ func (m *MockPhotoManager) Insert(photo *models.Photo) error {
 	return nil
 }
 
-func (m *MockPhotoManager) Update(photo *models.Photo, updateTags bool) error {
+func (m *MockPhotoManager) Update(photo *models.Photo) error {
 	return nil
 }
 

@@ -13,7 +13,7 @@ const PageSize = 32
 
 type PhotoManager interface {
 	Insert(*Photo) error
-	Update(*Photo, bool) error
+	Update(*Photo) error
 	Delete(*Photo) error
 	Get(string) (*Photo, error)
 	GetDetail(string, *User) (*PhotoDetail, error)
@@ -36,15 +36,14 @@ type TagCount struct {
 }
 
 type Photo struct {
-	ID          int64        `db:"id" json:"id"`
-	OwnerID     int64        `db:"owner_id" json:"ownerId"`
-	CreatedAt   time.Time    `db:"created_at" json:"createdAt"`
-	Title       string       `db:"title" json:"title"`
-	Filename    string       `db:"photo" json:"photo"`
-	Tags        []string     `db:"-" json:"tags"`
-	UpVotes     int64        `db:"up_votes" json:"upVotes"`
-	DownVotes   int64        `db:"down_votes" json:"downVotes"`
-	Permissions *Permissions `db:"-" json:"perms"`
+	ID        int64     `db:"id" json:"id"`
+	OwnerID   int64     `db:"owner_id" json:"ownerId"`
+	CreatedAt time.Time `db:"created_at" json:"createdAt"`
+	Title     string    `db:"title" json:"title"`
+	Filename  string    `db:"photo" json:"photo"`
+	Tags      []string  `db:"-" json:"tags"`
+	UpVotes   int64     `db:"up_votes" json:"upVotes"`
+	DownVotes int64     `db:"down_votes" json:"downVotes"`
 }
 
 var photoCleaner = storage.NewPhotoCleaner()
@@ -81,16 +80,6 @@ func (photo *Photo) CanVote(user *User) bool {
 	return !user.HasVoted(photo.ID)
 }
 
-// fetch all the permissions into a single struct,
-// e.g. for passing to JSON
-func (photo *Photo) SetPermissions(user *User) {
-	photo.Permissions = &Permissions{
-		photo.CanEdit(user),
-		photo.CanDelete(user),
-		photo.CanVote(user),
-	}
-}
-
 type Permissions struct {
 	Edit   bool `db:"-" json:"edit"`
 	Delete bool `db:"-" json:"delete"`
@@ -98,8 +87,9 @@ type Permissions struct {
 }
 
 type PhotoDetail struct {
-	Photo     `db:"-"`
-	OwnerName string `db:"owner_name" json:"ownerName"`
+	Photo       `db:"-"`
+	OwnerName   string       `db:"owner_name" json:"ownerName"`
+	Permissions *Permissions `db:"-" json:"perms"`
 }
 
 type defaultPhotoManager struct{}
@@ -122,20 +112,10 @@ func (mgr *defaultPhotoManager) Delete(photo *Photo) error {
 	return t.Commit()
 }
 
-func (mgr *defaultPhotoManager) Update(photo *Photo, updateTags bool) error {
-	t, err := dbMap.Begin()
-	if err != nil {
-		return err
-	}
-	if _, err := dbMap.Update(photo); err != nil {
-		return err
-	}
-	if updateTags {
-		if err := mgr.UpdateTags(photo); err != nil {
-			return err
-		}
-	}
-	return t.Commit()
+func (mgr *defaultPhotoManager) Update(photo *Photo) error {
+
+	_, err := dbMap.Update(photo)
+	return err
 }
 
 func (mgr *defaultPhotoManager) Insert(photo *Photo) error {
@@ -215,8 +195,11 @@ func (mgr *defaultPhotoManager) GetDetail(photoID string, user *User) (*PhotoDet
 		photo.Tags = append(photo.Tags, tag.Name)
 	}
 
-	photo.SetPermissions(user)
-
+	photo.Permissions = &Permissions{
+		photo.CanEdit(user),
+		photo.CanDelete(user),
+		photo.CanVote(user),
+	}
 	return photo, nil
 
 }

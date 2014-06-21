@@ -87,9 +87,10 @@ angular.module('photoshare.services', [])
     }])
     .service('Photo', ['$resource', 'urls', function ($resource, urls) {
         return $resource(urls.photos, {id: '@id'}, {
-            'update': { method: 'PUT' },
-            'upvote': { method: 'PUT', url: urls.photos + '/upvote'},
-            'downvote': { method: 'PUT', url: urls.photos + '/downvote'}
+            'updateTitle': { method: 'PATCH', url: urls.photos + '/title' },
+            'updateTags': { method: 'PATCH', url: urls.photos + '/tags' },
+            'upvote': { method: 'PATCH', url: urls.photos + '/upvote'},
+            'downvote': { method: 'PATCH', url: urls.photos + '/downvote'}
         });
     }])
     .service('User', ['$resource', 'urls', function ($resource, urls) {

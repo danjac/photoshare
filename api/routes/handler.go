@@ -53,7 +53,7 @@ func (c *Context) Json(status int, value interface{}) *Result {
 }
 
 // Renders feed in Atom format
-func (c *Context) Atomize(feed *feeds.Feed) *Result {
+func (c *Context) Atom(feed *feeds.Feed) *Result {
 	atom, err := feed.ToAtom()
 	if err != nil {
 		return c.Error(err)
@@ -152,7 +152,7 @@ func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		if r.Method == "OPTIONS" {
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE")
 			w.Header().Set("Access-Control-Max-Age", "1000")
 			w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Access-Token, X-Requested-With, Content-Type, Accept")
 			return

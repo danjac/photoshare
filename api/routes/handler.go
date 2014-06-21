@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"os"
 )
 
 type Result struct {
@@ -36,6 +37,7 @@ type Context struct {
 	Response http.ResponseWriter
 	Params   map[string]string
 	User     *models.User
+	Log      *log.Logger
 }
 
 func (c *Context) Result(status int, body []byte, contentType string, err error) *Result {
@@ -126,7 +128,9 @@ func (c *Context) ParseJSON(value interface{}) error {
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
-	return &Context{r, w, mux.Vars(r), nil}
+	prefix := fmt.Sprintf("photoshare:%s[%s] ", r.URL.Path, r.Method)
+	logger := log.New(os.Stdout, prefix, log.Lmicroseconds)
+	return &Context{r, w, mux.Vars(r), nil, logger}
 }
 
 type AppHandlerFunc func(c *Context) *Result
@@ -174,8 +178,7 @@ func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 		}
 
 		if err := result.Render(); err != nil {
-			log.Println("ERROR:", c.Request)
-			panic(err)
+			c.Log.Panic(err)
 		}
 	}
 

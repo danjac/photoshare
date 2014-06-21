@@ -133,17 +133,19 @@ type AppHandlerFunc func(c *Context) *Result
 
 func MakeAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println(r)
-		}
-	}()
+
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		var result *Result
 
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println(r)
+			}
+		}()
+
 		c := NewContext(w, r)
-		defer c.Request.Body.Close()
+
 		if loginRequired {
 			if user, err := c.GetCurrentUser(); err != nil || !user.IsAuthenticated {
 				if err != nil {

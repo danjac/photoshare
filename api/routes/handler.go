@@ -20,7 +20,6 @@ type Result struct {
 }
 
 func (r *Result) Render() error {
-	log.Println("STATUS", r.Status)
 	if r.Error != nil {
 		http.Error(r.ResponseWriter, string(r.Body), r.Status)
 		return r.Error

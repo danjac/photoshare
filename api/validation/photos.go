@@ -4,6 +4,10 @@ import (
 	"github.com/danjac/photoshare/api/models"
 )
 
+func NewPhotoValidator(photo *models.Photo) *PhotoValidator {
+	return &PhotoValidator{photo}
+}
+
 type PhotoValidator struct {
 	Photo *models.Photo
 }

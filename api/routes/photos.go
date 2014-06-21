@@ -92,7 +92,7 @@ func editPhotoTitle(c *Context) *Result {
 
 	photo.Title = s.Title
 
-	validator := &validation.PhotoValidator{photo}
+	validator := validation.NewPhotoValidator(photo)
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
@@ -164,7 +164,8 @@ func upload(c *Context) *Result {
 	photo := &models.Photo{Title: title,
 		OwnerID: c.User.ID, Filename: filename, Tags: tags}
 
-	validator := &validation.PhotoValidator{photo}
+	validator := validation.NewPhotoValidator(photo)
+
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
 			return c.Error(err)

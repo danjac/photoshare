@@ -14,6 +14,10 @@ func validateEmail(email string) bool {
 	return emailRegex.Match([]byte(email))
 }
 
+func NewUserValidator(user *models.User) *UserValidator {
+	return &UserValidator{user}
+}
+
 type UserValidator struct {
 	User *models.User
 }

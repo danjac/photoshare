@@ -60,7 +60,7 @@ func signup(c *Context) *Result {
 	// ensure nobody tries to make themselves an admin
 	user.IsAdmin = false
 
-	validator := &validation.UserValidator{user}
+	validator := validation.NewUserValidator(user)
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {

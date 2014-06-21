@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link type="application/atom+xml" rel="alternate" href="/feeds/"/>
   <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="bower_components/bootswatch/spacelab/bootstrap.min.css">
+  <link rel="stylesheet" href="bower_components/bootswatch/lumen/bootstrap.min.css">
   <!--
   <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
   -->
@@ -16,7 +16,7 @@
 </head>
 <body ng-controller="AppCtrl">
 
-<nav class="navbar navbar-inverse" role="navigation">
+<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       <div class="container-fluid">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
@@ -45,7 +45,7 @@
         <ul class="nav navbar-nav navbar-right">
             <navtab url="#/login" ng-click="login()" ng-show="!session.loggedIn">Login</navtab>
             <navtab url="#/signup" ng-show="!session.loggedIn">Signup</navtab>
-            <li ng-show="session.loggedIn"><a href="#">You are signed in as {{ session.name }}</a></li>
+            <li ng-show="session.loggedIn"><a href="javascript:void(0);">You are signed in as {{ session.name }}</a></li>
             <li><a ng-click="logout()" ng-show="session.loggedIn">Logout</a></li>
         </ul>
       </div>

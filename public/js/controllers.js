@@ -30,7 +30,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
             $scope.logout = function () {
                 Authenticator.logout().then(function () {
-                    $location.path("/popular");
+                    $location.path("/");
                 });
             };
 
@@ -61,7 +61,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 q = $routeParams.q || "",
                 ownerID = $routeParams.ownerID || "",
                 ownerName = $routeParams.ownerName || "",
-                orderBy = $location.path() == "/popular" ? "votes" : "";
+                orderBy = $location.path() == "/" ? "votes" : "";
 
             $scope.photos = [];
             $scope.searchQuery = q;
@@ -255,9 +255,9 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 if (result.loggedIn) {
                     Authenticator.login(result, headers(authToken));
                     Alert.success("Welcome back, " + result.name);
-                    var path = Session.getLastLoginUrl() || "/popular";
+                    var path = Session.getLastLoginUrl() || "/";
                     if (path == $location.path()) {
-                        path = "/popular";
+                        path = "/";
                     }
                     $location.path(path);
                 }
@@ -283,7 +283,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 Authenticator.login(result, headers(authToken));
                 $scope.newUser = new User();
                 Alert.success("Welcome, " + result.name);
-                $location.path("/popular");
+                $location.path("/");
             });
         };
     }]);

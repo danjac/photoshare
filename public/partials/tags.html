@@ -8,7 +8,7 @@
 
 <hr ng-show="pageLoaded">
 
-<p class="lead text-center" ng-show="!pageLoaded">Loading....</p>
+<div class="spinner" ng-show="!pageLoaded"></div>
 
 <div class="row" ng-show="tags.length && pageLoaded">
     <div ng-repeat="tag in tags|orderBy:orderField" class="col-xs-6 col-md-3">

@@ -4,8 +4,6 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
 	"github.com/coopernurse/gorp"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -152,22 +150,9 @@ func (user *User) HasVoted(photoID int64) bool {
 	return false
 }
 func (user *User) GetVotes() []int64 {
-	var votes []int64
-
-	s := strings.TrimRight(strings.TrimLeft(user.Votes, "{"), "}")
-
-	for _, value := range strings.Split(s, ",") {
-		if photoID, err := strconv.Atoi(value); err == nil {
-			votes = append(votes, int64(photoID))
-		}
-	}
-	return votes
+	return pgArrToIntSlice(user.Votes)
 }
 
 func (user *User) SetVotes(votes []int64) {
-	var s []string
-	for _, value := range votes {
-		s = append(s, strconv.FormatInt(value, 10))
-	}
-	user.Votes = "{" + strings.Join(s, ",") + "}"
+	user.Votes = intSliceToPgArr(votes)
 }

@@ -37,6 +37,9 @@ body { padding-top: 70px; }
     top:0;
     background-color:rgba(255, 255, 255, 0.5);
 }
+.caption h3 {
+  color: #555;
+}
 
 /*
   We're using CSS transitions for when

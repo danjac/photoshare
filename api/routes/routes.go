@@ -18,29 +18,29 @@ func GetHandler() http.Handler {
 
 	auth := r.PathPrefix("/api/auth").Subrouter()
 
-	auth.HandleFunc("/", MakeAppHandler(authenticate, false)).Methods("GET")
-	auth.HandleFunc("/", MakeAppHandler(login, false)).Methods("POST")
-	auth.HandleFunc("/", MakeAppHandler(logout, false)).Methods("DELETE")
+	auth.HandleFunc("/", NewAppHandler(authenticate, false)).Methods("GET")
+	auth.HandleFunc("/", NewAppHandler(login, false)).Methods("POST")
+	auth.HandleFunc("/", NewAppHandler(logout, false)).Methods("DELETE")
 
 	photos := r.PathPrefix("/api/photos").Subrouter()
 
-	photos.HandleFunc("/", MakeAppHandler(getPhotos, false)).Methods("GET")
-	photos.HandleFunc("/", MakeAppHandler(upload, true)).Methods("POST")
-	photos.HandleFunc("/{id}", MakeAppHandler(photoDetail, false)).Methods("GET")
-	photos.HandleFunc("/{id}", MakeAppHandler(deletePhoto, true)).Methods("DELETE")
-	photos.HandleFunc("/{id}/title", MakeAppHandler(editPhotoTitle, true)).Methods("PATCH")
-	photos.HandleFunc("/{id}/tags", MakeAppHandler(editPhotoTags, true)).Methods("PATCH")
-	photos.HandleFunc("/{id}/upvote", MakeAppHandler(voteUp, true)).Methods("PATCH")
-	photos.HandleFunc("/{id}/downvote", MakeAppHandler(voteDown, true)).Methods("PATCH")
+	photos.HandleFunc("/", NewAppHandler(getPhotos, false)).Methods("GET")
+	photos.HandleFunc("/", NewAppHandler(upload, true)).Methods("POST")
+	photos.HandleFunc("/{id}", NewAppHandler(photoDetail, false)).Methods("GET")
+	photos.HandleFunc("/{id}", NewAppHandler(deletePhoto, true)).Methods("DELETE")
+	photos.HandleFunc("/{id}/title", NewAppHandler(editPhotoTitle, true)).Methods("PATCH")
+	photos.HandleFunc("/{id}/tags", NewAppHandler(editPhotoTags, true)).Methods("PATCH")
+	photos.HandleFunc("/{id}/upvote", NewAppHandler(voteUp, true)).Methods("PATCH")
+	photos.HandleFunc("/{id}/downvote", NewAppHandler(voteDown, true)).Methods("PATCH")
 
 	user := r.PathPrefix("/api/user").Subrouter()
-	user.HandleFunc("/", MakeAppHandler(signup, false)).Methods("POST")
+	user.HandleFunc("/", NewAppHandler(signup, false)).Methods("POST")
 
 	tags := r.PathPrefix("/api/tags").Subrouter()
-	tags.HandleFunc("/", MakeAppHandler(getTags, false)).Methods("GET")
+	tags.HandleFunc("/", NewAppHandler(getTags, false)).Methods("GET")
 
 	feeds := r.PathPrefix("/feeds").Subrouter()
-	feeds.HandleFunc("/", MakeAppHandler(latestFeed, false))
+	feeds.HandleFunc("/", NewAppHandler(latestFeed, false))
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir(settings.PublicDir)))
 	return r

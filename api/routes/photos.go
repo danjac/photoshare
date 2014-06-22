@@ -180,33 +180,36 @@ func upload(c *Context) *Result {
 	return c.OK(photo)
 }
 
-func getPhotos(c *Context) *Result {
-	var (
-		err    error
-		photos []models.Photo
-	)
-
+func getPageNum(c *Context) int64 {
 	pageNum, err := strconv.ParseInt(c.FormValue("page"), 10, 64)
 	if err != nil {
 		pageNum = 1
 	}
+	return pageNum
+}
 
-	q := c.FormValue("q")
-	ownerID := c.FormValue("ownerID")
-	orderBy := c.FormValue("orderBy")
-
-	if q != "" {
-		photos, err = photoMgr.Search(pageNum, q)
-	} else if ownerID != "" {
-		photos, err = photoMgr.ByOwnerID(pageNum, ownerID)
-	} else {
-		photos, err = photoMgr.All(pageNum, orderBy)
-	}
-
+func searchPhotos(c *Context) *Result {
+	list, err := photoMgr.Search(getPageNum(c), c.FormValue("q"))
 	if err != nil {
 		return c.Error(err)
 	}
-	return c.OK(photos)
+	return c.OK(list)
+}
+
+func photosByOwnerID(c *Context) *Result {
+	list, err := photoMgr.ByOwnerID(getPageNum(c), c.Param("ownerID"))
+	if err != nil {
+		return c.Error(nil)
+	}
+	return c.OK(list)
+}
+
+func getPhotos(c *Context) *Result {
+	list, err := photoMgr.All(getPageNum(c), c.FormValue("orderBy"))
+	if err != nil {
+		return c.Error(err)
+	}
+	return c.OK(list)
 }
 
 func getTags(c *Context) *Result {
@@ -249,7 +252,7 @@ func vote(c *Context, fn func(photo *models.Photo)) *Result {
 		return c.Error(err)
 	}
 
-	c.User.AddVote(photo.ID)
+	c.User.RegisterVote(photo.ID)
 
 	if err = userMgr.Update(c.User); err != nil {
 		return c.Error(err)

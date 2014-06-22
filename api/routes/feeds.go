@@ -11,7 +11,7 @@ func latestFeed(c *Context) *Result {
 
 	baseURL := c.BaseURL()
 
-	photos, err := photoMgr.All(1, "")
+	list, err := photoMgr.All(1, "")
 
 	if err != nil {
 		return c.Error(err)
@@ -23,7 +23,7 @@ func latestFeed(c *Context) *Result {
 		Created:     time.Now(),
 	}
 
-	for _, photo := range photos {
+	for _, photo := range list.Photos {
 
 		item := &feeds.Item{
 			Id:          strconv.FormatInt(photo.ID, 10),

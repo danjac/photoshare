@@ -137,7 +137,7 @@ func (user *User) CheckPassword(password string) bool {
 	return err == nil
 }
 
-func (user *User) AddVote(photoID int64) {
+func (user *User) RegisterVote(photoID int64) {
 	user.SetVotes(append(user.GetVotes(), photoID))
 }
 

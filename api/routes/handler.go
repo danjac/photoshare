@@ -48,6 +48,7 @@ func NewAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 		}
 
 		if err := result.Render(); err != nil {
+			log.Println(err)
 			c.Log.Panic(err)
 		}
 	}

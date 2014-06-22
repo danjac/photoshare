@@ -1,8 +1,7 @@
 
-<h2 ng-show="ownerName">Photos uploaded by {{ ownerName }}</h2>
-<h2 ng-show="searchQuery">Search results for '{{ searchQuery }}'</h2>
-<hr ng-show="searchQuery">
-<p class="alert alert-warning" ng-show="searchQuery && searchComplete && !photos.length">No results found.</p>
+<h2 ng-show="pageLoaded && ownerName">{{ total }} photos uploaded by {{ ownerName }}</h2>
+<h2 ng-show="pageLoaded && searchQuery">{{ total }} search results for '{{ searchQuery }}'</h2>
+<hr ng-show="pageLoaded && searchQuery">
 
 <div class="spinner" ng-show="!pageLoaded"></div>
 

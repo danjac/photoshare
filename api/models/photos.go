@@ -18,10 +18,15 @@ type PhotoManager interface {
 	Get(string) (*Photo, error)
 	GetDetail(string, *User) (*PhotoDetail, error)
 	GetTagCounts() ([]TagCount, error)
-	All(int64, string) ([]Photo, error)
-	ByOwnerID(int64, string) ([]Photo, error)
-	Search(int64, string) ([]Photo, error)
+	All(int64, string) (*PhotoList, error)
+	ByOwnerID(int64, string) (*PhotoList, error)
+	Search(int64, string) (*PhotoList, error)
 	UpdateTags(*Photo) error
+}
+
+type PhotoList struct {
+	Photos []Photo `json:"photos"`
+	Total  int64   `json:"total"`
 }
 
 type Tag struct {
@@ -204,26 +209,39 @@ func (mgr *defaultPhotoManager) GetDetail(photoID string, user *User) (*PhotoDet
 
 }
 
-func (mgr *defaultPhotoManager) ByOwnerID(pageNum int64, ownerID string) ([]Photo, error) {
+func (mgr *defaultPhotoManager) ByOwnerID(pageNum int64, ownerID string) (*PhotoList, error) {
 
-	var photos []Photo
-	if _, err := dbMap.Select(&photos,
+	list := &PhotoList{}
+
+	var err error
+
+	if list.Total, err = dbMap.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {
+		return list, err
+	}
+
+	if _, err = dbMap.Select(&list.Photos,
 		"SELECT * FROM photos WHERE owner_id = $1"+
 			"ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $2 OFFSET $3",
 		ownerID, PageSize, getOffset(pageNum)); err != nil {
-		return photos, err
+		return list, err
 	}
-	return photos, nil
+	return list, nil
 
 }
 
-func (mgr *defaultPhotoManager) Search(pageNum int64, q string) ([]Photo, error) {
+func (mgr *defaultPhotoManager) Search(pageNum int64, q string) (*PhotoList, error) {
 
 	var (
-		photos  []Photo
 		clauses []string
 		params  []interface{}
+		err     error
 	)
+
+	list := &PhotoList{}
+
+	if q == "" {
+		return list, nil
+	}
 
 	for num, word := range strings.Split(q, " ") {
 		word = strings.TrimSpace(word)
@@ -242,23 +260,29 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) ([]Photo, error)
 	}
 
 	numParams := len(params)
+	clausesSql := strings.Join(clauses, " INTERSECT ")
+
+	countSql := fmt.Sprintf("SELECT COUNT(id) FROM (%s) q", clausesSql)
+	if list.Total, err = dbMap.SelectInt(countSql, params...); err != nil {
+		return list, err
+	}
 
 	sql := fmt.Sprintf("SELECT * FROM (%s) q ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $%d OFFSET $%d",
-		strings.Join(clauses, " INTERSECT "), numParams+1, numParams+2)
+		clausesSql, numParams+1, numParams+2)
 
 	params = append(params, interface{}(PageSize))
 	params = append(params, interface{}(getOffset(pageNum)))
 
-	if _, err := dbMap.Select(&photos, sql, params...); err != nil {
-		return photos, err
+	if _, err = dbMap.Select(&list.Photos, sql, params...); err != nil {
+		return list, err
 	}
-	return photos, nil
+	return list, nil
 
 }
 
-func (mgr *defaultPhotoManager) All(pageNum int64, orderBy string) ([]Photo, error) {
+func (mgr *defaultPhotoManager) All(pageNum int64, orderBy string) (*PhotoList, error) {
 
-	var photos []Photo
+	list := &PhotoList{}
 
 	if orderBy == "votes" {
 		orderBy = "(up_votes - down_votes)"
@@ -266,12 +290,18 @@ func (mgr *defaultPhotoManager) All(pageNum int64, orderBy string) ([]Photo, err
 		orderBy = "created_at"
 	}
 
-	if _, err := dbMap.Select(&photos,
+	var err error
+
+	if list.Total, err = dbMap.SelectInt("SELECT COUNT(id) FROM photos"); err != nil {
+		return list, err
+	}
+
+	if _, err = dbMap.Select(&list.Photos,
 		"SELECT * FROM photos "+
 			"ORDER BY "+orderBy+" DESC LIMIT $1 OFFSET $2", PageSize, getOffset(pageNum)); err != nil {
-		return photos, err
+		return list, err
 	}
-	return photos, nil
+	return list, nil
 }
 
 func (mgr *defaultPhotoManager) GetTagCounts() ([]TagCount, error) {

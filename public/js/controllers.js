@@ -30,7 +30,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
             $scope.logout = function () {
                 Authenticator.logout().then(function () {
-                    $location.path("/");
+                    $location.path("/popular");
                 });
             };
 
@@ -58,28 +58,34 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             var page = 1,
                 stopScrolling = false,
                 pageLoaded = false,
+                apiCall = null,
                 q = $routeParams.q || "",
                 ownerID = $routeParams.ownerID || "",
                 ownerName = $routeParams.ownerName || "",
-                orderBy = $location.path() == "/" ? "votes" : "";
+                orderBy = $location.path() == "/popular" ? "votes" : "";
 
             $scope.photos = [];
             $scope.searchQuery = q;
             $scope.ownerName = ownerName;
             $scope.searchComplete = false;
+            $scope.total = 0;
+
+            if (q) {
+                apiCall = function () { return Photo.search({ q: q, page: page })};
+            } else if (ownerID) {
+                apiCall = function () { return Photo.byOwner({ ownerID: ownerID, page: page })};
+            } else {
+                apiCall = function () { return Photo.query({ orderBy: orderBy, page: page })};
+            }
 
             $scope.nextPage = function () {
                 if (!stopScrolling) {
-                    Photo.query({
-                            page: page,
-                            q: q,
-                            ownerID: ownerID,
-                            orderBy: orderBy
-                        }).$promise.then(function (photos) {
+                    apiCall().$promise.then(function (result) {
                         $scope.searchComplete = true;
-                        $scope.photos = $scope.photos.concat(photos);
+                        $scope.photos = $scope.photos.concat(result.photos);
                         $scope.pageLoaded = true;
-                        if (photos.length < pageSize) {
+                        $scope.total = result.total;
+                        if (result.photos.length < pageSize) {
                             stopScrolling = true;
                         }
                     });
@@ -255,9 +261,9 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 if (result.loggedIn) {
                     Authenticator.login(result, headers(authToken));
                     Alert.success("Welcome back, " + result.name);
-                    var path = Session.getLastLoginUrl() || "/";
+                    var path = Session.getLastLoginUrl() || "/popular";
                     if (path == $location.path()) {
-                        path = "/";
+                        path = "/popular";
                     }
                     $location.path(path);
                 }
@@ -283,7 +289,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 Authenticator.login(result, headers(authToken));
                 $scope.newUser = new User();
                 Alert.success("Welcome, " + result.name);
-                $location.path("/");
+                $location.path("/popular");
             });
         };
     }]);

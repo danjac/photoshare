@@ -132,6 +132,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                     return;
                 }
                 $scope.photo.perms.vote = false;
+                $scope.photo.upVotes += 1
                 Photo.upvote({id: $scope.photo.id});
             }
 
@@ -140,6 +141,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                     return;
                 }
                 $scope.photo.perms.vote = false;
+                $scope.photo.downVotes += 1
                 Photo.downvote({id: $scope.photo.id});
             }
 

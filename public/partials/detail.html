@@ -41,6 +41,11 @@
         <dl>
         	<dt>Owner</dt>
             <dd><a href="#/owner/{{photo.ownerId}}/{{photo.ownerName}}">{{photo.ownerName}}</a></dd>
+          <dt>Score</dt>
+          <dd>
+  <span class="glyphicon glyphicon-thumbs-up"></span> {{photo.upVotes}}
+  <span class="glyphicon glyphicon-thumbs-down"></span> {{photo.downVotes}}
+          </dd>
         	<dt>Uploaded on</dt>
             <dd>{{photo.createdAt|date:"dd/MM/yyyy"}}</dd>
             <dt ng-click="showEditTagsForm()">Tags <span ng-show="!editTags && photo.perms.edit" ng-click="showEditTagsForm()" class="glyphicon glyphicon-pencil"></span></dt>

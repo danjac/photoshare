@@ -15,7 +15,7 @@ func NewAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 
 		defer func() {
 			if r := recover(); r != nil {
-				log.Println(r)
+				log.Println("Recovered:", r)
 			}
 		}()
 
@@ -48,8 +48,7 @@ func NewAppHandler(fn AppHandlerFunc, loginRequired bool) http.HandlerFunc {
 		}
 
 		if err := result.Render(); err != nil {
-			log.Println(err)
-			c.Log.Panic(err)
+			c.Log.Println(err)
 		}
 	}
 

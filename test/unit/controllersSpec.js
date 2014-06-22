@@ -16,12 +16,14 @@ describe('controllers', function (){
         var scope = $rootScope.$new(),
             httpBackend = _$httpBackend_;
 
-        httpBackend.expectGET("/api/photos/?orderBy=&ownerID=&page=1&q=").respond([
+        httpBackend.expectGET("/api/photos/?orderBy=&page=1").respond({
+            total: 1,
+            photos: [
             {
                 'title': 'this is a photo',
                 'photo': 'test.jpg'
-            }
-        ]);
+            }]
+        });
         var listCtrl = $controller('ListCtrl', {
             $scope: scope,
         });

@@ -28,15 +28,22 @@ func authenticate(c *Context) *Result {
 
 func login(c *Context) *Result {
 
-	auth := &session.Authenticator{}
-	if err := c.ParseJSON(auth); err != nil {
+	s := &struct {
+		Identifier string `json: "identifier"`
+		Password   string `json: "password"`
+	}{}
+
+	if err := c.ParseJSON(s); err != nil {
 		return c.Error(err)
 	}
-	user, err := auth.Identify()
+
+	if s.Identifier == "" || s.Password == "" {
+		return c.BadRequest("Missing login details")
+	}
+
+	user, err := userMgr.Authenticate(s.Identifier, s.Password)
+
 	if err != nil {
-		if err == session.MissingLoginFields {
-			return c.BadRequest("Missing email or password")
-		}
 		return c.Error(err)
 	}
 	if !user.IsAuthenticated {

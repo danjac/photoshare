@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/session"
+	"github.com/danjac/photoshare/api/settings"
 	"github.com/gorilla/feeds"
 	"github.com/gorilla/mux"
 	"log"
@@ -128,7 +129,8 @@ func (c *Context) ParseJSON(value interface{}) error {
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request) *Context {
-	prefix := fmt.Sprintf("photoshare:%s[%s] ", r.URL.Path, r.Method)
+
+	prefix := fmt.Sprintf("%s:[%s] %s ", settings.LogPrefix, r.Method, r.URL.Path)
 	logger := log.New(os.Stdout, prefix, log.Lmicroseconds)
 	return &Context{r, w, mux.Vars(r), nil, logger}
 }

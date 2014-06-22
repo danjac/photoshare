@@ -1,7 +1,6 @@
 package session
 
 import (
-	"errors"
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/settings"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -18,7 +17,6 @@ const (
 
 var (
 	verifyKey, signKey []byte
-	MissingLoginFields = errors.New("Missing login fields")
 	userMgr            = models.NewUserManager()
 )
 
@@ -49,20 +47,6 @@ func NewSessionInfo(user *models.User) *SessionInfo {
 	}
 
 	return &SessionInfo{user.ID, user.Name, user.IsAdmin, true}
-}
-
-// Handles user authentication
-type Authenticator struct {
-	Identifier string `json:"identifier"`
-	Password   string `json:"password"`
-}
-
-func (auth *Authenticator) Identify() (*models.User, error) {
-
-	if auth.Identifier == "" || auth.Password == "" {
-		return nil, MissingLoginFields
-	}
-	return userMgr.Authenticate(auth.Identifier, auth.Password)
 }
 
 func GetCurrentUser(r *http.Request) (*models.User, error) {

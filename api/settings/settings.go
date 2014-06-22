@@ -17,6 +17,7 @@ var (
 	TestDBUser,
 	TestDBPassword,
 	TestDBHost,
+	LogPrefix,
 	PublicDir,
 	UploadsDir,
 	ThumbnailsDir string
@@ -43,6 +44,8 @@ func init() {
 	PrivKeyFile = getEnvOrDie("PRIVATE_KEY")
 	PubKeyFile = getEnvOrDie("PUBLIC_KEY")
 
+	LogPrefix = getEnvOrElse("LOG_PREFIX", "photoshare")
+
 	DBName = getEnvOrDie("DB_NAME")
 	DBUser = getEnvOrDie("DB_USER")
 	DBPassword = getEnvOrDie("DB_PASS")
@@ -54,7 +57,7 @@ func init() {
 	TestDBHost = getEnvOrElse("TEST_DB_HOST", "localhost")
 
 	if TestDBName == DBName {
-		panic("Test DB name same as DB name")
+		log.Fatal("Test DB name same as DB name")
 	}
 
 	PublicDir = getEnvOrElse("PUBLIC_DIR", "./public/")

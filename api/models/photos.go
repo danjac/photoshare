@@ -259,13 +259,14 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) (*PhotoList, err
 		params = append(params, interface{}(word))
 	}
 
-	numParams := len(params)
 	clausesSql := strings.Join(clauses, " INTERSECT ")
 
 	countSql := fmt.Sprintf("SELECT COUNT(id) FROM (%s) q", clausesSql)
 	if list.Total, err = dbMap.SelectInt(countSql, params...); err != nil {
 		return list, err
 	}
+
+	numParams := len(params)
 
 	sql := fmt.Sprintf("SELECT * FROM (%s) q ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $%d OFFSET $%d",
 		clausesSql, numParams+1, numParams+2)

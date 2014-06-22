@@ -12,8 +12,9 @@
           name="form"
           ng-show="editTitle"
           novalidate>
-          <div class="form-group">
-          <input type="text" class="form-control" ng-model="photo.title">
+          <div class="form-group" ng-class="{'has-error': formErrors.title }">
+          <input type="text" class="form-control" ng-model="photo.title" required="required">
+          <span class="help-block" ng-show="formErrors.title">{{formErrors.title}}</span>
       </div>
           <button type="submit"
                   class="btn btn-primary"
@@ -21,6 +22,7 @@
                   ng-disabled="form.$invalid">Save</button>
           <button type="cancel"
                   class="btn btn-default"
+                  ng-disabled="form.$invalid"
                   ng-click="hideEditForm()">Cancel</button>
       </form>
 

@@ -171,7 +171,9 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 $scope.editTags = false;
             };
             $scope.updateTitle = function () {
-                Photo.updateTitle({id: $scope.photo.id, title: $scope.photo.title });
+                Photo.updateTitle(
+                    {id: $scope.photo.id, title: $scope.photo.title }
+                );
                 $scope.editTitle = false;
             };
             $scope.updateTags = function () {
@@ -222,6 +224,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         $scope.newPhoto = new Photo();
         $scope.upload = null;
         $scope.formDisabled = false;
+        $scope.formErrors = {};
         $scope.uploadPhoto = function () {
             $scope.formDisabled = true;
             var taglist = $scope.newPhoto.taglist || "";
@@ -236,7 +239,8 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                     Alert.success('Your photo has been uploaded');
                     $location.path("/latest");
                 },
-                function () {
+                function (result) {
+                    $scope.formErrors = result.data.errors;
                     $scope.formDisabled = false;
                 }
             );
@@ -286,12 +290,15 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                                                       authToken) {
 
         $scope.newUser = new User();
+        $scope.formErrors = {};
         $scope.signup = function () {
             $scope.newUser.$save(function (result, headers) {
                 Authenticator.login(result, headers(authToken));
                 $scope.newUser = new User();
                 Alert.success("Welcome, " + result.name);
                 $location.path("/popular");
+            }, function (result) {
+                $scope.formErrors = result.data.errors;
             });
         };
     }]);

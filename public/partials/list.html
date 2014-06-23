@@ -1,13 +1,24 @@
-<h2 ng-show="pageLoaded && ownerName"><ng-pluralize count="total" when="{'one': 'One photo', 'other': '{{total}} photos'}"></ng-pluralize> uploaded by {{ ownerName }}</h2>
-<h2 ng-show="pageLoaded && searchQuery"><ng-pluralize count="total" when="{'0': 'No results', 'one': 'One result', 'other': '{{total}} results'}"></ng-pluralize> for '{{ searchQuery }}'</h2>
+<div ng-show="numPages < 2">
+	<h2 ng-show="pageLoaded && ownerName"><ng-pluralize count="total" when="{'one': 'One photo', 'other': '{{total}} photos'}"></ng-pluralize> uploaded by {{ ownerName }}</h2>
+	<h2 ng-show="pageLoaded && searchQuery"><ng-pluralize count="total" when="{'0': 'No results', 'one': 'One result', 'other': '{{total}} results'}"></ng-pluralize> for '{{ searchQuery }}'</h2>
+</div>
 
-<pagination num-pages="numPages" current-page="currentPage" page-range="pageRange" on-next-page="nextPage" />
+<div class="row-fluid" ng-show="numPages > 1">
 
-<hr ng-show="pageLoaded">
+	<div class="col-md-6">
+	<h2 ng-show="pageLoaded && ownerName"><ng-pluralize count="total" when="{'one': 'One photo', 'other': '{{total}} photos'}"></ng-pluralize> uploaded by {{ ownerName }}</h2>
+	<h2 ng-show="pageLoaded && searchQuery"><ng-pluralize count="total" when="{'0': 'No results', 'one': 'One result', 'other': '{{total}} results'}"></ng-pluralize> for '{{ searchQuery }}'</h2>
+	</div>
+
+	<div class="col-md-6">
+		<pagination class="pull-right" num-pages="numPages" current-page="currentPage" on-next-page="nextPage" />
+	</div>
+
+</div>
 
 <div class="spinner" ng-show="!pageLoaded"></div>
 
-<div class="row" ng-show="photos.length && pageLoaded">
+<div class="row-fluid" ng-show="photos.length && pageLoaded">
     <div ng-repeat="photo in photos" class="col-xs-6 col-md-3">
         <div class="thumbnail" ng-click="getDetail(photo)">
             <img alt="{{photo.title}}" class="img-responsive" ng-src="uploads/thumbnails/{{photo.photo}}" />
@@ -18,6 +29,9 @@
     </div>
 </div>
 
-<hr ng-show="pageLoaded">
 
-<pagination num-pages="numPages" current-page="currentPage" page-range="pageRange" on-next-page="nextPage" />
+<div class="row-fluid">
+	<div class="col-md-12">
+		<pagination class="pull-right" num-pages="numPages" current-page="currentPage" on-next-page="nextPage" />
+	</div>
+</div>

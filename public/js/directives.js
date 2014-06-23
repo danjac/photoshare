@@ -34,13 +34,17 @@ angular.module('photoshare.directives', []).
                 scope.$watch('currentPage', function(page) {
                     scope.isFirstPage = (scope.currentPage == 1);
                     scope.isLastPage = (scope.currentPage == scope.numPages);
+                    scope.pageRange = [];
+                    for (var i=0; i < scope.numPages; i++){
+                        scope.pageRange.push(i + 1);
+                    }
                 });
+
                 scope.nextPage = function (page) { scope.onNextPage(page); };
             },
             scope: {
                 numPages: '=',
                 currentPage: '=',
-                pageRange: '=',
                 onNextPage: '='
             },
             templateUrl: 'partials/pagination.html'

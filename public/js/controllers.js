@@ -84,10 +84,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                     $scope.total = result.total;
                     $scope.numPages = result.numPages;
                     $scope.currentPage = page;
-                    $scope.pageRange = [];
-                    for (var i=0; i < $scope.numPages; i++){
-                        $scope.pageRange.push(i + 1);
-                    }
+
                 });
             };
             $scope.nextPage(1);

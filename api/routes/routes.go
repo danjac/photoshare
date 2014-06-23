@@ -43,6 +43,8 @@ func GetHandler() http.Handler {
 
 	feeds := r.PathPrefix("/feeds").Subrouter()
 	feeds.HandleFunc("/", NewAppHandler(latestFeed, false))
+	feeds.HandleFunc("/owner/{ownerID}", NewAppHandler(ownerFeed, false)).Methods("GET")
+	feeds.HandleFunc("/popular", NewAppHandler(popularFeed, false))
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir(settings.PublicDir)))
 	return r

@@ -45,8 +45,8 @@
             <dd><a href="#/owner/{{photo.ownerId}}/{{photo.ownerName}}">{{photo.ownerName}}</a></dd>
           <dt>Score</dt>
           <dd>
-  <span class="glyphicon glyphicon-thumbs-up"></span> {{photo.upVotes}}
-  <span class="glyphicon glyphicon-thumbs-down"></span> {{photo.downVotes}}
+            <span class="glyphicon glyphicon-thumbs-up" ng-click="voteUp()"></span> {{photo.upVotes}}
+            <span class="glyphicon glyphicon-thumbs-down" ng-click="voteDown()"></span> {{photo.downVotes}}
           </dd>
         	<dt>Uploaded on</dt>
             <dd>{{photo.createdAt|date:"dd/MM/yyyy"}}</dd>

@@ -2,28 +2,24 @@ package routes
 
 import (
 	"fmt"
+	"github.com/danjac/photoshare/api/models"
 	"github.com/gorilla/feeds"
 	"strconv"
 	"time"
 )
 
-func latestFeed(c *Context) *Result {
+func photoFeed(c *Context, title string, description string, link string, photos []models.Photo) *Result {
 
 	baseURL := c.BaseURL()
 
-	list, err := photoMgr.All(1, "")
-
-	if err != nil {
-		return c.Error(err)
-	}
 	feed := &feeds.Feed{
-		Title:       "Latest photos",
-		Link:        &feeds.Link{Href: baseURL + "/"},
-		Description: "Latest photos",
+		Title:       title,
+		Link:        &feeds.Link{Href: baseURL + link},
+		Description: description,
 		Created:     time.Now(),
 	}
 
-	for _, photo := range list.Photos {
+	for _, photo := range photos {
 
 		item := &feeds.Item{
 			Id:          strconv.FormatInt(photo.ID, 10),
@@ -37,4 +33,48 @@ func latestFeed(c *Context) *Result {
 
 	return c.Atom(feed)
 
+}
+
+func latestFeed(c *Context) *Result {
+
+	list, err := photoMgr.All(1, "")
+
+	if err != nil {
+		return c.Error(err)
+	}
+
+	return photoFeed(c, "Latest photos", "Most recent photos", "/latest", list.Photos)
+}
+
+func popularFeed(c *Context) *Result {
+
+	list, err := photoMgr.All(1, "votes")
+
+	if err != nil {
+		return c.Error(err)
+	}
+
+	return photoFeed(c, "Popular photos", "Most upvoted photos", "/popular", list.Photos)
+}
+
+func ownerFeed(c *Context) *Result {
+	ownerID := c.Param("ownerID")
+	owner, err := userMgr.GetActive(ownerID)
+	if err != nil {
+		return c.Error(err)
+	}
+	if owner == nil {
+		return c.NotFound("No user found")
+	}
+
+	title := "Feeds for " + owner.Name
+	description := "List of feeds for " + owner.Name
+	link := fmt.Sprintf("/owner/%s/%s", ownerID, owner.Name)
+
+	list, err := photoMgr.ByOwnerID(1, ownerID)
+
+	if err != nil {
+		return c.Error(err)
+	}
+	return photoFeed(c, title, description, link, list.Photos)
 }

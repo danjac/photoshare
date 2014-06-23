@@ -6,3 +6,4 @@ photoshare
 *.db
 .env
 db/dbconf.yml
+logs

@@ -77,6 +77,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             }
 
             $scope.nextPage = function (page) {
+                pageLoaded = false;
                 apiCall(page).$promise.then(function (result) {
                     $scope.pageLoaded = true;
                     $scope.searchComplete = true;

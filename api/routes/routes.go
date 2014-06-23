@@ -24,10 +24,10 @@ func GetHandler() http.Handler {
 
 	photos := r.PathPrefix("/api/photos").Subrouter()
 
+	photos.HandleFunc("/", NewAppHandler(upload, true)).Methods("POST")
 	photos.HandleFunc("/", NewAppHandler(getPhotos, false)).Methods("GET")
 	photos.HandleFunc("/owner/{ownerID}", NewAppHandler(photosByOwnerID, false)).Methods("GET")
 	photos.HandleFunc("/search", NewAppHandler(searchPhotos, false)).Methods("GET")
-	photos.HandleFunc("/", NewAppHandler(upload, true)).Methods("POST")
 	photos.HandleFunc("/{id}", NewAppHandler(photoDetail, false)).Methods("GET")
 	photos.HandleFunc("/{id}", NewAppHandler(deletePhoto, true)).Methods("DELETE")
 	photos.HandleFunc("/{id}/title", NewAppHandler(editPhotoTitle, true)).Methods("PATCH")

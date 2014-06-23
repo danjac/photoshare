@@ -51,10 +51,10 @@ func init() {
 	DBPassword = getEnvOrDie("DB_PASS")
 	DBHost = getEnvOrElse("DB_HOST", "localhost")
 
-	TestDBName = getEnvOrDie("TEST_DB_NAME")
-	TestDBUser = getEnvOrDie("TEST_DB_USER")
-	TestDBPassword = getEnvOrDie("TEST_DB_PASS")
-	TestDBHost = getEnvOrElse("TEST_DB_HOST", "localhost")
+	TestDBName = getEnvOrElse("TEST_DB_NAME", DBName+"_test")
+	TestDBUser = getEnvOrElse("TEST_DB_USER", DBUser)
+	TestDBPassword = getEnvOrElse("TEST_DB_PASS", DBPassword)
+	TestDBHost = getEnvOrElse("TEST_DB_HOST", DBHost)
 
 	if TestDBName == DBName {
 		log.Fatal("Test DB name same as DB name")

@@ -68,13 +68,13 @@ angular.module('photoshare.services', [])
             Session.set(result);
             this.$delete = result.$delete;
             if (token) {
-                $window.sessionStorage.token = token;
+                $window.localStorage.setItem("authToken", token)
             }
         };
 
         Authenticator.prototype.logout = function () {
             var $this = this, d = $q.defer();
-            delete $window.sessionStorage.token;
+            $window.localStorage.removeItem("authToken")
             $this.$delete(function (result) {
                 Session.clear();
                 d.resolve(result);

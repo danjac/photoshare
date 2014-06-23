@@ -103,8 +103,9 @@ angular.module('photoshare', [
         return {
             request: function (config) {
                 config.headers = config.headers || {};
-                if ($window.sessionStorage.token) {
-                    config.headers[authToken] = $window.sessionStorage.token;
+                var token = $window.localStorage.getItem("authToken");
+                if (token) {
+                    config.headers[authToken] = token;
                 }
                 return config;
             }

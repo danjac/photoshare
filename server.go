@@ -30,7 +30,7 @@ func main() {
 	defer db.Close()
 
 	if _, err := models.InitDB(db); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	http.Handle("/", routes.GetHandler())

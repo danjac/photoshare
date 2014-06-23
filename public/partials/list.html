@@ -1,7 +1,7 @@
 <h2 ng-show="pageLoaded && ownerName"><ng-pluralize count="total" when="{'one': 'One photo', 'other': '{{total}} photos'}"></ng-pluralize> uploaded by {{ ownerName }}</h2>
 <h2 ng-show="pageLoaded && searchQuery"><ng-pluralize count="total" when="{'0': 'No results', 'one': 'One result', 'other': '{{total}} results'}"></ng-pluralize> for '{{ searchQuery }}'</h2>
 
-<pagination num-pages="numPages" current-page="currentPage" on-next-page="nextPage(page)" />
+<pagination num-pages="numPages" current-page="currentPage" page-range="pageRange" on-next-page="nextPage" />
 
 <hr ng-show="pageLoaded">
 
@@ -20,4 +20,4 @@
 
 <hr ng-show="pageLoaded">
 
-<pagination num-pages="numPages" current-page="currentPage" on-next-page="nextPage(page)" />
+<pagination num-pages="numPages" current-page="currentPage" page-range="pageRange" on-next-page="nextPage" />

@@ -30,15 +30,18 @@ angular.module('photoshare.directives', []).
         return {
             restrict: 'E',
             replace:true,
-            link: function ($scope, element, attrs) {
-                $scope.pageRange = [];
-                $scope.currentPage = attrs['current-page'];
-                $scope.numPages = attrs['num-pages'];
-                $scope.isFirstPage = ($sopce.currentPage == 1);
-                $scope.isLastPage = ($scope.currentPage == $scope.numPages);
-                for (var i=0; i < $scope.numPages; i++){
-                    $scope.pageRange.push(i + 1);
-                }
+            link: function (scope, element, attrs) {
+                scope.$watch('currentPage', function(page) {
+                    scope.isFirstPage = (scope.currentPage == 1);
+                    scope.isLastPage = (scope.currentPage == scope.numPages);
+                });
+                scope.nextPage = function (page) { scope.onNextPage(page); };
+            },
+            scope: {
+                numPages: '=',
+                currentPage: '=',
+                pageRange: '=',
+                onNextPage: '='
             },
             templateUrl: 'partials/pagination.html'
 

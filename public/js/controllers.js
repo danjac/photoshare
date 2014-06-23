@@ -66,6 +66,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.searchComplete = false;
             $scope.total = 0;
             $scope.currentPage = 0;
+            $scope.numPages = 0;
 
             if (q) {
                 apiCall = function (page) { return Photo.search({ q: q, page: page })};
@@ -77,11 +78,16 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
             $scope.nextPage = function (page) {
                 apiCall(page).$promise.then(function (result) {
+                    $scope.pageLoaded = true;
                     $scope.searchComplete = true;
                     $scope.photos = result.photos;
-                    $scope.pageLoaded = true;
                     $scope.total = result.total;
+                    $scope.numPages = result.numPages;
                     $scope.currentPage = page;
+                    $scope.pageRange = [];
+                    for (var i=0; i < $scope.numPages; i++){
+                        $scope.pageRange.push(i + 1);
+                    }
                 });
             };
             $scope.nextPage(1);

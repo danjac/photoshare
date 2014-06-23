@@ -1,11 +1,13 @@
 <h2 ng-show="pageLoaded && ownerName"><ng-pluralize count="total" when="{'one': 'One photo', 'other': '{{total}} photos'}"></ng-pluralize> uploaded by {{ ownerName }}</h2>
 <h2 ng-show="pageLoaded && searchQuery"><ng-pluralize count="total" when="{'0': 'No results', 'one': 'One result', 'other': '{{total}} results'}"></ng-pluralize> for '{{ searchQuery }}'</h2>
-<hr ng-show="pageLoaded && searchQuery">
+
+<pagination num-pages="numPages" current-page="currentPage" on-next-page="nextPage(page)" />
+
+<hr ng-show="pageLoaded">
 
 <div class="spinner" ng-show="!pageLoaded"></div>
 
 <div class="row" ng-show="photos.length && pageLoaded">
-    <div infinite-scroll="nextPage()" infinite-scroll-distance="2">
     <div ng-repeat="photo in photos" class="col-xs-6 col-md-3">
         <div class="thumbnail" ng-click="getDetail(photo)">
             <img alt="{{photo.title}}" class="img-responsive" ng-src="uploads/thumbnails/{{photo.photo}}" />
@@ -15,3 +17,7 @@
         </div>
     </div>
 </div>
+
+<hr ng-show="pageLoaded">
+
+<pagination num-pages="numPages" current-page="currentPage" on-next-page="nextPage(page)" />

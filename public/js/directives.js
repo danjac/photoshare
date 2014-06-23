@@ -19,11 +19,28 @@ angular.module('photoshare.directives', []).
                         };
                         reader.readAsDataURL(file);
                     }
-                    
+
                     $scope.$apply();
                 });
             }
         };
+    }).
+    directive('pagination', function () {
+
+        return {
+            restrict: 'E',
+            replace:true,
+            link: function ($scope, element, attrs) {
+                $scope.pageRange = [];
+                $scope.currentPage = attrs['current-page'];
+                $scope.numPages = attrs['num-pages'];
+                for (var i=0; i < $scope.numPages; i++){
+                    $scope.pageRange.push(i + 1);
+                }
+            },
+            templateUrl: 'partials/pagination.html'
+
+        }
     }).
     directive('navtab', function () {
 

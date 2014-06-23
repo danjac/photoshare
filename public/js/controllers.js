@@ -49,15 +49,11 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                              '$location',
                              '$routeParams',
                              'Photo',
-                             'pageSize',
                              function ($scope,
                                        $location,
                                        $routeParams,
-                                       Photo,
-                                       pageSize) {
-            var page = 1,
-                stopScrolling = false,
-                pageLoaded = false,
+                                       Photo) {
+            var pageLoaded = false,
                 apiCall = null,
                 q = $routeParams.q || "",
                 ownerID = $routeParams.ownerID || "",
@@ -69,29 +65,33 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.ownerName = ownerName;
             $scope.searchComplete = false;
             $scope.total = 0;
+            $scope.numPages = 0;
+            $scope.currentPage = 0;
+            $scope.pageRange = [];
 
             if (q) {
-                apiCall = function () { return Photo.search({ q: q, page: page })};
+                apiCall = function (page) { return Photo.search({ q: q, page: page })};
             } else if (ownerID) {
-                apiCall = function () { return Photo.byOwner({ ownerID: ownerID, page: page })};
+                apiCall = function (page) { return Photo.byOwner({ ownerID: ownerID, page: page })};
             } else {
-                apiCall = function () { return Photo.query({ orderBy: orderBy, page: page })};
+                apiCall = function (page) { return Photo.query({ orderBy: orderBy, page: page })};
             }
 
-            $scope.nextPage = function () {
-                if (!stopScrolling) {
-                    apiCall().$promise.then(function (result) {
-                        $scope.searchComplete = true;
-                        $scope.photos = $scope.photos.concat(result.photos);
-                        $scope.pageLoaded = true;
-                        $scope.total = result.total;
-                        if (result.photos.length < pageSize) {
-                            stopScrolling = true;
-                        }
-                    });
-                }
-                page += 1;
+            $scope.nextPage = function (page) {
+                apiCall(page).$promise.then(function (result) {
+                    $scope.searchComplete = true;
+                    $scope.photos = result.photos;
+                    $scope.pageLoaded = true;
+                    $scope.total = result.total;
+                    $scope.currentPage = page;
+                    $scope.numPages = result.numPages;
+                    $scope.pageRange = [];
+                    for (var i=0; i < result.numPages; i++){
+                        $scope.pageRange.push(i + 1);
+                    }
+                });
             };
+            $scope.nextPage(1);
 
             $scope.getDetail = function (photo) {
                 $location.path("/detail/" + photo.id);

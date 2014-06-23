@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"github.com/coopernurse/gorp"
 	"github.com/danjac/photoshare/api/storage"
+	"math"
 	"strings"
 	"time"
 )
 
-const PageSize = 32
+const PageSize = 12
 
 type PhotoManager interface {
 	Insert(*Photo) error
@@ -25,8 +26,28 @@ type PhotoManager interface {
 }
 
 type PhotoList struct {
-	Photos []Photo `json:"photos"`
-	Total  int64   `json:"total"`
+	Photos      []Photo `json:"photos"`
+	Total       int64   `json:"total"`
+	CurrentPage int64   `json:"currentPage"`
+	NumPages    int64   `json:"numPages"`
+	NextPage    int64   `json:"nextPage"`
+	LastPage    int64   `json:"lastPage"`
+	IsFirstPage bool    `json:"isFirstPage"`
+	IsLastPage  bool    `json:"isLastPage"`
+}
+
+func NewPhotoList(photos []Photo, total int64, page int64) *PhotoList {
+	l := &PhotoList{
+		Photos:      photos,
+		Total:       total,
+		CurrentPage: page,
+	}
+	l.NumPages = int64(math.Ceil(float64(total) / float64(PageSize)))
+	l.NextPage = l.CurrentPage + 1
+	l.LastPage = l.CurrentPage - 1
+	l.IsFirstPage = l.CurrentPage == 1
+	l.IsLastPage = l.CurrentPage == l.NumPages
+	return l
 }
 
 type Tag struct {
@@ -211,22 +232,23 @@ func (mgr *defaultPhotoManager) GetDetail(photoID string, user *User) (*PhotoDet
 
 func (mgr *defaultPhotoManager) ByOwnerID(pageNum int64, ownerID string) (*PhotoList, error) {
 
-	list := &PhotoList{}
+	var (
+		photos []Photo
+		err    error
+		total  int64
+	)
 
-	var err error
-
-	if list.Total, err = dbMap.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {
-		return list, err
+	if total, err = dbMap.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {
+		return nil, err
 	}
 
-	if _, err = dbMap.Select(&list.Photos,
+	if _, err = dbMap.Select(&photos,
 		"SELECT * FROM photos WHERE owner_id = $1"+
 			"ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $2 OFFSET $3",
 		ownerID, PageSize, getOffset(pageNum)); err != nil {
-		return list, err
+		return nil, err
 	}
-	return list, nil
-
+	return NewPhotoList(photos, total, pageNum), nil
 }
 
 func (mgr *defaultPhotoManager) Search(pageNum int64, q string) (*PhotoList, error) {
@@ -235,12 +257,12 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) (*PhotoList, err
 		clauses []string
 		params  []interface{}
 		err     error
+		photos  []Photo
+		total   int64
 	)
 
-	list := &PhotoList{}
-
 	if q == "" {
-		return list, nil
+		return nil, nil
 	}
 
 	for num, word := range strings.Split(q, " ") {
@@ -262,8 +284,8 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) (*PhotoList, err
 	clausesSql := strings.Join(clauses, " INTERSECT ")
 
 	countSql := fmt.Sprintf("SELECT COUNT(id) FROM (%s) q", clausesSql)
-	if list.Total, err = dbMap.SelectInt(countSql, params...); err != nil {
-		return list, err
+	if total, err = dbMap.SelectInt(countSql, params...); err != nil {
+		return nil, err
 	}
 
 	numParams := len(params)
@@ -274,35 +296,35 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) (*PhotoList, err
 	params = append(params, interface{}(PageSize))
 	params = append(params, interface{}(getOffset(pageNum)))
 
-	if _, err = dbMap.Select(&list.Photos, sql, params...); err != nil {
-		return list, err
+	if _, err = dbMap.Select(&photos, sql, params...); err != nil {
+		return nil, err
 	}
-	return list, nil
-
+	return NewPhotoList(photos, total, pageNum), nil
 }
 
 func (mgr *defaultPhotoManager) All(pageNum int64, orderBy string) (*PhotoList, error) {
 
-	list := &PhotoList{}
-
+	var (
+		total  int64
+		photos []Photo
+		err    error
+	)
 	if orderBy == "votes" {
 		orderBy = "(up_votes - down_votes)"
 	} else {
 		orderBy = "created_at"
 	}
 
-	var err error
-
-	if list.Total, err = dbMap.SelectInt("SELECT COUNT(id) FROM photos"); err != nil {
-		return list, err
+	if total, err = dbMap.SelectInt("SELECT COUNT(id) FROM photos"); err != nil {
+		return nil, err
 	}
 
-	if _, err = dbMap.Select(&list.Photos,
+	if _, err = dbMap.Select(&photos,
 		"SELECT * FROM photos "+
 			"ORDER BY "+orderBy+" DESC LIMIT $1 OFFSET $2", PageSize, getOffset(pageNum)); err != nil {
-		return list, err
+		return nil, err
 	}
-	return list, nil
+	return NewPhotoList(photos, total, pageNum), nil
 }
 
 func (mgr *defaultPhotoManager) GetTagCounts() ([]TagCount, error) {

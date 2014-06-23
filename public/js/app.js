@@ -5,7 +5,6 @@
 angular.module('photoshare', [
     'ngRoute',
     'ngResource',
-    'infinite-scroll',
     'photoshare.filters',
     'photoshare.services',
     'photoshare.directives',
@@ -17,7 +16,6 @@ angular.module('photoshare', [
         users: '/api/user/',
         tags: '/api/tags/'
     }).
-    constant('pageSize', 32).
     constant('authToken', 'X-Auth-Token').
     config(['$routeProvider',
             '$locationProvider',

@@ -31,6 +31,10 @@ angular.module('photoshare.directives', []).
             restrict: 'E',
             replace:true,
             link: function (scope, element, attrs) {
+
+                scope.isFirstPage = false;
+                scope.isLastPage = true;
+
                 scope.$watch('currentPage', function(page) {
                     scope.isFirstPage = (scope.currentPage == 1);
                     scope.isLastPage = (scope.currentPage == scope.numPages);

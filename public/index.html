@@ -45,7 +45,7 @@
         <ul class="nav navbar-nav navbar-right">
             <navtab url="#/login" ng-click="login()" ng-show="!session.loggedIn">Login</navtab>
             <navtab url="#/signup" ng-show="!session.loggedIn">Signup</navtab>
-            <li ng-show="session.loggedIn"><a href="javascript:void(0);">You are signed in as {{ session.name }}</a></li>
+            <navtab url="#/owner/{{session.id}}/{{session.name}}" ng-show="session.loggedIn">You are signed in as {{session.name}}</navtab>
             <li><a ng-click="logout()" ng-show="session.loggedIn">Logout</a></li>
         </ul>
       </div>

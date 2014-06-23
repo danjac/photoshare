@@ -30,24 +30,17 @@ type PhotoList struct {
 	Total       int64   `json:"total"`
 	CurrentPage int64   `json:"currentPage"`
 	NumPages    int64   `json:"numPages"`
-	NextPage    int64   `json:"nextPage"`
-	LastPage    int64   `json:"lastPage"`
-	IsFirstPage bool    `json:"isFirstPage"`
-	IsLastPage  bool    `json:"isLastPage"`
 }
 
 func NewPhotoList(photos []Photo, total int64, page int64) *PhotoList {
-	l := &PhotoList{
+	numPages := int64(math.Ceil(float64(total) / float64(PageSize)))
+
+	return &PhotoList{
 		Photos:      photos,
 		Total:       total,
 		CurrentPage: page,
+		NumPages:    numPages,
 	}
-	l.NumPages = int64(math.Ceil(float64(total) / float64(PageSize)))
-	l.NextPage = l.CurrentPage + 1
-	l.LastPage = l.CurrentPage - 1
-	l.IsFirstPage = l.CurrentPage == 1
-	l.IsLastPage = l.CurrentPage == l.NumPages
-	return l
 }
 
 type Tag struct {

@@ -29,8 +29,8 @@ func authenticate(c *Context) *Result {
 func login(c *Context) *Result {
 
 	s := &struct {
-		Identifier string `json: "identifier"`
-		Password   string `json: "password"`
+		Identifier string `json:"identifier"`
+		Password   string `json:"password"`
 	}{}
 
 	if err := c.ParseJSON(s); err != nil {

@@ -1,3 +1,7 @@
 <ul class="pagination" ng-show="numPages > 1">
+	<li ng-show="!isFirstPage"><a href="nextPage(page - 1)">&laquo;</a></li>
+	<li ng-show="isFirstPage" class="disabled"><span>&laquo;</span></li>
 	<li ng-class="{active: page==currentPage}" ng-repeat="page in pageRange"><a href="javascript:void(0);" ng-click="nextPage(page)">{{page}}</a></li>
+	<li ng-show="!isLastPage"><a href="nextPage(page + 1)">&laquo;</a></li>
+	<li ng-show="isLastPage" class="disabled"><span>&laquo;</span></li>
 </ul>

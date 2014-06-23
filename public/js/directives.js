@@ -34,6 +34,8 @@ angular.module('photoshare.directives', []).
                 $scope.pageRange = [];
                 $scope.currentPage = attrs['current-page'];
                 $scope.numPages = attrs['num-pages'];
+                $scope.isFirstPage = ($sopce.currentPage == 1);
+                $scope.isLastPage = ($scope.currentPage == $scope.numPages);
                 for (var i=0; i < $scope.numPages; i++){
                     $scope.pageRange.push(i + 1);
                 }

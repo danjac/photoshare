@@ -65,9 +65,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.ownerName = ownerName;
             $scope.searchComplete = false;
             $scope.total = 0;
-            $scope.numPages = 0;
             $scope.currentPage = 0;
-            $scope.pageRange = [];
 
             if (q) {
                 apiCall = function (page) { return Photo.search({ q: q, page: page })};
@@ -84,11 +82,6 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                     $scope.pageLoaded = true;
                     $scope.total = result.total;
                     $scope.currentPage = page;
-                    $scope.numPages = result.numPages;
-                    $scope.pageRange = [];
-                    for (var i=0; i < result.numPages; i++){
-                        $scope.pageRange.push(i + 1);
-                    }
                 });
             };
             $scope.nextPage(1);

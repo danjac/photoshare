@@ -27,7 +27,6 @@ describe('controllers', function (){
         var listCtrl = $controller('ListCtrl', {
             $scope: scope,
         });
-        scope.nextPage();
         httpBackend.flush();
         expect(scope.photos.length).toBe(1);
     }));

@@ -209,7 +209,6 @@ func getPhotos(c *Context) *Result {
 	if err != nil {
 		return c.Error(err)
 	}
-	c.Log.Println(list.Total, list.NumPages, list.CurrentPage)
 	return c.OK(list)
 }
 

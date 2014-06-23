@@ -28,16 +28,17 @@ func (m *MockPhotoManager) GetDetail(photoID string, user *models.User) (*models
 	return nil, nil
 }
 
-func (m *MockPhotoManager) All(pageNum int64, orderBy string) ([]models.Photo, error) {
-	return []models.Photo{}, nil
+func (m *MockPhotoManager) All(pageNum int64, orderBy string) (*models.PhotoList, error) {
+	photos := make([]models.Photo, 0, 0)
+	return models.NewPhotoList(photos, 0, 0), nil
 }
 
-func (m *MockPhotoManager) ByOwnerID(pageNum int64, ownerID string) ([]models.Photo, error) {
-	return []models.Photo{}, nil
+func (m *MockPhotoManager) ByOwnerID(pageNum int64, ownerID string) (*models.PhotoList, error) {
+	return &models.PhotoList{}, nil
 }
 
-func (m *MockPhotoManager) Search(pageNum int64, q string) ([]models.Photo, error) {
-	return []models.Photo{}, nil
+func (m *MockPhotoManager) Search(pageNum int64, q string) (*models.PhotoList, error) {
+	return &models.PhotoList{}, nil
 }
 
 func (m *MockPhotoManager) UpdateTags(photo *models.Photo) error {

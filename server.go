@@ -16,10 +16,11 @@ func main() {
 
 	runtime.GOMAXPROCS((runtime.NumCPU() * 2) + 1)
 
-	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s",
+	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
 		settings.DBUser,
 		settings.DBName,
 		settings.DBPassword,
+		settings.DBHost,
 	))
 
 	if err != nil {

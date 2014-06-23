@@ -65,13 +65,13 @@ func TestSearchPhotos(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	photos, err := photoMgr.Search(1, "test")
+	result, err := photoMgr.Search(1, "test")
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	if len(photos) != 1 {
+	if len(result.Photos) != 1 {
 		t.Error("There should be 1 photo")
 	}
 }
@@ -92,13 +92,13 @@ func TestGetPhotos(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	photos, err := photoMgr.All(1, "")
+	result, err := photoMgr.All(1, "")
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	if len(photos) != 1 {
+	if len(result.Photos) != 1 {
 		t.Error("There should be 1 photo")
 	}
 }

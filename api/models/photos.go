@@ -120,15 +120,8 @@ func NewPhotoManager() PhotoManager {
 }
 
 func (mgr *defaultPhotoManager) Delete(photo *Photo) error {
-	t, err := dbMap.Begin()
-	if err != nil {
-		return err
-	}
-	if _, err := dbMap.Delete(photo); err != nil {
-		return err
-	}
-
-	return t.Commit()
+	_, err := dbMap.Delete(photo)
+	return err
 }
 
 func (mgr *defaultPhotoManager) Update(photo *Photo) error {

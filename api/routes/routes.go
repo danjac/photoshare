@@ -36,12 +36,15 @@ func GetHandler() http.Handler {
 	photos.HandleFunc("/{id:[0-9]+}/downvote", NewAppHandler(voteDown, true)).Methods("PATCH")
 
 	user := r.PathPrefix("/api/user").Subrouter()
+
 	user.HandleFunc("/", NewAppHandler(signup, false)).Methods("POST")
 
 	tags := r.PathPrefix("/api/tags").Subrouter()
+
 	tags.HandleFunc("/", NewAppHandler(getTags, false)).Methods("GET")
 
 	feeds := r.PathPrefix("/feeds").Subrouter()
+
 	feeds.HandleFunc("/", NewAppHandler(latestFeed, false))
 	feeds.HandleFunc("/owner/{ownerID:[0-9]+}", NewAppHandler(ownerFeed, false)).Methods("GET")
 	feeds.HandleFunc("/popular", NewAppHandler(popularFeed, false))

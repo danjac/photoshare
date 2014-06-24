@@ -135,6 +135,8 @@ angular.module('photoshare', [
                             Alert.danger(angular.fromJson(response.data));
                         }
                         break;
+                    case 413:
+                        Alert.danger('The file was too large');
                     case 500:
                         Alert.danger("Sorry, an error has occurred");
                         break;

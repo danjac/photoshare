@@ -60,7 +60,7 @@ type Photo struct {
 	CreatedAt time.Time `db:"created_at" json:"createdAt"`
 	Title     string    `db:"title" json:"title"`
 	Filename  string    `db:"photo" json:"photo"`
-	Tags      []string  `db:"-" json:"tags"`
+	Tags      []string  `db:"-" json:"tags,omitempty"`
 	UpVotes   int64     `db:"up_votes" json:"upVotes"`
 	DownVotes int64     `db:"down_votes" json:"downVotes"`
 }

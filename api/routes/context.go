@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 type Result struct {
@@ -28,7 +29,8 @@ func (r *Result) Render() error {
 	}
 
 	r.WriteHeader(r.Status)
-	r.Header().Set("Content-type", r.ContentType)
+	r.Header().Set("Content-Type", r.ContentType+";charset=utf8")
+	r.Header().Set("Content-Length", strconv.Itoa(len(r.Body)))
 	_, err := r.Write(r.Body)
 	return err
 }
@@ -121,7 +123,7 @@ func (c *Context) NotFound(value interface{}) *Result {
 }
 
 func (c *Context) Error(err error) *Result {
-	return c.Result(http.StatusInternalServerError, []byte("error"), "text/plain", err)
+	return c.Result(http.StatusInternalServerError, []byte(err.Error()), "text/plain", err)
 }
 
 func (c *Context) ParseJSON(value interface{}) error {

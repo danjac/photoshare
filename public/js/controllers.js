@@ -275,7 +275,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                     Authenticator.login(result, headers(authToken));
                     Alert.success("Welcome back, " + result.name);
                     var path = Session.getLastLoginUrl() || "/popular";
-                    if (path == $location.path()) {
+                    if (path == $location.path() || path == '/signup') {
                         path = "/popular";
                     }
                     $location.path(path);

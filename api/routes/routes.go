@@ -26,14 +26,14 @@ func GetHandler() http.Handler {
 
 	photos.HandleFunc("/", NewAppHandler(upload, true)).Methods("POST")
 	photos.HandleFunc("/", NewAppHandler(getPhotos, false)).Methods("GET")
-	photos.HandleFunc("/owner/{ownerID}", NewAppHandler(photosByOwnerID, false)).Methods("GET")
+	photos.HandleFunc("/owner/{ownerID:[0-9]+}", NewAppHandler(photosByOwnerID, false)).Methods("GET")
 	photos.HandleFunc("/search", NewAppHandler(searchPhotos, false)).Methods("GET")
-	photos.HandleFunc("/{id}", NewAppHandler(photoDetail, false)).Methods("GET")
-	photos.HandleFunc("/{id}", NewAppHandler(deletePhoto, true)).Methods("DELETE")
-	photos.HandleFunc("/{id}/title", NewAppHandler(editPhotoTitle, true)).Methods("PATCH")
-	photos.HandleFunc("/{id}/tags", NewAppHandler(editPhotoTags, true)).Methods("PATCH")
-	photos.HandleFunc("/{id}/upvote", NewAppHandler(voteUp, true)).Methods("PATCH")
-	photos.HandleFunc("/{id}/downvote", NewAppHandler(voteDown, true)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}", NewAppHandler(photoDetail, false)).Methods("GET")
+	photos.HandleFunc("/{id:[0-9]+}", NewAppHandler(deletePhoto, true)).Methods("DELETE")
+	photos.HandleFunc("/{id:[0-9]+}/title", NewAppHandler(editPhotoTitle, true)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}/tags", NewAppHandler(editPhotoTags, true)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}/upvote", NewAppHandler(voteUp, true)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}/downvote", NewAppHandler(voteDown, true)).Methods("PATCH")
 
 	user := r.PathPrefix("/api/user").Subrouter()
 	user.HandleFunc("/", NewAppHandler(signup, false)).Methods("POST")
@@ -43,7 +43,7 @@ func GetHandler() http.Handler {
 
 	feeds := r.PathPrefix("/feeds").Subrouter()
 	feeds.HandleFunc("/", NewAppHandler(latestFeed, false))
-	feeds.HandleFunc("/owner/{ownerID}", NewAppHandler(ownerFeed, false)).Methods("GET")
+	feeds.HandleFunc("/owner/{ownerID:[0-9]+}", NewAppHandler(ownerFeed, false)).Methods("GET")
 	feeds.HandleFunc("/popular", NewAppHandler(popularFeed, false))
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir(settings.PublicDir)))

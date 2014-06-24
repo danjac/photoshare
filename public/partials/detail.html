@@ -1,5 +1,5 @@
 <div class="row">
-<h2 class="col-xs-9" ng-show="!editTitle">{{photo.title}}</h2>
+<h2 class="col-xs-9" ng-click="showEditForm()" ng-show="!editTitle">{{photo.title}}</h2>
 <div class="button-group col-xs-3 pull-right" ng-show="!editTitle">
   <button type="button" class="btn btn-default"  ng-show="photo.perms.edit" ng-click="showEditForm()"> <span class="glyphicon glyphicon-pencil"></span></button>
   <button type="button" class="btn btn-default" ng-show="photo.perms.vote" ng-click="voteUp()"><span class="glyphicon glyphicon-thumbs-up"></span></button>

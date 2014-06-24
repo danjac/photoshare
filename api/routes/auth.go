@@ -4,6 +4,7 @@ import (
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/validation"
+	"strings"
 )
 
 func logout(c *Context) *Result {
@@ -66,6 +67,9 @@ func signup(c *Context) *Result {
 
 	// ensure nobody tries to make themselves an admin
 	user.IsAdmin = false
+
+	// email should always be lower case
+	user.Email = strings.ToLower(user.Email)
 
 	validator := validation.NewUserValidator(user)
 

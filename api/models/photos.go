@@ -270,7 +270,9 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) (*PhotoList, err
 				"INNER JOIN users u ON u.id = p.owner_id  "+
 				"LEFT JOIN photo_tags pt ON pt.photo_id = p.id "+
 				"LEFT JOIN tags t ON pt.tag_id=t.id "+
-				"WHERE p.title ILIKE $%d OR u.name LIKE $%d OR t.name ILIKE $%d", num, num, num))
+				"WHERE UPPER(p.title::text) LIKE UPPER($%d) OR UPPER(u.name::text) LIKE UPPER($%d) OR t.name LIKE $%d",
+				num, num, num))
+
 		params = append(params, interface{}(word))
 	}
 

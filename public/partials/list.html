@@ -1,16 +1,10 @@
-<div ng-show="numPages < 2">
-	<h2 ng-show="pageLoaded && ownerName"><ng-pluralize count="total" when="{'one': 'One photo', 'other': '{{total}} photos'}"></ng-pluralize> uploaded by {{ ownerName }}</h2>
-	<h2 ng-show="pageLoaded && searchQuery"><ng-pluralize count="total" when="{'0': 'No results', 'one': 'One result', 'other': '{{total}} results'}"></ng-pluralize> for '{{ searchQuery }}'</h2>
-</div>
-
-<div class="row-fluid" ng-show="numPages > 1">
-
-	<div class="col-md-6">
+<div class="row-fluid">
+	<div ng-class="{'col-md-6': showPagination, 'col-md-12': !showPagination }">
 	<h2 ng-show="pageLoaded && ownerName"><ng-pluralize count="total" when="{'one': 'One photo', 'other': '{{total}} photos'}"></ng-pluralize> uploaded by {{ ownerName }}</h2>
 	<h2 ng-show="pageLoaded && searchQuery"><ng-pluralize count="total" when="{'0': 'No results', 'one': 'One result', 'other': '{{total}} results'}"></ng-pluralize> for '{{ searchQuery }}'</h2>
 	</div>
 
-	<div class="col-md-6">
+	<div class="col-md-6" ng-show="showPagination">
 		<pagination class="pull-right" num-pages="numPages" current-page="currentPage" on-next-page="nextPage" />
 	</div>
 
@@ -30,7 +24,7 @@
 </div>
 
 
-<div class="row-fluid">
+<div class="row-fluid" ng-show="showPagination">
 	<div class="col-md-12">
 		<pagination class="pull-right" num-pages="numPages" current-page="currentPage" on-next-page="nextPage" />
 	</div>

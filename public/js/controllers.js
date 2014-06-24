@@ -67,6 +67,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.total = 0;
             $scope.currentPage = 0;
             $scope.numPages = 0;
+            $scope.showPagination = false;
 
             if (q) {
                 apiCall = function (page) { return Photo.search({ q: q, page: page })};
@@ -85,6 +86,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                     $scope.total = result.total;
                     $scope.numPages = result.numPages;
                     $scope.currentPage = page;
+                    $scope.showPagination = $scope.numPages > 1;
 
                 });
             };
@@ -210,10 +212,12 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
     .controller('UploadCtrl', ['$scope',
                                '$location',
+                               '$window',
                                'Session',
                                'Alert',
                                'Photo', function ($scope,
                                                   $location,
+                                                  $window,
                                                   Session,
                                                   Alert,
                                                   Photo) {
@@ -222,7 +226,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         $scope.upload = null;
         $scope.formDisabled = false;
         $scope.formErrors = {};
-        $scope.uploadPhoto = function () {
+        $scope.uploadPhoto = function (addAnother) {
             $scope.formDisabled = true;
             var taglist = $scope.newPhoto.taglist || "";
             if (!taglist) {
@@ -234,7 +238,13 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 function () {
                     $scope.newPhoto = new Photo();
                     Alert.success('Your photo has been uploaded');
-                    $location.path("/latest");
+                    if (addAnother) {
+                        $scope.upload = null;
+                        $scope.formDisabled = false;
+                        $window.document.getElementById('photo_input').value = '';
+                    } else {
+                        $location.path("/latest");
+                    }
                 },
                 function (result) {
                     $scope.formErrors = result.data.errors;

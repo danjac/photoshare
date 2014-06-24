@@ -100,9 +100,9 @@ func (photo *Photo) CanVote(user *User) bool {
 }
 
 type Permissions struct {
-	Edit   bool `db:"-" json:"edit"`
-	Delete bool `db:"-" json:"delete"`
-	Vote   bool `db:"_" json:"vote"`
+	Edit   bool `json:"edit"`
+	Delete bool `json:"delete"`
+	Vote   bool `json:"vote"`
 }
 
 type PhotoDetail struct {

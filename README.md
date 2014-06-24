@@ -1,3 +1,5 @@
+![ScreenShot](/screenshot.png)
+
 Photoshare is a learning app for Go and Angular.
 
 The final aim:

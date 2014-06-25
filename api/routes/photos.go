@@ -25,14 +25,6 @@ func isAllowedContentType(contentType string) bool {
 
 func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	photo, err := photoMgr.Get(c.URLParams["id"])
-	if err != nil {
-		panic(err)
-	}
-	if photo == nil {
-		http.NotFound(w, r)
-		return
-	}
 	user, err := session.GetCurrentUser(c, r)
 
 	if err != nil {
@@ -44,6 +36,15 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	photo, err := photoMgr.Get(c.URLParams["id"])
+	if err != nil {
+		panic(err)
+	}
+
+	if photo == nil {
+		http.NotFound(w, r)
+		return
+	}
 	if !photo.CanDelete(user) {
 		writeError(w, http.StatusForbidden)
 		return

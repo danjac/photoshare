@@ -7,6 +7,7 @@ import (
 	"github.com/danjac/photoshare/api/validation"
 	"github.com/zenazn/goji/web"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -21,7 +22,6 @@ func isAllowedContentType(contentType string) bool {
 
 	return false
 }
-
 
 func getPage(r *http.Request) int64 {
 	page, err := strconv.ParseInt(r.FormValue("page"), 10, 64)

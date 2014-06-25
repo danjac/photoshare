@@ -7,7 +7,6 @@ import (
 	"github.com/danjac/photoshare/api/validation"
 	"github.com/zenazn/goji/web"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -294,12 +293,4 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *models
 		panic(err)
 	}
 	w.WriteHeader(http.StatusOK)
-}
-
-func getPage(r *http.Request) int64 {
-	page, err := strconv.ParseInt(r.FormValue("page"), 10, 64)
-	if err != nil {
-		page = 1
-	}
-	return page
 }

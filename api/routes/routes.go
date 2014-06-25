@@ -21,6 +21,7 @@ var (
 func Setup() {
 
 	goji.Get("/api/photos/", getPhotos)
+	goji.Post("/api/photos/", upload)
 	goji.Get("/api/photos/search", searchPhotos)
 	goji.Get(ownerUrl, photosByOwnerID)
 	goji.Get(photoUrl, photoDetail)

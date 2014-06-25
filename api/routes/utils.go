@@ -45,11 +45,3 @@ func writeJSON(w http.ResponseWriter, value interface{}, status int) {
 func writeError(w http.ResponseWriter, status int) {
 	http.Error(w, http.StatusText(status), status)
 }
-
-func getPage(r *http.Request) int64 {
-	page, err := strconv.ParseInt(r.FormValue("page"), 10, 64)
-	if err != nil {
-		page = 1
-	}
-	return page
-}

@@ -22,6 +22,15 @@ func isAllowedContentType(contentType string) bool {
 	return false
 }
 
+
+func getPage(r *http.Request) int64 {
+	page, err := strconv.ParseInt(r.FormValue("page"), 10, 64)
+	if err != nil {
+		page = 1
+	}
+	return page
+}
+
 func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user, err := session.GetCurrentUser(c, r)

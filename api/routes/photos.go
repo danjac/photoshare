@@ -2,7 +2,6 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/render"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/storage"
 	"github.com/danjac/photoshare/api/validation"
@@ -41,18 +40,18 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !user.IsAuthenticated {
-		render.Error(w, http.StatusUnauthorized)
+		writeError(w, http.StatusUnauthorized)
 		return
 	}
 
 	if !photo.CanDelete(user) {
-		render.Error(w, http.StatusForbidden)
+		writeError(w, http.StatusForbidden)
 		return
 	}
 	if err := photoMgr.Delete(photo); err != nil {
 		panic(err)
 	}
-	render.Status(w, http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
 
 func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -70,7 +69,7 @@ func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.JSON(w, photo, http.StatusOK)
+	writeJSON(w, photo, http.StatusOK)
 }
 
 func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*models.Photo, bool) {
@@ -90,12 +89,12 @@ func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*models.Ph
 	}
 
 	if !user.IsAuthenticated {
-		render.Error(w, http.StatusUnauthorized)
+		writeError(w, http.StatusUnauthorized)
 		return photo, false
 	}
 
 	if !photo.CanEdit(user) {
-		render.Error(w, http.StatusForbidden)
+		writeError(w, http.StatusForbidden)
 		return photo, false
 	}
 	return photo, true
@@ -125,14 +124,14 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		render.JSON(w, result, http.StatusBadRequest)
+		writeJSON(w, result, http.StatusBadRequest)
 		return
 	}
 
 	if err := photoMgr.Update(photo); err != nil {
 		panic(err)
 	}
-	render.Status(w, http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
 
 func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -156,7 +155,7 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err := photoMgr.UpdateTags(photo); err != nil {
 		panic(err)
 	}
-	render.Status(w, http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
 
 func upload(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -166,7 +165,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	if !user.IsAuthenticated {
-		render.Error(w, http.StatusUnauthorized)
+		writeError(w, http.StatusUnauthorized)
 		return
 	}
 	title := r.FormValue("title")
@@ -176,7 +175,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 	src, hdr, err := r.FormFile("photo")
 	if err != nil {
 		if err == http.ErrMissingFile || err == http.ErrNotMultipart {
-			render.String(w, "No image was posted", http.StatusBadRequest)
+			writeString(w, "No image was posted", http.StatusBadRequest)
 			return
 		}
 		panic(err)
@@ -184,7 +183,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 	contentType := hdr.Header["Content-Type"][0]
 
 	if !isAllowedContentType(contentType) {
-		render.String(w, "No image was posted", http.StatusBadRequest)
+		writeString(w, "No image was posted", http.StatusBadRequest)
 		return
 	}
 
@@ -206,14 +205,14 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		render.JSON(w, result, http.StatusBadRequest)
+		writeJSON(w, result, http.StatusBadRequest)
 	}
 
 	if err := photoMgr.Insert(photo); err != nil {
 		panic(err)
 	}
 
-	render.JSON(w, photo, http.StatusOK)
+	writeJSON(w, photo, http.StatusOK)
 }
 
 func searchPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -221,7 +220,7 @@ func searchPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	render.JSON(w, photos, http.StatusOK)
+	writeJSON(w, photos, http.StatusOK)
 }
 
 func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -229,7 +228,7 @@ func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	render.JSON(w, photos, http.StatusOK)
+	writeJSON(w, photos, http.StatusOK)
 }
 
 func getPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -237,7 +236,7 @@ func getPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	render.JSON(w, photos, http.StatusOK)
+	writeJSON(w, photos, http.StatusOK)
 }
 
 func getTags(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -245,7 +244,7 @@ func getTags(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	render.JSON(w, tags, http.StatusOK)
+	writeJSON(w, tags, http.StatusOK)
 }
 
 func voteDown(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -264,7 +263,7 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *models
 
 	user, err := session.GetCurrentUser(c, r)
 	if !user.IsAuthenticated {
-		render.Error(w, http.StatusUnauthorized)
+		writeError(w, http.StatusUnauthorized)
 		return
 	}
 	photo, err = photoMgr.Get(c.URLParams["id"])
@@ -277,7 +276,7 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *models
 	}
 
 	if !photo.CanVote(user) {
-		render.Error(w, http.StatusForbidden)
+		writeError(w, http.StatusForbidden)
 		return
 	}
 
@@ -292,7 +291,7 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *models
 	if err = userMgr.Update(user); err != nil {
 		panic(err)
 	}
-	render.Status(w, http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
 
 func getPage(r *http.Request) int64 {

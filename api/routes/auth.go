@@ -2,7 +2,6 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/render"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/validation"
 	"github.com/zenazn/goji/web"
@@ -16,7 +15,7 @@ func logout(c web.C, w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	render.JSON(w, session.NewSessionInfo(&models.User{}), http.StatusOK)
+	writeJSON(w, session.NewSessionInfo(&models.User{}), http.StatusOK)
 
 }
 
@@ -27,7 +26,7 @@ func authenticate(c web.C, w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	render.JSON(w, session.NewSessionInfo(user), http.StatusOK)
+	writeJSON(w, session.NewSessionInfo(user), http.StatusOK)
 }
 
 func login(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -42,7 +41,7 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if s.Identifier == "" || s.Password == "" {
-		render.String(w, "Missing login details", http.StatusBadRequest)
+		writeString(w, "Missing login details", http.StatusBadRequest)
 		return
 	}
 
@@ -52,14 +51,14 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	if !user.IsAuthenticated {
-		render.String(w, "Invalid email or password", http.StatusBadRequest)
+		writeString(w, "Invalid email or password", http.StatusBadRequest)
 		return
 	}
 
 	if _, err := session.Login(w, user); err != nil {
 		panic(err)
 	}
-	render.JSON(w, session.NewSessionInfo(user), http.StatusOK)
+	writeJSON(w, session.NewSessionInfo(user), http.StatusOK)
 }
 
 func signup(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -82,7 +81,7 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
-		render.JSON(w, result, http.StatusBadRequest)
+		writeJSON(w, result, http.StatusBadRequest)
 		return
 	}
 
@@ -96,6 +95,6 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user.IsAuthenticated = true
 
-	render.JSON(w, session.NewSessionInfo(user), http.StatusOK)
+	writeJSON(w, session.NewSessionInfo(user), http.StatusOK)
 
 }

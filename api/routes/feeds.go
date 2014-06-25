@@ -3,7 +3,6 @@ package routes
 import (
 	"fmt"
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/render"
 	"github.com/gorilla/feeds"
 	"github.com/zenazn/goji/web"
 	"net/http"
@@ -34,8 +33,11 @@ func photoFeed(c web.C, w http.ResponseWriter, r *http.Request, title string, de
 		feed.Add(item)
 	}
 
-	render.Atom(w, feed, http.StatusOK)
-
+	atom, err := feed.ToAtom()
+	if err != nil {
+		panic(err)
+	}
+	writeBody(w, []byte(atom), http.StatusOK, "application/atom+xml")
 }
 
 func latestFeed(c web.C, w http.ResponseWriter, r *http.Request) {

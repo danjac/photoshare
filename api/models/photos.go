@@ -26,7 +26,7 @@ type PhotoManager interface {
 }
 
 type PhotoList struct {
-	Photos      []Photo `json:"photos"`
+	Items       []Photo `json:"photos"`
 	Total       int64   `json:"total"`
 	CurrentPage int64   `json:"currentPage"`
 	NumPages    int64   `json:"numPages"`
@@ -36,7 +36,7 @@ func NewPhotoList(photos []Photo, total int64, page int64) *PhotoList {
 	numPages := int64(math.Ceil(float64(total) / float64(PageSize)))
 
 	return &PhotoList{
-		Photos:      photos,
+		Items:       photos,
 		Total:       total,
 		CurrentPage: page,
 		NumPages:    numPages,

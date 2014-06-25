@@ -19,6 +19,11 @@ func String(w http.ResponseWriter, body string, status int) {
 	writeBody(w, []byte(body), status, "text/plain")
 }
 
+// just writes status to response
+func Status(w http.ResponseWriter, status int) {
+	w.WriteHeader(status)
+}
+
 func JSON(w http.ResponseWriter, value interface{}, status int) {
 	body, err := json.Marshal(value)
 	if err != nil {

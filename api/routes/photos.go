@@ -52,8 +52,7 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err := photoMgr.Delete(photo); err != nil {
 		panic(err)
 	}
-
-	render.String(w, "Photo deleted", http.StatusOK)
+	render.Status(w, http.StatusOK)
 }
 
 func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -133,8 +132,7 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err := photoMgr.Update(photo); err != nil {
 		panic(err)
 	}
-
-	render.String(w, "Photo Updated", http.StatusOK)
+	render.Status(w, http.StatusOK)
 }
 
 func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -158,8 +156,7 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err := photoMgr.UpdateTags(photo); err != nil {
 		panic(err)
 	}
-
-	render.String(w, "Photo Updated", http.StatusOK)
+	render.Status(w, http.StatusOK)
 }
 
 func upload(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -220,44 +217,27 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
-	list, err := photoMgr.Search(getPage(r), r.FormValue("q"))
+	photos, err := photoMgr.Search(getPage(r), r.FormValue("q"))
 	if err != nil {
 		panic(err)
 	}
-	render.JSON(w, list, http.StatusOK)
+	render.JSON(w, photos, http.StatusOK)
 }
 
 func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) {
-	list, err := photoMgr.ByOwnerID(getPage(r), c.URLParams["ownerID"])
+	photos, err := photoMgr.ByOwnerID(getPage(r), c.URLParams["ownerID"])
 	if err != nil {
 		panic(err)
 	}
-	render.JSON(w, list, http.StatusOK)
-}
-
-/*
-func getPhotos(c web.C, w http.ResponseWriter, r *http.Request)  {
-	list, err := photoMgr.All(getPageNum(c), c.FormValue("orderBy"))
-	if err != nil {
-		panic(err)
-	}
-	return c.OK(list)
-}*/
-
-func getPage(r *http.Request) int64 {
-	page, err := strconv.ParseInt(r.FormValue("page"), 10, 64)
-	if err != nil {
-		page = 1
-	}
-	return page
+	render.JSON(w, photos, http.StatusOK)
 }
 
 func getPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
-	list, err := photoMgr.All(getPage(r), r.FormValue("orderBy"))
+	photos, err := photoMgr.All(getPage(r), r.FormValue("orderBy"))
 	if err != nil {
 		panic(err)
 	}
-	render.JSON(w, list, http.StatusOK)
+	render.JSON(w, photos, http.StatusOK)
 }
 
 func getTags(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -312,5 +292,13 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *models
 	if err = userMgr.Update(user); err != nil {
 		panic(err)
 	}
-	render.String(w, "Vote registered", http.StatusOK)
+	render.Status(w, http.StatusOK)
+}
+
+func getPage(r *http.Request) int64 {
+	page, err := strconv.ParseInt(r.FormValue("page"), 10, 64)
+	if err != nil {
+		page = 1
+	}
+	return page
 }

@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func photoFeed(c web.C, w http.ResponseWriter, r *http.Request, title string, description string, link string, photos []models.Photo) {
+func photoFeed(c web.C, w http.ResponseWriter, r *http.Request, title string, description string, link string, photos *models.PhotoList) {
 
 	baseURL := baseURL(r)
 
@@ -22,7 +22,7 @@ func photoFeed(c web.C, w http.ResponseWriter, r *http.Request, title string, de
 		Created:     time.Now(),
 	}
 
-	for _, photo := range photos {
+	for _, photo := range photos.Items {
 
 		item := &feeds.Item{
 			Id:          strconv.FormatInt(photo.ID, 10),
@@ -40,24 +40,24 @@ func photoFeed(c web.C, w http.ResponseWriter, r *http.Request, title string, de
 
 func latestFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	list, err := photoMgr.All(1, "")
+	photos, err := photoMgr.All(1, "")
 
 	if err != nil {
 		panic(err)
 	}
 
-	photoFeed(c, w, r, "Latest photos", "Most recent photos", "/latest", list.Photos)
+	photoFeed(c, w, r, "Latest photos", "Most recent photos", "/latest", photos)
 }
 
 func popularFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	list, err := photoMgr.All(1, "votes")
+	photos, err := photoMgr.All(1, "votes")
 
 	if err != nil {
 		panic(err)
 	}
 
-	photoFeed(c, w, r, "Popular photos", "Most upvoted photos", "/popular", list.Photos)
+	photoFeed(c, w, r, "Popular photos", "Most upvoted photos", "/popular", photos)
 }
 
 func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -75,10 +75,10 @@ func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	description := "List of feeds for " + owner.Name
 	link := fmt.Sprintf("/owner/%s/%s", ownerID, owner.Name)
 
-	list, err := photoMgr.ByOwnerID(1, ownerID)
+	photos, err := photoMgr.ByOwnerID(1, ownerID)
 
 	if err != nil {
 		panic(err)
 	}
-	photoFeed(c, w, r, title, description, link, list.Photos)
+	photoFeed(c, w, r, title, description, link, photos)
 }

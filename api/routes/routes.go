@@ -3,7 +3,6 @@ package routes
 import (
 	"github.com/danjac/photoshare/api/models"
 	"github.com/zenazn/goji"
-	"github.com/zenazn/goji/web"
 	"regexp"
 )
 
@@ -16,46 +15,31 @@ var (
 	tagsUrl      = regexp.MustCompile(`/api/photos/(?P<id>\d+)/tags$`)
 	downvoteUrl  = regexp.MustCompile(`/api/photos/(?P<id>\d+)/downvote$`)
 	upvoteUrl    = regexp.MustCompile(`/api/photos/(?P<id>\d+)/upvote$`)
-	ownerFeedUrl = regexp.MustCompile(`/feeds/owner/(?P<ownerID>\d+)$`)
+	ownerFeedUrl = regexp.MustCompile(`/goji/owner/(?P<ownerID>\d+)$`)
 )
 
 func Setup() {
 
-	photos := web.New()
-	goji.Handle("/api/photos/*", photos)
+	goji.Get("/api/goji/", getPhotos)
+	goji.Get("/api/goji/search", searchPhotos)
+	goji.Get(ownerUrl, photosByOwnerID)
+	goji.Get(photoUrl, photoDetail)
+	goji.Delete(photoUrl, deletePhoto)
+	goji.Patch(titleUrl, editPhotoTitle)
+	goji.Patch(tagsUrl, editPhotoTags)
+	goji.Patch(downvoteUrl, voteDown)
+	goji.Patch(upvoteUrl, voteUp)
 
-	photos.Get("/api/photos/", getPhotos)
-	photos.Get("/api/photos/search", searchPhotos)
-	photos.Get(ownerUrl, photosByOwnerID)
-	photos.Get(photoUrl, photoDetail)
-	photos.Delete(photoUrl, deletePhoto)
-	photos.Patch(titleUrl, editPhotoTitle)
-	photos.Patch(tagsUrl, editPhotoTags)
-	photos.Patch(downvoteUrl, voteDown)
-	photos.Patch(upvoteUrl, voteUp)
+	goji.Get("/goji/", latestFeed)
+	goji.Get("/goji/popular/", popularFeed)
+	goji.Get(ownerFeedUrl, ownerFeed)
 
-	feeds := web.New()
-	goji.Handle("/feeds/*", feeds)
+	goji.Get("/api/auth/", authenticate)
+	goji.Post("/api/auth/", login)
+	goji.Delete("/api/auth/", logout)
 
-	feeds.Get("/feeds/", latestFeed)
-	feeds.Get("/feeds/popular/", popularFeed)
-	feeds.Get(ownerFeedUrl, ownerFeed)
+	goji.Post("/api/user/", signup)
 
-	auth := web.New()
-	goji.Handle("/api/auth/*", auth)
-
-	auth.Get("/api/auth/", authenticate)
-	auth.Post("/api/auth/", login)
-	auth.Delete("/api/auth/", logout)
-
-	user := web.New()
-	goji.Handle("/api/user/*", auth)
-
-	user.Post("/api/user/", signup)
-
-	tags := web.New()
-	goji.Handle("/api/tags/*", tags)
-
-	tags.Get("/api/tags/", getTags)
+	goji.Get("/api/tags/", getTags)
 
 }

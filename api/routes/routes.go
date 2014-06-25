@@ -20,8 +20,8 @@ var (
 
 func Setup() {
 
-	goji.Get("/api/goji/", getPhotos)
-	goji.Get("/api/goji/search", searchPhotos)
+	goji.Get("/api/photos/", getPhotos)
+	goji.Get("/api/photos/search", searchPhotos)
 	goji.Get(ownerUrl, photosByOwnerID)
 	goji.Get(photoUrl, photoDetail)
 
@@ -32,8 +32,8 @@ func Setup() {
 	goji.Patch(downvoteUrl, voteDown)
 	goji.Patch(upvoteUrl, voteUp)
 
-	goji.Get("/goji/", latestFeed)
-	goji.Get("/goji/popular/", popularFeed)
+	goji.Get("/feeds/", latestFeed)
+	goji.Get("/feeds/popular/", popularFeed)
 	goji.Get(ownerFeedUrl, ownerFeed)
 
 	goji.Get("/api/auth/", authenticate)

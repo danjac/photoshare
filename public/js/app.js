@@ -121,28 +121,26 @@ angular.module('photoshare', [
             responseError: function (response) {
                 var rejection = $q.reject(response),
                     status = response.status,
-                    alert = "Sorry, an error has occurred";
+                    defaultAlert = 'Sorry, an error has occurred';
 
                 if (status == 401) {
-                    Alert.danger("You must be logged in to continue");
-                    Session.clear();
-                    Session.setLastLoginUrl();
-                    $location.path("/login");
+                    Session.redirectToLogin();
                     return;
                 }
                 if (status == 403) {
-                    alert = "Sorry, you're not allowed to do this";
+                    defaultAlert = "Sorry, you're not allowed to do this";
                 }
                 if (status == 400 && response.data.errors) {
-                    alert = "Sorry, your form contains errors, please try again";
+                    defaultAlert = "Sorry, your form contains errors, please try again";
                 }
                 if (status == 413) {
-                    alert = "The file was too large!";
+                    defaultAlert = "The file was too large!";
                 }
-                if (status == 500) {
-                    alert = "Sorry, an error has occurred";
+                if (response.data && typeof(response.data) === 'string') {
+                    alert = response.data;
+                } else {
+                    alert = defaultAlert;
                 }
-
                 Alert.danger(alert);
                 return rejection;
             }

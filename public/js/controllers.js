@@ -247,7 +247,9 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                     }
                 },
                 function (result) {
-                    $scope.formErrors = result.data.errors;
+                    if (result.data) {
+                        $scope.formErrors = result.data.errors;
+                    }
                     $scope.formDisabled = false;
                 }
             );

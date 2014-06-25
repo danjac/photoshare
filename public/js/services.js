@@ -10,13 +10,18 @@ angular.module('photoshare.services', [])
             this.lastLoginUrl = null;
         }
 
+        Session.prototype.redirectToLogin = function () {
+            this.clear();
+            this.setLastLoginUrl();
+            Alert.danger("You must be logged in");
+            $location.path("/login");
+        }
+
         Session.prototype.check = function () {
             if (!this.loggedIn) {
-                Alert.danger("You must be logged in");
-                this.setLastLoginUrl();
-                $location.path("/login");
+                this.redirectToLogin();
                 return false;
-            }
+                }
             return true;
         }
 

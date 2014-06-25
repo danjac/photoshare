@@ -119,30 +119,31 @@ angular.module('photoshare', [
             },
 
             responseError: function (response) {
-                var rejection = $q.reject(response);
-                switch (response.status){
-                    case 401:
-                        Alert.danger(angular.fromJson(response.data));
-                        Session.clear();
-                        Session.setLastLoginUrl();
-                        $location.path("/login");
-                        break;
-                    case 400:
-                        if (response.data.errors) {
-                            // TBD: render the specific form errors
-                            Alert.danger("Sorry, your form contains errors, please try again");
-                        } else {
-                            Alert.danger(angular.fromJson(response.data));
-                        }
-                        break;
-                    case 413:
-                        Alert.danger('The file was too large');
-                    case 500:
-                        Alert.danger("Sorry, an error has occurred");
-                        break;
-                    default:
-                        Alert.danger(angular.fromJson(response.data));
+                var rejection = $q.reject(response),
+                    status = response.status,
+                    alert = "Sorry, an error has occurred";
+
+                if (status == 401) {
+                    Alert.danger("You must be logged in to continue");
+                    Session.clear();
+                    Session.setLastLoginUrl();
+                    $location.path("/login");
+                    return;
                 }
+                if (status == 403) {
+                    alert = "Sorry, you're not allowed to do this";
+                }
+                if (status == 400 && response.data.errors) {
+                    alert = "Sorry, your form contains errors, please try again";
+                }
+                if (status == 413) {
+                    alert = "The file was too large!";
+                }
+                if (status == 500) {
+                    alert = "Sorry, an error has occurred";
+                }
+
+                Alert.danger(alert);
                 return rejection;
             }
         };

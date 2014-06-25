@@ -2,8 +2,11 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
+	"github.com/danjac/photoshare/api/render"
+	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/storage"
 	"github.com/danjac/photoshare/api/validation"
+	"github.com/zenazn/goji/web"
 	"net/http"
 	"strconv"
 	"strings"
@@ -21,73 +24,98 @@ func isAllowedContentType(contentType string) bool {
 	return false
 }
 
-func deletePhoto(c *Context) *Result {
+func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	photo, err := photoMgr.Get(c.Param("id"))
+	photo, err := photoMgr.Get(c.URLParams["id"])
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 	if photo == nil {
-		return c.NotFound("Photo not found")
+		http.NotFound(w, r)
+		return
+	}
+	user, err := session.GetCurrentUser(c, r)
+
+	if err != nil {
+		panic(err)
 	}
 
-	if !photo.CanDelete(c.User) {
-		return c.Forbidden("You can't delete this photo")
+	if !user.IsAuthenticated {
+		render.Error(w, http.StatusUnauthorized)
+		return
+	}
+
+	if !photo.CanDelete(user) {
+		render.Error(w, http.StatusForbidden)
+		return
 	}
 	if err := photoMgr.Delete(photo); err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 
-	return c.OK("Photo deleted")
+	render.String(w, "Photo deleted", http.StatusOK)
 }
 
-func photoDetail(c *Context) *Result {
+func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	user, err := c.GetCurrentUser()
+	user, err := session.GetCurrentUser(c, r)
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
-	photo, err := photoMgr.GetDetail(c.Param("id"), user)
+	photo, err := photoMgr.GetDetail(c.URLParams["id"], user)
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 	if photo == nil {
-		return c.NotFound("Photo not found")
+		http.NotFound(w, r)
+		return
 	}
 
-	return c.OK(photo)
+	render.JSON(w, photo, http.StatusOK)
 }
 
-func getPhotoToEdit(c *Context) (*models.Photo, *Result) {
-	photo, err := photoMgr.Get(c.Param("id"))
+func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*models.Photo, bool) {
+	photo, err := photoMgr.Get(c.URLParams["id"])
 	if err != nil {
-		return photo, c.Error(err)
+		panic(err)
 	}
 
 	if photo == nil {
-		return photo, c.NotFound("No photo found")
+		http.NotFound(w, r)
+		return nil, false
 	}
 
-	if !photo.CanEdit(c.User) {
-		return photo, c.Forbidden("You can't edit this photo")
+	user, err := session.GetCurrentUser(c, r)
+	if err != nil {
+		panic(err)
 	}
-	return photo, nil
+
+	if !user.IsAuthenticated {
+		render.Error(w, http.StatusUnauthorized)
+		return photo, false
+	}
+
+	if !photo.CanEdit(user) {
+		render.Error(w, http.StatusForbidden)
+		return photo, false
+	}
+	return photo, true
 }
 
-func editPhotoTitle(c *Context) *Result {
+func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	photo, result := getPhotoToEdit(c)
+	photo, ok := getPhotoToEdit(c, w, r)
 
-	if result != nil {
-		return result
+	if !ok {
+		return
 	}
 
 	s := &struct {
 		Title string `json:"title"`
 	}{}
 
-	if err := c.ParseJSON(s); err != nil {
-		return c.Error(err)
+	if err := parseJSON(r, s); err != nil {
+		panic(err)
 	}
 
 	photo.Title = s.Title
@@ -96,60 +124,71 @@ func editPhotoTitle(c *Context) *Result {
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
-			return c.Error(err)
+			panic(err)
 		}
-		return c.BadRequest(result)
+		render.JSON(w, result, http.StatusBadRequest)
+		return
 	}
 
 	if err := photoMgr.Update(photo); err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 
-	return c.OK("Photo Updated")
+	render.String(w, "Photo Updated", http.StatusOK)
 }
 
-func editPhotoTags(c *Context) *Result {
+func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	photo, result := getPhotoToEdit(c)
+	photo, ok := getPhotoToEdit(c, w, r)
 
-	if result != nil {
-		return result
+	if !ok {
+		return
 	}
 
 	s := &struct {
 		Tags []string `json:"tags"`
 	}{}
 
-	if err := c.ParseJSON(s); err != nil {
-		return c.Error(err)
+	if err := parseJSON(r, s); err != nil {
+		panic(err)
 	}
 
 	photo.Tags = s.Tags
 
 	if err := photoMgr.UpdateTags(photo); err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 
-	return c.OK("Photo updated")
+	render.String(w, "Photo Updated", http.StatusOK)
 }
 
-func upload(c *Context) *Result {
+func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	title := c.FormValue("title")
-	taglist := c.FormValue("taglist")
+	user, err := session.GetCurrentUser(c, r)
+	if err != nil {
+		panic(err)
+	}
+	if !user.IsAuthenticated {
+		render.Error(w, http.StatusUnauthorized)
+		return
+	}
+	title := r.FormValue("title")
+	taglist := r.FormValue("taglist")
 	tags := strings.Split(taglist, " ")
 
-	src, hdr, err := c.FormFile("photo")
+	src, hdr, err := r.FormFile("photo")
 	if err != nil {
 		if err == http.ErrMissingFile || err == http.ErrNotMultipart {
-			return c.BadRequest("No image was posted")
+			render.String(w, "No image was posted", http.StatusBadRequest)
+			return
 		}
-		return c.Error(err)
+		panic(err)
 	}
 	contentType := hdr.Header["Content-Type"][0]
 
 	if !isAllowedContentType(contentType) {
-		return c.BadRequest("Not a valid image")
+		render.String(w, "No image was posted", http.StatusBadRequest)
+		return
 	}
 
 	defer src.Close()
@@ -158,104 +197,120 @@ func upload(c *Context) *Result {
 	filename, err := processor.Process(src, contentType)
 
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 
 	photo := &models.Photo{Title: title,
-		OwnerID: c.User.ID, Filename: filename, Tags: tags}
+		OwnerID: user.ID, Filename: filename, Tags: tags}
 
 	validator := validation.NewPhotoValidator(photo)
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
-			return c.Error(err)
+			panic(err)
 		}
-		return c.BadRequest(result)
+		render.JSON(w, result, http.StatusBadRequest)
 	}
 
 	if err := photoMgr.Insert(photo); err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 
-	return c.OK(photo)
+	render.JSON(w, photo, http.StatusOK)
 }
 
-func getPageNum(c *Context) int64 {
-	pageNum, err := strconv.ParseInt(c.FormValue("page"), 10, 64)
+func searchPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
+	list, err := photoMgr.Search(getPage(r), r.FormValue("q"))
 	if err != nil {
-		pageNum = 1
+		panic(err)
 	}
-	return pageNum
+	render.JSON(w, list, http.StatusOK)
 }
 
-func searchPhotos(c *Context) *Result {
-	list, err := photoMgr.Search(getPageNum(c), c.FormValue("q"))
+func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) {
+	list, err := photoMgr.ByOwnerID(getPage(r), c.URLParams["ownerID"])
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
-	return c.OK(list)
+	render.JSON(w, list, http.StatusOK)
 }
 
-func photosByOwnerID(c *Context) *Result {
-	list, err := photoMgr.ByOwnerID(getPageNum(c), c.Param("ownerID"))
-	if err != nil {
-		return c.Error(nil)
-	}
-	return c.OK(list)
-}
-
-func getPhotos(c *Context) *Result {
+/*
+func getPhotos(c web.C, w http.ResponseWriter, r *http.Request)  {
 	list, err := photoMgr.All(getPageNum(c), c.FormValue("orderBy"))
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 	return c.OK(list)
+}*/
+
+func getPage(r *http.Request) int64 {
+	page, err := strconv.ParseInt(r.FormValue("page"), 10, 64)
+	if err != nil {
+		page = 1
+	}
+	return page
 }
 
-func getTags(c *Context) *Result {
+func getPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
+	list, err := photoMgr.All(getPage(r), r.FormValue("orderBy"))
+	if err != nil {
+		panic(err)
+	}
+	render.JSON(w, list, http.StatusOK)
+}
+
+func getTags(c web.C, w http.ResponseWriter, r *http.Request) {
 	tags, err := photoMgr.GetTagCounts()
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
-	return c.OK(tags)
+	render.JSON(w, tags, http.StatusOK)
 }
 
-func voteDown(c *Context) *Result {
-	return vote(c, func(photo *models.Photo) { photo.DownVotes += 1 })
+func voteDown(c web.C, w http.ResponseWriter, r *http.Request) {
+	vote(c, w, r, func(photo *models.Photo) { photo.DownVotes += 1 })
 }
 
-func voteUp(c *Context) *Result {
-	return vote(c, func(photo *models.Photo) { photo.UpVotes += 1 })
+func voteUp(c web.C, w http.ResponseWriter, r *http.Request) {
+	vote(c, w, r, func(photo *models.Photo) { photo.UpVotes += 1 })
 }
 
-func vote(c *Context, fn func(photo *models.Photo)) *Result {
+func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *models.Photo)) {
 	var (
 		photo *models.Photo
 		err   error
 	)
 
-	photo, err = photoMgr.Get(c.Param("id"))
+	user, err := session.GetCurrentUser(c, r)
+	if !user.IsAuthenticated {
+		render.Error(w, http.StatusUnauthorized)
+		return
+	}
+	photo, err = photoMgr.Get(c.URLParams["id"])
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 	if photo == nil {
-		return c.NotFound("Photo not found")
+		http.NotFound(w, r)
+		return
 	}
 
-	if !photo.CanVote(c.User) {
-		return c.Forbidden("You can't vote on this photo")
+	if !photo.CanVote(user) {
+		render.Error(w, http.StatusForbidden)
+		return
 	}
 
 	fn(photo)
 
 	if err = photoMgr.Update(photo); err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 
-	c.User.RegisterVote(photo.ID)
+	user.RegisterVote(photo.ID)
 
-	if err = userMgr.Update(c.User); err != nil {
-		return c.Error(err)
+	if err = userMgr.Update(user); err != nil {
+		panic(err)
 	}
-	return c.OK("OK")
+	render.String(w, "Vote registered", http.StatusOK)
 }

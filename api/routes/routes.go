@@ -2,53 +2,60 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/settings"
-	"github.com/gorilla/mux"
-	"net/http"
+	"github.com/zenazn/goji"
+	"github.com/zenazn/goji/web"
+	"regexp"
 )
 
 var (
-	photoMgr = models.NewPhotoManager()
-	userMgr  = models.NewUserManager()
+	photoMgr     = models.NewPhotoManager()
+	userMgr      = models.NewUserManager()
+	ownerUrl     = regexp.MustCompile(`/api/photos/owner/(?P<ownerID>\d+)$`)
+	photoUrl     = regexp.MustCompile(`/api/photos/(?P<id>\d+)$`)
+	titleUrl     = regexp.MustCompile(`/api/photos/(?P<id>\d+)/title$`)
+	tagsUrl      = regexp.MustCompile(`/api/photos/(?P<id>\d+)/tags$`)
+	downvoteUrl  = regexp.MustCompile(`/api/photos/(?P<id>\d+)/downvote$`)
+	upvoteUrl    = regexp.MustCompile(`/api/photos/(?P<id>\d+)/upvote$`)
+	ownerFeedUrl = regexp.MustCompile(`/feeds/owner/(?P<ownerID>\d+)$`)
 )
 
-func GetHandler() http.Handler {
+func Setup() {
 
-	r := mux.NewRouter()
+	photos := web.New()
+	goji.Handle("/api/photos/*", photos)
 
-	auth := r.PathPrefix("/api/auth").Subrouter()
+	photos.Get("/api/photos/", getPhotos)
+	photos.Get("/api/photos/search", searchPhotos)
+	photos.Get(ownerUrl, photosByOwnerID)
+	photos.Get(photoUrl, photoDetail)
+	photos.Delete(photoUrl, deletePhoto)
+	photos.Patch(titleUrl, editPhotoTitle)
+	photos.Patch(tagsUrl, editPhotoTags)
+	photos.Patch(downvoteUrl, voteDown)
+	photos.Patch(upvoteUrl, voteUp)
 
-	auth.HandleFunc("/", NewAppHandler(authenticate, false)).Methods("GET")
-	auth.HandleFunc("/", NewAppHandler(login, false)).Methods("POST")
-	auth.HandleFunc("/", NewAppHandler(logout, false)).Methods("DELETE")
+	feeds := web.New()
+	goji.Handle("/feeds/*", feeds)
 
-	photos := r.PathPrefix("/api/photos").Subrouter()
+	feeds.Get("/feeds/", latestFeed)
+	feeds.Get("/feeds/popular/", popularFeed)
+	feeds.Get(ownerFeedUrl, ownerFeed)
 
-	photos.HandleFunc("/", NewAppHandler(upload, true)).Methods("POST")
-	photos.HandleFunc("/", NewAppHandler(getPhotos, false)).Methods("GET")
-	photos.HandleFunc("/owner/{ownerID:[0-9]+}", NewAppHandler(photosByOwnerID, false)).Methods("GET")
-	photos.HandleFunc("/search", NewAppHandler(searchPhotos, false)).Methods("GET")
-	photos.HandleFunc("/{id:[0-9]+}", NewAppHandler(photoDetail, false)).Methods("GET")
-	photos.HandleFunc("/{id:[0-9]+}", NewAppHandler(deletePhoto, true)).Methods("DELETE")
-	photos.HandleFunc("/{id:[0-9]+}/title", NewAppHandler(editPhotoTitle, true)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/tags", NewAppHandler(editPhotoTags, true)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/upvote", NewAppHandler(voteUp, true)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/downvote", NewAppHandler(voteDown, true)).Methods("PATCH")
+	auth := web.New()
+	goji.Handle("/api/auth/*", auth)
 
-	user := r.PathPrefix("/api/user").Subrouter()
+	auth.Get("/api/auth/", authenticate)
+	auth.Post("/api/auth/", login)
+	auth.Delete("/api/auth/", logout)
 
-	user.HandleFunc("/", NewAppHandler(signup, false)).Methods("POST")
+	user := web.New()
+	goji.Handle("/api/user/*", auth)
 
-	tags := r.PathPrefix("/api/tags").Subrouter()
+	user.Post("/api/user/", signup)
 
-	tags.HandleFunc("/", NewAppHandler(getTags, false)).Methods("GET")
+	tags := web.New()
+	goji.Handle("/api/tags/*", tags)
 
-	feeds := r.PathPrefix("/feeds").Subrouter()
+	tags.Get("/api/tags/", getTags)
 
-	feeds.HandleFunc("/", NewAppHandler(latestFeed, false))
-	feeds.HandleFunc("/owner/{ownerID:[0-9]+}", NewAppHandler(ownerFeed, false)).Methods("GET")
-	feeds.HandleFunc("/popular", NewAppHandler(popularFeed, false))
-
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir(settings.PublicDir)))
-	return r
 }

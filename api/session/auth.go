@@ -4,6 +4,7 @@ import (
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/settings"
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/zenazn/goji/web"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -49,16 +50,33 @@ func NewSessionInfo(user *models.User) *SessionInfo {
 	return &SessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
-func GetCurrentUser(r *http.Request) (*models.User, error) {
+// lazily checks for current user in session
+
+func GetCurrentUser(c web.C, r *http.Request) (*models.User, error) {
+
+	obj, ok := c.Env["user"]
+	if ok {
+		return obj.(*models.User), nil
+	}
 
 	userID, err := readToken(r)
 	if err != nil {
 		return nil, err
 	}
+
+	// no token found, user not yet auth'd. Return unauthenticated user
+
 	if userID == "" {
 		return &models.User{}, nil
 	}
-	return userMgr.GetActive(userID)
+
+	user, err := userMgr.GetActive(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	c.Env["user"] = user
+	return user, nil
 }
 
 func Login(w http.ResponseWriter, user *models.User) (string, error) {

@@ -2,10 +2,12 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/routes"
 	"github.com/danjac/photoshare/api/settings"
+	"github.com/zenazn/goji"
 	"log"
 	"net/http"
 	"os"
@@ -33,14 +35,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	http.Handle("/", routes.GetHandler())
-
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "5000"
+		port = "8000"
 	}
+	flag.Set("bind", "localhost:"+port)
 
-	log.Println("starting server on port", port)
+	routes.Setup()
 
-	http.ListenAndServe(":"+port, nil)
+	// for local development
+	goji.Get("/*", http.FileServer(http.Dir(settings.PublicDir)))
+	goji.Serve()
+
 }

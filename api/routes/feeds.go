@@ -3,14 +3,17 @@ package routes
 import (
 	"fmt"
 	"github.com/danjac/photoshare/api/models"
+	"github.com/danjac/photoshare/api/render"
 	"github.com/gorilla/feeds"
+	"github.com/zenazn/goji/web"
+	"net/http"
 	"strconv"
 	"time"
 )
 
-func photoFeed(c *Context, title string, description string, link string, photos []models.Photo) *Result {
+func photoFeed(c web.C, w http.ResponseWriter, r *http.Request, title string, description string, link string, photos []models.Photo) {
 
-	baseURL := c.BaseURL()
+	baseURL := baseURL(r)
 
 	feed := &feeds.Feed{
 		Title:       title,
@@ -31,40 +34,41 @@ func photoFeed(c *Context, title string, description string, link string, photos
 		feed.Add(item)
 	}
 
-	return c.Atom(feed)
+	render.Atom(w, feed, http.StatusOK)
 
 }
 
-func latestFeed(c *Context) *Result {
+func latestFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	list, err := photoMgr.All(1, "")
 
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 
-	return photoFeed(c, "Latest photos", "Most recent photos", "/latest", list.Photos)
+	photoFeed(c, w, r, "Latest photos", "Most recent photos", "/latest", list.Photos)
 }
 
-func popularFeed(c *Context) *Result {
+func popularFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	list, err := photoMgr.All(1, "votes")
 
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 
-	return photoFeed(c, "Popular photos", "Most upvoted photos", "/popular", list.Photos)
+	photoFeed(c, w, r, "Popular photos", "Most upvoted photos", "/popular", list.Photos)
 }
 
-func ownerFeed(c *Context) *Result {
-	ownerID := c.Param("ownerID")
+func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
+	ownerID := c.URLParams["ownerID"]
 	owner, err := userMgr.GetActive(ownerID)
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 	if owner == nil {
-		return c.NotFound("No user found")
+		http.NotFound(w, r)
+		return
 	}
 
 	title := "Feeds for " + owner.Name
@@ -74,7 +78,7 @@ func ownerFeed(c *Context) *Result {
 	list, err := photoMgr.ByOwnerID(1, ownerID)
 
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
-	return photoFeed(c, title, description, link, list.Photos)
+	photoFeed(c, w, r, title, description, link, list.Photos)
 }

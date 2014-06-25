@@ -2,67 +2,72 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
+	"github.com/danjac/photoshare/api/render"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/validation"
+	"github.com/zenazn/goji/web"
+	"net/http"
 	"strings"
 )
 
-func logout(c *Context) *Result {
+func logout(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	if err := c.Logout(); err != nil {
-		return c.Error(err)
+	if _, err := session.Logout(w); err != nil {
+		panic(err)
 	}
 
-	return c.OK(session.NewSessionInfo(c.User))
+	render.JSON(w, session.NewSessionInfo(&models.User{}), http.StatusOK)
 
 }
 
-func authenticate(c *Context) *Result {
+func authenticate(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	user, err := c.GetCurrentUser()
+	user, err := session.GetCurrentUser(c, r)
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 
-	return c.OK(session.NewSessionInfo(user))
+	render.JSON(w, session.NewSessionInfo(user), http.StatusOK)
 }
 
-func login(c *Context) *Result {
+func login(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	s := &struct {
 		Identifier string `json:"identifier"`
 		Password   string `json:"password"`
 	}{}
 
-	if err := c.ParseJSON(s); err != nil {
-		return c.Error(err)
+	if err := parseJSON(r, s); err != nil {
+		panic(err)
 	}
 
 	if s.Identifier == "" || s.Password == "" {
-		return c.BadRequest("Missing login details")
+		render.String(w, "Missing login details", http.StatusBadRequest)
+		return
 	}
 
 	user, err := userMgr.Authenticate(s.Identifier, s.Password)
 
 	if err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 	if !user.IsAuthenticated {
-		return c.BadRequest("Invalid email or password")
+		render.String(w, "Invalid email or password", http.StatusBadRequest)
+		return
 	}
 
-	if err := c.Login(user); err != nil {
-		return c.Error(err)
+	if _, err := session.Login(w, user); err != nil {
+		panic(err)
 	}
-	return c.OK(session.NewSessionInfo(user))
+	render.JSON(w, session.NewSessionInfo(user), http.StatusOK)
 }
 
-func signup(c *Context) *Result {
+func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user := &models.User{}
 
-	if err := c.ParseJSON(user); err != nil {
-		return c.Error(err)
+	if err := parseJSON(r, user); err != nil {
+		panic(err)
 	}
 
 	// ensure nobody tries to make themselves an admin
@@ -75,21 +80,22 @@ func signup(c *Context) *Result {
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
-			return c.Error(err)
+			panic(err)
 		}
-		return c.BadRequest(result)
+		render.JSON(w, result, http.StatusBadRequest)
+		return
 	}
 
 	if err := userMgr.Insert(user); err != nil {
-		return c.Error(err)
+		panic(err)
 	}
 
-	if err := c.Login(user); err != nil {
-		return c.Error(err)
+	if _, err := session.Login(w, user); err != nil {
+		panic(err)
 	}
 
 	user.IsAuthenticated = true
 
-	return c.OK(session.NewSessionInfo(user))
+	render.JSON(w, session.NewSessionInfo(user), http.StatusOK)
 
 }

@@ -74,16 +74,6 @@ func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*models.Photo, bool) {
-	photo, err := photoMgr.Get(c.URLParams["id"])
-	if err != nil {
-		panic(err)
-	}
-
-	if photo == nil {
-		http.NotFound(w, r)
-		return nil, false
-	}
-
 	user, err := session.GetCurrentUser(c, r)
 	if err != nil {
 		panic(err)
@@ -91,7 +81,18 @@ func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*models.Ph
 
 	if !user.IsAuthenticated {
 		writeError(w, http.StatusUnauthorized)
-		return photo, false
+		return nil, false
+	}
+
+	photo, err := photoMgr.Get(c.URLParams["id"])
+
+	if err != nil {
+		panic(err)
+	}
+
+	if photo == nil {
+		http.NotFound(w, r)
+		return nil, false
 	}
 
 	if !photo.CanEdit(user) {

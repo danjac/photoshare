@@ -1,19 +1,22 @@
 package routes
 
 import (
+	"fmt"
 	"github.com/danjac/photoshare/api/models"
+	"github.com/zenazn/goji/web"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func MakeMockContext(user *models.User) *Context {
+func MakeMockContext(user *models.User) (web.C, http.ResponseWriter, *http.Request) {
 
 	req := &http.Request{}
-	params := make(map[string]string)
+	c := web.C{}
+	c.URLParams = make(map[string]string)
 	res := httptest.NewRecorder()
 
-	return &Context{req, res, params, user, nil}
+	return c, res, req
 
 }
 
@@ -63,10 +66,8 @@ func (m *MockPhotoManager) Update(photo *models.Photo) error {
 
 func TestGetPhotos(t *testing.T) {
 	photoMgr = &MockPhotoManager{}
-	c := MakeMockContext(nil)
-	result := getPhotos(c)
-	if result.Error != nil {
-		t.Error(result.Error)
-	}
+	c, w, r := MakeMockContext(nil)
+	getPhotos(c, w, r)
+	fmt.Println(w)
 
 }

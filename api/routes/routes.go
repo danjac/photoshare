@@ -24,7 +24,9 @@ func Setup() {
 	goji.Get("/api/goji/search", searchPhotos)
 	goji.Get(ownerUrl, photosByOwnerID)
 	goji.Get(photoUrl, photoDetail)
+
 	goji.Delete(photoUrl, deletePhoto)
+
 	goji.Patch(titleUrl, editPhotoTitle)
 	goji.Patch(tagsUrl, editPhotoTags)
 	goji.Patch(downvoteUrl, voteDown)
@@ -37,7 +39,6 @@ func Setup() {
 	goji.Get("/api/auth/", authenticate)
 	goji.Post("/api/auth/", login)
 	goji.Delete("/api/auth/", logout)
-
 	goji.Post("/api/user/", signup)
 
 	goji.Get("/api/tags/", getTags)

@@ -2,34 +2,11 @@ package session
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/settings"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 )
 
-const (
-	tokenHeader = "X-Auth-Token"
-	expiry      = 60 // minutes
-)
-
-var (
-	verifyKey, signKey []byte
-	userMgr            = models.NewUserManager()
-)
-
-func init() {
-	var err error
-	signKey, err = ioutil.ReadFile(settings.PrivKeyFile)
-	if err != nil {
-		panic(err)
-	}
-	verifyKey, err = ioutil.ReadFile(settings.PubKeyFile)
-	if err != nil {
-		panic(err)
-	}
-
-}
+var userMgr = models.NewUserManager()
 
 type SessionManager interface {
 	GetCurrentUser(r *http.Request) (*models.User, error)

@@ -1,10 +1,34 @@
 package session
 
 import (
+	"github.com/danjac/photoshare/api/settings"
 	jwt "github.com/dgrijalva/jwt-go"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
+
+const (
+	tokenHeader = "X-Auth-Token"
+	expiry      = 60 // minutes
+)
+
+var (
+	verifyKey, signKey []byte
+)
+
+func init() {
+	var err error
+	signKey, err = ioutil.ReadFile(settings.PrivKeyFile)
+	if err != nil {
+		panic(err)
+	}
+	verifyKey, err = ioutil.ReadFile(settings.PubKeyFile)
+	if err != nil {
+		panic(err)
+	}
+
+}
 
 func readToken(r *http.Request) (string, error) {
 	tokenString := r.Header.Get(tokenHeader)

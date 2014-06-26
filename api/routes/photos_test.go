@@ -34,8 +34,8 @@ func (m *MockPhotoManager) GetDetail(photoID string, user *models.User) (*models
 	canEdit := user.ID == 1
 	photo := &models.PhotoDetail{
 		Photo: models.Photo{
-			ID: 1,
-			Title: "test",
+			ID:      1,
+			Title:   "test",
 			OwnerID: 1,
 		},
 		OwnerName: "tester",

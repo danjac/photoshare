@@ -15,6 +15,7 @@ func logout(c web.C, w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	sendMessage("Someone has signed out")
 	writeJSON(w, session.NewSessionInfo(&models.User{}), http.StatusOK)
 
 }
@@ -58,6 +59,7 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 	if _, err := session.Login(w, user); err != nil {
 		panic(err)
 	}
+	sendMessage(user.Name + " has signed in")
 	writeJSON(w, session.NewSessionInfo(user), http.StatusOK)
 }
 

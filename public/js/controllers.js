@@ -7,12 +7,14 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                             '$location',
                             '$timeout',
                             'Session',
+                            'MessageQueue',
                             'Authenticator',
                             'Alert',
                             function ($scope,
                                       $location,
                                       $timeout,
                                       Session,
+                                      MessageQueue,
                                       Authenticator,
                                       Alert) {
 
@@ -21,6 +23,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.searchQuery = "";
 
             Authenticator.init();
+            MessageQueue.init();
 
             $scope.$watch('alert.message', function (newValue, oldValue) {
                 if (newValue) {

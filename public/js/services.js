@@ -3,6 +3,31 @@
 /* Services */
 
 angular.module('photoshare.services', [])
+    .service('MessageQueue', ['$window', 'Alert', function ($window, Alert) {
+
+    // options usage example
+        var options = {
+            debug: true,
+            devel: true,
+            protocols_whitelist: ['websocket', 'xdr-streaming', 'xhr-streaming', 'iframe-eventsource', 'iframe-htmlfile', 'xdr-polling', 'xhr-polling', 'iframe-xhr-polling', 'jsonp-polling']
+        };
+        function Mq() {
+            this.socket = null;
+        }
+
+        Mq.prototype.init = function () {
+            this.socket = new $window.SockJS('/api/messages', undefined, options);
+            this.socket.onopen = function (e) {
+                console.log(e)
+            };
+            this.socket.onmessage = function (e) {
+                console.log(e);
+                Alert.success(e.data);
+            };
+        };
+
+        return new Mq();
+    }])
     .service('Session', ['$location', 'Alert', function ($location, Alert) {
 
         function Session() {

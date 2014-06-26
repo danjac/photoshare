@@ -5,10 +5,10 @@
 angular.module('photoshare.services', [])
     .service('MessageQueue', ['$window',
                               '$rootScope',
+                              'urls',
                               'Alert',
-                              'Session', function ($window, $rootScope, Alert, Session) {
+                              'Session', function ($window, $rootScope, urls, Alert, Session) {
 
-    // options usage example
         var options = {
             debug: true,
             devel: true,
@@ -24,7 +24,7 @@ angular.module('photoshare.services', [])
         };
         function Mq() {
             var $this = this, newMessage = null;
-            $this.socket = new $window.SockJS('/api/messages', undefined, options);
+            $this.socket = new $window.SockJS(urls.messages, undefined, options);
             $this.socket.onmessage = function (e) {
                 var msg = JSON.parse(e.data), content=null, photoLink = null;
                 if (msg.username === Session.name) {

@@ -15,7 +15,8 @@ angular.module('photoshare', [
         auth: '/api/auth/',
         photos: '/api/photos/:id',
         users: '/api/user/',
-        tags: '/api/tags/'
+        tags: '/api/tags/',
+        messages: '/api/messages'
     }).
     constant('authToken', 'X-Auth-Token').
     config(['$routeProvider',

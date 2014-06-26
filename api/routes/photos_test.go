@@ -17,7 +17,7 @@ func (m *MockAnonymousSession) GetCurrentUser(r *http.Request) (*models.User, er
 
 func (m *MockAnonymousSession) Login(w http.ResponseWriter, user *models.User) (string, error) {
 	return "", nil
-)
+}
 
 func (m *MockAnonymousSession) Login(w http.ResponseWriter) (string, error) {
 	return "", nil

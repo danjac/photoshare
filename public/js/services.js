@@ -3,24 +3,29 @@
 /* Services */
 
 angular.module('photoshare.services', [])
-    .service('MessageQueue', ['$window', 'Alert', 'Session', function ($window, Alert, Session) {
+    .service('MessageQueue', ['$window',
+                              '$rootScope',
+                              'Alert',
+                              'Session', function ($window, $rootScope, Alert, Session) {
 
     // options usage example
         var options = {
             debug: true,
             devel: true,
-            protocols_whitelist: ['websocket', 'xdr-streaming', 'xhr-streaming', 'iframe-eventsource', 'iframe-htmlfile', 'xdr-polling', 'xhr-polling', 'iframe-xhr-polling', 'jsonp-polling']
+            protocols_whitelist: ['websocket',
+                                  'xdr-streaming',
+                                  'xhr-streaming',
+                                  'iframe-eventsource',
+                                  'iframe-htmlfile',
+                                  'xdr-polling',
+                                  'xhr-polling',
+                                  'iframe-xhr-polling',
+                                  'jsonp-polling']
         };
         function Mq() {
-            this.socket = null;
-        }
-
-        Mq.prototype.init = function () {
-            this.socket = new $window.SockJS('/api/messages', undefined, options);
-            this.socket.onopen = function (e) {
-                console.log(e)
-            };
-            this.socket.onmessage = function (e) {
+            var $this = this, newMessage = null;
+            $this.socket = new $window.SockJS('/api/messages', undefined, options);
+            $this.socket.onmessage = function (e) {
                 var msg = JSON.parse(e.data), content=null, photoLink = null;
                 if (msg.username === Session.name) {
                     return;
@@ -45,9 +50,8 @@ angular.module('photoshare.services', [])
                     content = msg.username + " has uploaded " + photoLink;
                     break;
                 }
-                if (content) {
-                    Alert.success(content);
-                }
+                $this.newMessage = content;
+                $rootScope.$digest();
             };
         };
 

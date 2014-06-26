@@ -20,16 +20,18 @@ func sendMessage(msg *Message) {
 }
 
 func messageHandler(session sockjs.Session) {
-	var closedSession = make(chan struct{})
 	go func() {
 		reader, _ := pub.SubChannel(nil)
 		for {
 			select {
-			case <-closedSession:
-				return
-			case msg := <-reader:
+			case msg, ok := <-reader:
+				if !ok {
+					log.Println("channel closed")
+					return
+				}
 				msg = msg.(*Message)
 				if body, err := json.Marshal(msg); err == nil {
+					log.Println("message:", string(body))
 					if err = session.Send(string(body)); err != nil {
 						log.Println(err)
 						return
@@ -45,5 +47,4 @@ func messageHandler(session sockjs.Session) {
 		}
 		break
 	}
-	close(closedSession)
 }

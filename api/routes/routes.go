@@ -3,7 +3,6 @@ package routes
 import (
 	"github.com/danjac/photoshare/api/models"
 	"github.com/zenazn/goji"
-	"gopkg.in/igm/sockjs-go.v2/sockjs"
 	"regexp"
 )
 
@@ -44,8 +43,5 @@ func Setup() {
 	goji.Get("/feeds/popular/", popularFeed)
 	goji.Get(ownerFeedUrl, ownerFeed)
 
-	goji.Handle("/api/messages/*", sockjs.NewHandler("/api/messages",
-		sockjs.DefaultOptions,
-		messageHandler))
-
+	goji.Handle("/api/messages/*", messageHandler)
 }

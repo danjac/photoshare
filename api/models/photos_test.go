@@ -71,7 +71,7 @@ func TestSearchPhotos(t *testing.T) {
 		return
 	}
 
-	if len(result.Photos) != 1 {
+	if len(result.Items) != 1 {
 		t.Error("There should be 1 photo")
 	}
 }
@@ -98,7 +98,7 @@ func TestGetPhotos(t *testing.T) {
 		return
 	}
 
-	if len(result.Photos) != 1 {
+	if len(result.Items) != 1 {
 		t.Error("There should be 1 photo")
 	}
 }

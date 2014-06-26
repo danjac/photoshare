@@ -216,6 +216,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 		writeJSON(w, result, http.StatusBadRequest)
+		return
 	}
 
 	if err := photoMgr.Insert(photo); err != nil {

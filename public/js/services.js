@@ -3,7 +3,7 @@
 /* Services */
 
 angular.module('photoshare.services', [])
-    .service('MessageQueue', ['$window', 'Alert', function ($window, Alert) {
+    .service('MessageQueue', ['$window', 'Alert', 'Session', function ($window, Alert, Session) {
 
     // options usage example
         var options = {
@@ -22,6 +22,9 @@ angular.module('photoshare.services', [])
             };
             this.socket.onmessage = function (e) {
                 var msg = JSON.parse(e.data), content=null, photoLink = null;
+                if (msg.username === Session.name) {
+                    return;
+                }
                 if (msg.photoID) {
                     photoLink = '<a href="/#/detail/' + msg.photoID + '">a photo</a>';
                 }

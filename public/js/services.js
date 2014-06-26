@@ -27,7 +27,10 @@ angular.module('photoshare.services', [])
             $this.socket = new $window.SockJS(urls.messages, undefined, options);
             $this.socket.onmessage = function (e) {
                 var msg = JSON.parse(e.data), content=null, photoLink = null;
-                if (msg.username === Session.name) {
+                if (msg.sender === Session.name) {
+                    return;
+                }
+                if (msg.receiver && msg.receiver !== Session.name) {
                     return;
                 }
                 if (msg.photoID) {
@@ -35,19 +38,19 @@ angular.module('photoshare.services', [])
                 }
                 switch (msg.type) {
                     case 'login':
-                    content = msg.username + " has logged in";
+                    content = msg.sender + " has logged in";
                     break;
                     case 'logout':
-                    content = msg.username + " has logged out";
+                    content = msg.sender + " has logged out";
                     break
                     case 'photo_deleted':
-                    content = msg.username + " has deleted a photo";
+                    content = msg.sender + " has deleted a photo";
                     break;
                     case 'photo_updated':
-                    content = msg.username + " has updated " + photoLink;
+                    content = msg.sender + " has updated " + photoLink;
                     break;
                     case 'photo_uploaded':
-                    content = msg.username + " has uploaded " + photoLink;
+                    content = msg.sender + " has uploaded " + photoLink;
                     break;
                 }
                 $this.newMessage = content;

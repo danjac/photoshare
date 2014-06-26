@@ -61,7 +61,7 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	sendMessage(&Message{user.Name, photo.ID, "photo_deleted"})
+	sendMessage(&Message{user.Name, "", photo.ID, "photo_deleted"})
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -144,7 +144,7 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	if user, err := session.GetCurrentUser(c, r); err == nil {
-		sendMessage(&Message{user.Name, photo.ID, "photo_updated"})
+		sendMessage(&Message{user.Name, "", photo.ID, "photo_updated"})
 	}
 	w.WriteHeader(http.StatusOK)
 }
@@ -171,7 +171,7 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	if user, err := session.GetCurrentUser(c, r); err == nil {
-		sendMessage(&Message{user.Name, photo.ID, "photo_updated"})
+		sendMessage(&Message{user.Name, "", photo.ID, "photo_updated"})
 	}
 	w.WriteHeader(http.StatusOK)
 }
@@ -230,7 +230,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	sendMessage(&Message{user.Name, photo.ID, "photo_uploaded"})
+	sendMessage(&Message{user.Name, "", photo.ID, "photo_uploaded"})
 	writeJSON(w, photo, http.StatusOK)
 }
 

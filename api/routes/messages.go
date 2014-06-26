@@ -10,7 +10,8 @@ import (
 var pub pubsub.Publisher
 
 type Message struct {
-	UserName string `json:"username"`
+	Sender   string `json:"sender"`
+	Receiver string `json:"receiver"`
 	PhotoID  int64  `json:"photoID"`
 	Type     string `json:"type"`
 }
@@ -40,4 +41,5 @@ func messageHandler(session sockjs.Session) {
 			}
 		}
 	}()
+
 }

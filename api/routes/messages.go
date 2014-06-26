@@ -3,12 +3,19 @@ package routes
 import (
 	"github.com/igm/pubsub"
 	"gopkg.in/igm/sockjs-go.v2/sockjs"
+	"encoding/json"
 	"log"
 )
 
 var pub pubsub.Publisher
 
-func sendMessage(msg string) {
+type Message struct {
+	UserName string `json:"username"`
+	PhotoID int64 `json:"photoID"`
+	Type string `json:"type"`
+}
+
+func sendMessage(msg *Message) {
 	pub.Publish(msg)
 }
 
@@ -21,11 +28,16 @@ func messageHandler(session sockjs.Session) {
 			case <-closedSession:
 				return
 			case msg := <-reader:
-				if err := session.Send(msg.(string)); err != nil {
+				msg = msg.(*Message)
+				body, err := json.Marshal(msg)
+				if err != nil {
 					log.Println(err)
-					return
+				} else {
+					if err = session.Send(string(body)); err != nil {
+						log.Println(err)
+						return
+					}
 				}
-
 			}
 		}
 	}()

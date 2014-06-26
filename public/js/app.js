@@ -5,6 +5,7 @@
 angular.module('photoshare', [
     'ngRoute',
     'ngResource',
+    'ngSanitize',
     'photoshare.filters',
     'photoshare.services',
     'photoshare.directives',

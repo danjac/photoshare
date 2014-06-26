@@ -21,8 +21,30 @@ angular.module('photoshare.services', [])
                 console.log(e)
             };
             this.socket.onmessage = function (e) {
-                console.log(e);
-                Alert.success(e.data);
+                var msg = JSON.parse(e.data), content=null, photoLink = null;
+                if (msg.photoID) {
+                    photoLink = '<a href="/#/detail/' + msg.photoID + '">a photo</a>';
+                }
+                switch (msg.type) {
+                    case 'login':
+                    content = msg.username + " has logged in";
+                    break;
+                    case 'logout':
+                    content = msg.username + " has logged out";
+                    break
+                    case 'photo_deleted':
+                    content = msg.username + " has deleted a photo";
+                    break;
+                    case 'photo_updated':
+                    content = msg.username + " has updated " + photoLink;
+                    break;
+                    case 'photo_uploaded':
+                    content = msg.username + " has uploaded " + photoLink;
+                    break;
+                }
+                if (content) {
+                    Alert.success(content);
+                }
             };
         };
 
@@ -104,10 +126,10 @@ angular.module('photoshare.services', [])
 
         Authenticator.prototype.logout = function () {
             var $this = this, d = $q.defer();
-            $window.localStorage.removeItem("authToken")
             $this.$delete(function (result) {
                 Session.clear();
                 d.resolve(result);
+                $window.localStorage.removeItem("authToken")
             });
             return d.promise;
         };

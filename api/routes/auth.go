@@ -11,11 +11,16 @@ import (
 
 func logout(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	if _, err := session.Logout(w); err != nil {
+	user, err := session.GetCurrentUser(c, r)
+	if !user.IsAuthenticated {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	if _, err = session.Logout(w); err != nil {
 		panic(err)
 	}
 
-	sendMessage("Someone has signed out")
+	sendMessage(&Message{user.Name, 0, "logout"})
 	writeJSON(w, session.NewSessionInfo(&models.User{}), http.StatusOK)
 
 }
@@ -59,7 +64,7 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 	if _, err := session.Login(w, user); err != nil {
 		panic(err)
 	}
-	sendMessage(user.Name + " has signed in")
+	sendMessage(&Message{user.Name, 0, "login"})
 	writeJSON(w, session.NewSessionInfo(user), http.StatusOK)
 }
 

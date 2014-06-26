@@ -9,19 +9,19 @@ import (
 	"testing"
 )
 
-type MockAnonymousSession struct {}
+type MockAnonymousSessionManager struct {}
 
-func (m *MockAnonymousSession) GetCurrentUser(r *http.Request) (*models.User, error) {
+func (m *MockAnonymousSessionManager) GetCurrentUser(r *http.Request) (*models.User, error) {
 	return &models.User{}, nil
 }
 
-func (m *MockAnonymousSession) Login(w http.ResponseWriter, user *models.User) (string, error) {
+func (m *MockAnonymousSessionManager) Login(w http.ResponseWriter, user *models.User) (string, error) {
 	return "", nil
 }
 
-func (m *MockAnonymousSession) Login(w http.ResponseWriter) (string, error) {
+func (m *MockAnonymousSessionManager) Logout(w http.ResponseWriter) (string, error) {
 	return "", nil
-)
+}
 
 type MockPhotoManager struct {
 }
@@ -76,15 +76,23 @@ func parseJsonBody(res *httptest.ResponseRecorder, value interface{}) error {
 	return json.Unmarshal([]byte(res.Body.String()), value)
 }
 
-func TestGetPhotoDetail(t *testing T) {
+func newContext() web.C {
+	c := web.C{}
+	c.Env = make(map[string]interface{})
+	c.URLParams = make(map[string]string)
+	return c
+}
+
+func TestGetPhotoDetail(t *testing.T) {
 
 	req := &http.Request{}
 	res := httptest.NewRecorder()
+	c := newContext()
 
 	sessionMgr = &MockAnonymousSessionManager{}
 	photoMgr = &MockPhotoManager{}
 
-	getPhotoDetail(web.C{}, res, req)
+	photoDetail(c, res, req)
 	value := &models.PhotoDetail{}
 	parseJsonBody(res, value)
 }

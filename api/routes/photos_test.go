@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-type MockAnonymousSessionManager struct {}
+type MockAnonymousSessionManager struct{}
 
 func (m *MockAnonymousSessionManager) GetCurrentUser(r *http.Request) (*models.User, error) {
 	return &models.User{}, nil

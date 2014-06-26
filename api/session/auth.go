@@ -4,7 +4,6 @@ import (
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/settings"
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/zenazn/goji/web"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -34,30 +33,19 @@ func init() {
 
 }
 
-// Basic user session info
-type SessionInfo struct {
-	ID       int64  `json:"id"`
-	Name     string `json:"name"`
-	IsAdmin  bool   `json:"isAdmin"`
-	LoggedIn bool   `json:"loggedIn"`
+type SessionManager interface {
+	GetCurrentUser(r *http.Request) (*models.User, error)
+	Login(w http.ResponseWriter, user *models.User) (string, error)
+	Logout(w http.ResponseWriter) (string, error)
 }
 
-func NewSessionInfo(user *models.User) *SessionInfo {
-	if user == nil || user.ID == 0 || !user.IsAuthenticated {
-		return &SessionInfo{}
-	}
-
-	return &SessionInfo{user.ID, user.Name, user.IsAdmin, true}
+func NewSessionManager() SessionManager {
+	return &defaultSessionManager{}
 }
 
-// lazily checks for current user in session
+type defaultSessionManager struct{}
 
-func GetCurrentUser(c web.C, r *http.Request) (*models.User, error) {
-
-	obj, ok := c.Env["user"]
-	if ok {
-		return obj.(*models.User), nil
-	}
+func (mgr *defaultSessionManager) GetCurrentUser(r *http.Request) (*models.User, error) {
 
 	userID, err := readToken(r)
 	if err != nil {
@@ -75,15 +63,14 @@ func GetCurrentUser(c web.C, r *http.Request) (*models.User, error) {
 		return nil, err
 	}
 
-	c.Env["user"] = user
 	return user, nil
 }
 
-func Login(w http.ResponseWriter, user *models.User) (string, error) {
+func (mgr *defaultSessionManager) Login(w http.ResponseWriter, user *models.User) (string, error) {
 	return createToken(w, strconv.FormatInt(user.ID, 10))
 }
 
-func Logout(w http.ResponseWriter) (string, error) {
+func (mgr *defaultSessionManager) Logout(w http.ResponseWriter) (string, error) {
 	return createToken(w, "")
 }
 

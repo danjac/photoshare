@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/danjac/photoshare/api/models"
 	"github.com/zenazn/goji/web"
 	"net/http"
@@ -9,16 +9,19 @@ import (
 	"testing"
 )
 
-func MakeMockContext(user *models.User) (web.C, http.ResponseWriter, *http.Request) {
+type MockAnonymousSession struct {}
 
-	req := &http.Request{}
-	c := web.C{}
-	c.URLParams = make(map[string]string)
-	res := httptest.NewRecorder()
-
-	return c, res, req
-
+func (m *MockAnonymousSession) GetCurrentUser(r *http.Request) (*models.User, error) {
+	return &models.User{}, nil
 }
+
+func (m *MockAnonymousSession) Login(w http.ResponseWriter, user *models.User) (string, error) {
+	return "", nil
+)
+
+func (m *MockAnonymousSession) Login(w http.ResponseWriter) (string, error) {
+	return "", nil
+)
 
 type MockPhotoManager struct {
 }
@@ -32,8 +35,13 @@ func (m *MockPhotoManager) GetDetail(photoID string, user *models.User) (*models
 }
 
 func (m *MockPhotoManager) All(pageNum int64, orderBy string) (*models.PhotoList, error) {
-	photos := make([]models.Photo, 0, 0)
-	return models.NewPhotoList(photos, 0, 0), nil
+	item := &models.Photo{
+		ID:      1,
+		Title:   "test",
+		OwnerID: 1,
+	}
+	photos := []models.Photo{*item}
+	return models.NewPhotoList(photos, 1, 1), nil
 }
 
 func (m *MockPhotoManager) ByOwnerID(pageNum int64, ownerID string) (*models.PhotoList, error) {
@@ -64,10 +72,34 @@ func (m *MockPhotoManager) Update(photo *models.Photo) error {
 	return nil
 }
 
-func TestGetPhotos(t *testing.T) {
+func parseJsonBody(res *httptest.ResponseRecorder, value interface{}) error {
+	return json.Unmarshal([]byte(res.Body.String()), value)
+}
+
+func TestGetPhotoDetail(t *testing T) {
+
+	req := &http.Request{}
+	res := httptest.NewRecorder()
+
+	sessionMgr = &MockAnonymousSessionManager{}
 	photoMgr = &MockPhotoManager{}
-	c, w, r := MakeMockContext(nil)
-	getPhotos(c, w, r)
-	fmt.Println(w)
+
+	getPhotoDetail(web.C{}, res, req)
+	value := &models.PhotoDetail{}
+	parseJsonBody(res, value)
+}
+
+func TestGetPhotos(t *testing.T) {
+
+	req := &http.Request{}
+	res := httptest.NewRecorder()
+
+	photoMgr = &MockPhotoManager{}
+	getPhotos(web.C{}, res, req)
+	value := &models.PhotoList{}
+	parseJsonBody(res, value)
+	if value.Total != 1 {
+		t.Fail()
+	}
 
 }

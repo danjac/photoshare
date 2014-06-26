@@ -2,7 +2,6 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/storage"
 	"github.com/danjac/photoshare/api/validation"
 	"github.com/zenazn/goji/web"
@@ -33,7 +32,7 @@ func getPage(r *http.Request) int64 {
 
 func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	user, err := session.GetCurrentUser(c, r)
+	user, err := getCurrentUser(c, r)
 
 	if err != nil {
 		panic(err)
@@ -67,7 +66,7 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 
 func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	user, err := session.GetCurrentUser(c, r)
+	user, err := getCurrentUser(c, r)
 	if err != nil {
 		panic(err)
 	}
@@ -84,7 +83,7 @@ func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*models.Photo, bool) {
-	user, err := session.GetCurrentUser(c, r)
+	user, err := getCurrentUser(c, r)
 	if err != nil {
 		panic(err)
 	}
@@ -143,7 +142,7 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err := photoMgr.Update(photo); err != nil {
 		panic(err)
 	}
-	if user, err := session.GetCurrentUser(c, r); err == nil {
+	if user, err := getCurrentUser(c, r); err == nil {
 		sendMessage(&Message{user.Name, "", photo.ID, "photo_updated"})
 	}
 	w.WriteHeader(http.StatusOK)
@@ -170,7 +169,7 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err := photoMgr.UpdateTags(photo); err != nil {
 		panic(err)
 	}
-	if user, err := session.GetCurrentUser(c, r); err == nil {
+	if user, err := getCurrentUser(c, r); err == nil {
 		sendMessage(&Message{user.Name, "", photo.ID, "photo_updated"})
 	}
 	w.WriteHeader(http.StatusOK)
@@ -178,7 +177,7 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 
 func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	user, err := session.GetCurrentUser(c, r)
+	user, err := getCurrentUser(c, r)
 	if err != nil {
 		panic(err)
 	}
@@ -281,7 +280,7 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *models
 		err   error
 	)
 
-	user, err := session.GetCurrentUser(c, r)
+	user, err := getCurrentUser(c, r)
 	if !user.IsAuthenticated {
 		writeError(w, http.StatusUnauthorized)
 		return

@@ -3,9 +3,27 @@ package routes
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/danjac/photoshare/api/models"
+	"github.com/zenazn/goji/web"
 	"net/http"
 	"strconv"
 )
+
+func getCurrentUser(c web.C, r *http.Request) (*models.User, error) {
+
+	obj, ok := c.Env["user"]
+	if ok {
+		return obj.(*models.User), nil
+	}
+
+	user, err := sessionMgr.GetCurrentUser(r)
+	if err != nil {
+		return nil, err
+	}
+
+	c.Env["user"] = user
+	return user, nil
+}
 
 func parseJSON(r *http.Request, value interface{}) error {
 	return json.NewDecoder(r.Body).Decode(value)

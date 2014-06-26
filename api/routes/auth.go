@@ -2,37 +2,52 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/validation"
 	"github.com/zenazn/goji/web"
 	"net/http"
 	"strings"
 )
 
+// Basic user session info
+type SessionInfo struct {
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	IsAdmin  bool   `json:"isAdmin"`
+	LoggedIn bool   `json:"loggedIn"`
+}
+
+func newSessionInfo(user *models.User) *SessionInfo {
+	if user == nil || user.ID == 0 || !user.IsAuthenticated {
+		return &SessionInfo{}
+	}
+
+	return &SessionInfo{user.ID, user.Name, user.IsAdmin, true}
+}
+
 func logout(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	user, err := session.GetCurrentUser(c, r)
+	user, err := getCurrentUser(c, r)
 	if !user.IsAuthenticated {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	if _, err = session.Logout(w); err != nil {
+	if _, err = sessionMgr.Logout(w); err != nil {
 		panic(err)
 	}
 
 	sendMessage(&Message{user.Name, "", 0, "logout"})
-	writeJSON(w, session.NewSessionInfo(&models.User{}), http.StatusOK)
+	writeJSON(w, newSessionInfo(&models.User{}), http.StatusOK)
 
 }
 
 func authenticate(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	user, err := session.GetCurrentUser(c, r)
+	user, err := getCurrentUser(c, r)
 	if err != nil {
 		panic(err)
 	}
 
-	writeJSON(w, session.NewSessionInfo(user), http.StatusOK)
+	writeJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
 func login(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -61,11 +76,11 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := session.Login(w, user); err != nil {
+	if _, err := sessionMgr.Login(w, user); err != nil {
 		panic(err)
 	}
 	sendMessage(&Message{user.Name, "", 0, "login"})
-	writeJSON(w, session.NewSessionInfo(user), http.StatusOK)
+	writeJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
 func signup(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -96,12 +111,12 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	if _, err := session.Login(w, user); err != nil {
+	if _, err := sessionMgr.Login(w, user); err != nil {
 		panic(err)
 	}
 
 	user.IsAuthenticated = true
 
-	writeJSON(w, session.NewSessionInfo(user), http.StatusOK)
+	writeJSON(w, newSessionInfo(user), http.StatusOK)
 
 }

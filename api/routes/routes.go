@@ -15,7 +15,7 @@ var (
 	tagsUrl      = regexp.MustCompile(`/api/photos/(?P<id>\d+)/tags$`)
 	downvoteUrl  = regexp.MustCompile(`/api/photos/(?P<id>\d+)/downvote$`)
 	upvoteUrl    = regexp.MustCompile(`/api/photos/(?P<id>\d+)/upvote$`)
-	ownerFeedUrl = regexp.MustCompile(`/goji/owner/(?P<ownerID>\d+)$`)
+	ownerFeedUrl = regexp.MustCompile(`/feeds/owner/(?P<ownerID>\d+)$`)
 )
 
 func Setup() {

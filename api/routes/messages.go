@@ -40,11 +40,4 @@ func messageHandler(session sockjs.Session) {
 			}
 		}
 	}()
-	for {
-		if msg, err := session.Recv(); err == nil {
-			pub.Publish(msg)
-			continue
-		}
-		break
-	}
 }

@@ -60,6 +60,8 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err := photoMgr.Delete(photo); err != nil {
 		panic(err)
 	}
+
+	sendMessage(&Message{user.Name, "", photo.ID, "photo_deleted"})
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -141,6 +143,9 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err := photoMgr.Update(photo); err != nil {
 		panic(err)
 	}
+	if user, err := session.GetCurrentUser(c, r); err == nil {
+		sendMessage(&Message{user.Name, "", photo.ID, "photo_updated"})
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -164,6 +169,9 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	if err := photoMgr.UpdateTags(photo); err != nil {
 		panic(err)
+	}
+	if user, err := session.GetCurrentUser(c, r); err == nil {
+		sendMessage(&Message{user.Name, "", photo.ID, "photo_updated"})
 	}
 	w.WriteHeader(http.StatusOK)
 }
@@ -223,6 +231,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	sendMessage(&Message{user.Name, "", photo.ID, "photo_uploaded"})
 	writeJSON(w, photo, http.StatusOK)
 }
 

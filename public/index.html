@@ -56,15 +56,17 @@
 
      <div ng-show="alert.message" class="alert fade-in my-animation" ng-class="'alert-'+alert.message.level" ng-cloak>
          <a class="close" ng-click="alert.dismiss()">&times;</a>
-         {{ alert.message.message }}
+         <span ng-bind-html="alert.message.message"></span>
      </div>
 
   <div ng-view ng-animate="{enter: 'animate-enter', leave: 'animate-leave'}"></div>
   </div>
   <script src="bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="bower_components/sockjs/sockjs.min.js"></script>
   <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
   <script src="bower_components/angular/angular.js"></script>
   <script src="bower_components/angular-route/angular-route.js"></script>
+  <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
   <script src="bower_components/angular-resource/angular-resource.js"></script>
   <script src="js/app.js"></script>
   <script src="js/services.js"></script>

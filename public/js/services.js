@@ -3,6 +3,63 @@
 /* Services */
 
 angular.module('photoshare.services', [])
+    .service('MessageQueue', ['$window',
+                              '$rootScope',
+                              'urls',
+                              'Alert',
+                              'Session', function ($window, $rootScope, urls, Alert, Session) {
+
+        var options = {
+            debug: true,
+            devel: true,
+            protocols_whitelist: ['websocket',
+                                  'xdr-streaming',
+                                  'xhr-streaming',
+                                  'iframe-eventsource',
+                                  'iframe-htmlfile',
+                                  'xdr-polling',
+                                  'xhr-polling',
+                                  'iframe-xhr-polling',
+                                  'jsonp-polling']
+        };
+        function Mq() {
+            var $this = this, newMessage = null;
+            $this.socket = new $window.SockJS(urls.messages, undefined, options);
+            $this.socket.onmessage = function (e) {
+                var msg = JSON.parse(e.data), content=null, photoLink = null;
+                if (msg.sender === Session.name) {
+                    return;
+                }
+                if (msg.receiver && msg.receiver !== Session.name) {
+                    return;
+                }
+                if (msg.photoID) {
+                    photoLink = '<a href="/#/detail/' + msg.photoID + '">a photo</a>';
+                }
+                switch (msg.type) {
+                    case 'login':
+                    content = msg.sender + " has logged in";
+                    break;
+                    case 'logout':
+                    content = msg.sender + " has logged out";
+                    break
+                    case 'photo_deleted':
+                    content = msg.sender + " has deleted a photo";
+                    break;
+                    case 'photo_updated':
+                    content = msg.sender + " has updated " + photoLink;
+                    break;
+                    case 'photo_uploaded':
+                    content = msg.sender + " has uploaded " + photoLink;
+                    break;
+                }
+                $this.newMessage = content;
+                $rootScope.$digest();
+            };
+        };
+
+        return new Mq();
+    }])
     .service('Session', ['$location', 'Alert', function ($location, Alert) {
 
         function Session() {
@@ -79,10 +136,10 @@ angular.module('photoshare.services', [])
 
         Authenticator.prototype.logout = function () {
             var $this = this, d = $q.defer();
-            $window.localStorage.removeItem("authToken")
             $this.$delete(function (result) {
                 Session.clear();
                 d.resolve(result);
+                $window.localStorage.removeItem("authToken")
             });
             return d.promise;
         };

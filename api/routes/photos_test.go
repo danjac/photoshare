@@ -31,7 +31,19 @@ func (m *MockPhotoManager) Get(photoID string) (*models.Photo, error) {
 }
 
 func (m *MockPhotoManager) GetDetail(photoID string, user *models.User) (*models.PhotoDetail, error) {
-	return nil, nil
+	canEdit := user.ID == 1
+	photo := &models.PhotoDetail{
+		Photo: models.Photo{
+			ID: 1,
+			Title: "test",
+			OwnerID: 1,
+		},
+		OwnerName: "tester",
+		Permissions: &models.Permissions{
+			Edit: canEdit,
+		},
+	}
+	return photo, nil
 }
 
 func (m *MockPhotoManager) All(pageNum int64, orderBy string) (*models.PhotoList, error) {
@@ -95,6 +107,12 @@ func TestGetPhotoDetail(t *testing.T) {
 	photoDetail(c, res, req)
 	value := &models.PhotoDetail{}
 	parseJsonBody(res, value)
+	if value.Title != "test" {
+		t.Fail()
+	}
+	if value.Permissions.Edit {
+		t.Fail()
+	}
 }
 
 func TestGetPhotos(t *testing.T) {

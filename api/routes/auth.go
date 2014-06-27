@@ -8,6 +8,26 @@ import (
 	"strings"
 )
 
+var getUserValidator = func(user *models.User) validation.Validator {
+	return validation.NewUserValidator(user)
+}
+
+var getCurrentUser = func(c web.C, r *http.Request) (*models.User, error) {
+
+	obj, ok := c.Env["user"]
+	if ok {
+		return obj.(*models.User), nil
+	}
+
+	user, err := sessionMgr.GetCurrentUser(r)
+	if err != nil {
+		return nil, err
+	}
+
+	c.Env["user"] = user
+	return user, nil
+}
+
 // Basic user session info
 type SessionInfo struct {
 	ID       int64  `json:"id"`
@@ -97,7 +117,7 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 	// email should always be lower case
 	user.Email = strings.ToLower(user.Email)
 
-	validator := validation.NewUserValidator(user)
+	validator := getUserValidator(user)
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {

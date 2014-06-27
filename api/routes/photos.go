@@ -10,7 +10,14 @@ import (
 	"strings"
 )
 
-var allowedContentTypes = []string{"image/png", "image/jpeg"}
+var (
+	allowedContentTypes = []string{"image/png", "image/jpeg"}
+	imageProcessor      = storage.NewImageProcessor()
+)
+
+var getPhotoValidator = func(photo *models.Photo) validation.Validator {
+	return validation.NewPhotoValidator(photo)
+}
 
 func isAllowedContentType(contentType string) bool {
 	for _, value := range allowedContentTypes {
@@ -129,7 +136,7 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	photo.Title = s.Title
 
-	validator := validation.NewPhotoValidator(photo)
+	validator := getPhotoValidator(photo)
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
@@ -206,8 +213,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	defer src.Close()
 
-	processor := storage.NewImageProcessor()
-	filename, err := processor.Process(src, contentType)
+	filename, err := imageProcessor.Process(src, contentType)
 
 	if err != nil {
 		panic(err)
@@ -216,7 +222,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 	photo := &models.Photo{Title: title,
 		OwnerID: user.ID, Filename: filename, Tags: tags}
 
-	validator := validation.NewPhotoValidator(photo)
+	validator := getPhotoValidator(photo)
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {

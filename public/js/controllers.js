@@ -22,6 +22,11 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             $scope.alert = Alert;
             $scope.mq = MessageQueue;
             $scope.searchQuery = "";
+            $scope.currentUrl = $location.path();
+
+            $scope.isActive = function(url) {
+                return $scope.currentUrl.indexOf(url, $scope.currentUrl.length - url.length) !== -1;
+            }
 
             Authenticator.init();
 
@@ -35,6 +40,10 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 if (newValue) {
                     Alert.success(newValue);
                 }
+            });
+
+            $scope.$on('$locationChangeStart', function (next, current) {
+                $scope.currentUrl = current;
             });
 
             $scope.logout = function () {

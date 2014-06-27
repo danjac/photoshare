@@ -9,20 +9,6 @@ import (
 	"testing"
 )
 
-type MockAnonymousSessionManager struct{}
-
-func (m *MockAnonymousSessionManager) GetCurrentUser(r *http.Request) (*models.User, error) {
-	return &models.User{}, nil
-}
-
-func (m *MockAnonymousSessionManager) Login(w http.ResponseWriter, user *models.User) (string, error) {
-	return "", nil
-}
-
-func (m *MockAnonymousSessionManager) Logout(w http.ResponseWriter) (string, error) {
-	return "", nil
-}
-
 type MockPhotoManager struct {
 }
 
@@ -101,7 +87,10 @@ func TestGetPhotoDetail(t *testing.T) {
 	res := httptest.NewRecorder()
 	c := newContext()
 
-	sessionMgr = &MockAnonymousSessionManager{}
+	getCurrentUser = func(c web.C, r *http.Request) (*models.User, error) {
+		return &models.User{}, nil
+	}
+
 	photoMgr = &MockPhotoManager{}
 
 	photoDetail(c, res, req)

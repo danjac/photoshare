@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/json"
 	"github.com/danjac/photoshare/api/models"
 	"github.com/zenazn/goji/web"
 	"net/http"
@@ -9,14 +8,14 @@ import (
 	"testing"
 )
 
-type MockPhotoManager struct {
+type mockPhotoManager struct {
 }
 
-func (m *MockPhotoManager) Get(photoID string) (*models.Photo, error) {
+func (m *mockPhotoManager) Get(photoID string) (*models.Photo, error) {
 	return nil, nil
 }
 
-func (m *MockPhotoManager) GetDetail(photoID string, user *models.User) (*models.PhotoDetail, error) {
+func (m *mockPhotoManager) GetDetail(photoID string, user *models.User) (*models.PhotoDetail, error) {
 	canEdit := user.ID == 1
 	photo := &models.PhotoDetail{
 		Photo: models.Photo{
@@ -32,7 +31,7 @@ func (m *MockPhotoManager) GetDetail(photoID string, user *models.User) (*models
 	return photo, nil
 }
 
-func (m *MockPhotoManager) All(pageNum int64, orderBy string) (*models.PhotoList, error) {
+func (m *mockPhotoManager) All(pageNum int64, orderBy string) (*models.PhotoList, error) {
 	item := &models.Photo{
 		ID:      1,
 		Title:   "test",
@@ -42,43 +41,58 @@ func (m *MockPhotoManager) All(pageNum int64, orderBy string) (*models.PhotoList
 	return models.NewPhotoList(photos, 1, 1), nil
 }
 
-func (m *MockPhotoManager) ByOwnerID(pageNum int64, ownerID string) (*models.PhotoList, error) {
+func (m *mockPhotoManager) ByOwnerID(pageNum int64, ownerID string) (*models.PhotoList, error) {
 	return &models.PhotoList{}, nil
 }
 
-func (m *MockPhotoManager) Search(pageNum int64, q string) (*models.PhotoList, error) {
+func (m *mockPhotoManager) Search(pageNum int64, q string) (*models.PhotoList, error) {
 	return &models.PhotoList{}, nil
 }
 
-func (m *MockPhotoManager) UpdateTags(photo *models.Photo) error {
+func (m *mockPhotoManager) UpdateTags(photo *models.Photo) error {
 	return nil
 }
 
-func (m *MockPhotoManager) GetTagCounts() ([]models.TagCount, error) {
+func (m *mockPhotoManager) GetTagCounts() ([]models.TagCount, error) {
 	return []models.TagCount{}, nil
 }
 
-func (m *MockPhotoManager) Delete(photo *models.Photo) error {
+func (m *mockPhotoManager) Delete(photo *models.Photo) error {
 	return nil
 }
 
-func (m *MockPhotoManager) Insert(photo *models.Photo) error {
+func (m *mockPhotoManager) Insert(photo *models.Photo) error {
 	return nil
 }
 
-func (m *MockPhotoManager) Update(photo *models.Photo) error {
+func (m *mockPhotoManager) Update(photo *models.Photo) error {
 	return nil
 }
 
-func parseJsonBody(res *httptest.ResponseRecorder, value interface{}) error {
-	return json.Unmarshal([]byte(res.Body.String()), value)
+type emptyPhotoManager struct {
+	mockPhotoManager
 }
 
-func newContext() web.C {
-	c := web.C{}
-	c.Env = make(map[string]interface{})
-	c.URLParams = make(map[string]string)
-	return c
+func (m *emptyPhotoManager) GetDetail(photoID string, user *models.User) (*models.PhotoDetail, error) {
+	return nil, nil
+}
+
+// should return a 404
+func TestGetPhotoDetailIfNone(t *testing.T) {
+	req := &http.Request{}
+	res := httptest.NewRecorder()
+	c := newContext()
+
+	getCurrentUser = func(c web.C, r *http.Request) (*models.User, error) {
+		return &models.User{}, nil
+	}
+
+	photoMgr = &emptyPhotoManager{}
+
+	photoDetail(c, res, req)
+	if res.Code != 404 {
+		t.Fail()
+	}
 }
 
 func TestGetPhotoDetail(t *testing.T) {
@@ -91,11 +105,14 @@ func TestGetPhotoDetail(t *testing.T) {
 		return &models.User{}, nil
 	}
 
-	photoMgr = &MockPhotoManager{}
+	photoMgr = &mockPhotoManager{}
 
 	photoDetail(c, res, req)
 	value := &models.PhotoDetail{}
 	parseJsonBody(res, value)
+	if res.Code != 200 {
+		t.Fail()
+	}
 	if value.Title != "test" {
 		t.Fail()
 	}
@@ -109,7 +126,7 @@ func TestGetPhotos(t *testing.T) {
 	req := &http.Request{}
 	res := httptest.NewRecorder()
 
-	photoMgr = &MockPhotoManager{}
+	photoMgr = &mockPhotoManager{}
 	getPhotos(web.C{}, res, req)
 	value := &models.PhotoList{}
 	parseJsonBody(res, value)

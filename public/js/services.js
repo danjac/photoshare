@@ -171,18 +171,21 @@ angular.module('photoshare.services', [])
     .service('Alert', [function () {
 
         function Alert() {
-            this.message = null;
-            this.addMessage = function (message, level) {
-                this.message = {message: message, level: level};
+            var $this = this;
+            $this.message = null;
+
+            var addMessage = function (level, message) {
+                $this.message = {message: message, level: level};
             };
-            this.dismiss = function () { this.message = null; };
 
-            this.success = function (message) { this.addMessage(message, "success"); };
-            this.info = function (message) { this.addMessage(message, "info"); };
-            this.warning = function (message) { this.addMessage(message, "warning"); };
-            this.danger = function (message) { this.addMessage(message, "danger"); };
+            $this.dismiss = function () { $this.message = null; };
+
+            $this.success = addMessage.bind(null, "success");
+            $this.info = addMessage.bind(null, "info");
+            $this.warning = addMessage.bind(null, "warning");
+            $this.danger = addMessage.bind(null, "danger");
+
         }
-
         return new Alert();
 
     }]);

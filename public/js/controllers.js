@@ -38,7 +38,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
 
             $scope.$watch('mq.newMessage', function(newValue, oldValue) {
                 if (newValue) {
-                    Alert.success(newValue);
+                    Alert.info(newValue);
                 }
             });
 

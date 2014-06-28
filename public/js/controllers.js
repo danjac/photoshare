@@ -7,15 +7,15 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                             '$location',
                             '$timeout',
                             'Session',
+                            'Auth',
                             'MessageQueue',
-                            'Authenticator',
                             'Alert',
                             function ($scope,
                                       $location,
                                       $timeout,
                                       Session,
+                                      Auth,
                                       MessageQueue,
-                                      Authenticator,
                                       Alert) {
 
             $scope.session = Session;
@@ -28,7 +28,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
                 return $scope.currentUrl.indexOf(url, $scope.currentUrl.length - url.length) !== -1;
             }
 
-            Authenticator.init();
+            Session.init(Auth);
 
             $scope.$watch('alert.message', function (newValue, oldValue) {
                 if (newValue) {
@@ -47,7 +47,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
             });
 
             $scope.logout = function () {
-                Authenticator.logout().then(function () {
+                Session.logout().then(function () {
                     $location.path("/popular");
                 });
             };
@@ -278,21 +278,22 @@ angular.module('photoshare.controllers', ['photoshare.services'])
     .controller('LoginCtrl', ['$scope',
                               '$location',
                               'Session',
-                              'Authenticator',
+                              'Auth',
                               'Alert',
                               'authToken', function ($scope,
                                                      $location,
                                                      Session,
-                                                     Authenticator,
+                                                     Auth,
                                                      Alert,
                                                      authToken) {
 
-        $scope.loginCreds = new Authenticator.resource();
+        $scope.loginCreds = new Auth();
         $scope.login = function () {
             $scope.loginCreds.$save(function (result, headers) {
-                $scope.loginCreds = new Authenticator.resource();
+                $scope.loginCreds = new Auth();
                 if (result.loggedIn) {
-                    Authenticator.login(result, headers(authToken));
+                    Session.login(result, headers(authToken));
+                    //Authenticator.login(result, headers(authToken));
                     Alert.success("Welcome back, " + result.name);
                     var path = Session.getLastLoginUrl() || "/popular";
                     if (path == $location.path() || path == '/signup') {

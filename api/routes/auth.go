@@ -2,16 +2,20 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
+	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/validation"
 	"github.com/zenazn/goji/web"
 	"net/http"
 	"strings"
 )
 
+var sessionMgr = session.NewSessionManager()
+
 var getUserValidator = func(user *models.User) validation.Validator {
 	return validation.NewUserValidator(user)
 }
 
+// lazily looks up user in session and stores in context.
 var getCurrentUser = func(c web.C, r *http.Request) (*models.User, error) {
 
 	obj, ok := c.Env["user"]
@@ -29,19 +33,19 @@ var getCurrentUser = func(c web.C, r *http.Request) (*models.User, error) {
 }
 
 // Basic user session info
-type SessionInfo struct {
+type sessionInfo struct {
 	ID       int64  `json:"id"`
 	Name     string `json:"name"`
 	IsAdmin  bool   `json:"isAdmin"`
 	LoggedIn bool   `json:"loggedIn"`
 }
 
-func newSessionInfo(user *models.User) *SessionInfo {
+func newSessionInfo(user *models.User) *sessionInfo {
 	if user == nil || user.ID == 0 || !user.IsAuthenticated {
-		return &SessionInfo{}
+		return &sessionInfo{}
 	}
 
-	return &SessionInfo{user.ID, user.Name, user.IsAdmin, true}
+	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
 func logout(c web.C, w http.ResponseWriter, r *http.Request) {

@@ -60,12 +60,30 @@ angular.module('photoshare.services', [])
 
         return new Mq();
     }])
-    .service('Session', ['$location', 'Alert', function ($location, Alert) {
+    .service('Session', ['$location',
+                         '$window',
+                         '$q',
+                         'Alert', function ($location, $window, $q, Alert) {
 
         function Session() {
             this.clear();
             this.lastLoginUrl = null;
         }
+
+        Session.prototype.init = function (authResource) {
+            this.resource = authResource;
+            this.sync();
+        }
+
+        Session.prototype.sync = function () {
+            var $this = this, d = $q.defer();
+            $this.resource.get({}, function (result) {
+                $this.$delete = result.$delete;
+                $this.login(result);
+                d.resolve(result);
+            });
+            return d.promise;
+        };
 
         Session.prototype.redirectToLogin = function () {
             this.clear();
@@ -75,11 +93,12 @@ angular.module('photoshare.services', [])
         }
 
         Session.prototype.check = function () {
-            if (!this.loggedIn) {
-                this.redirectToLogin();
-                return false;
+            var $this = this;
+            $this.sync().then(function () {
+                if (!$this.loggedIn) {
+                    $this.redirectToLogin();
                 }
-            return true;
+            });
         }
 
         Session.prototype.setLastLoginUrl = function () {
@@ -106,46 +125,31 @@ angular.module('photoshare.services', [])
             this.isAdmin = session.isAdmin;
         };
 
-        return new Session();
-
-    }])
-    .service('Authenticator', ['$resource',
-                               '$q',
-                               '$window',
-                               'urls',
-                               'Session', function ($resource, $q, $window, urls, Session) {
-
-        function Authenticator() {
-            this.resource = $resource(urls.auth);
-        }
-
-        Authenticator.prototype.init = function () {
-            var $this = this;
-            $this.resource.get({}, function (result) {
-                $this.login(result);
-            });
-        };
-
-        Authenticator.prototype.login = function (result, token) {
-            Session.set(result);
+        Session.prototype.login = function (result, token) {
+            this.set(result);
             this.$delete = result.$delete;
             if (token) {
                 $window.localStorage.setItem("authToken", token)
             }
         };
 
-        Authenticator.prototype.logout = function () {
+        Session.prototype.logout = function () {
             var $this = this, d = $q.defer();
             $this.$delete(function (result) {
-                Session.clear();
+                $this.clear();
                 d.resolve(result);
                 $window.localStorage.removeItem("authToken")
             });
             return d.promise;
         };
 
-        return new Authenticator();
+        return new Session();
 
+    }])
+    .service('Auth', ['$resource',
+                      'urls',
+                      'Session', function ($resource, urls) {
+        return $resource(urls.auth);
     }])
     .service('Photo', ['$resource', 'urls', function ($resource, urls) {
         return $resource(urls.photos, {id: '@id'}, {

@@ -43,7 +43,7 @@
         <ul class="nav navbar-nav navbar-right">
             <li ng-show="!session.loggedIn" ng-class="{active: isActive('/login')}"><a href="#/login">Login</a></li>
             <li ng-show="!session.loggedIn" ng-class="{active: isActive('/signup')}"><a href="#/signup">Signup</a></li>
-            <li ng-show="session.loggedIn"><a href="#/owner/{{session.id}}/{{session.name}}">{{session.name}}</a></li>
+            <li ng-show="session.loggedIn" ng-class="{active: isActive('/owner/'+session.id+'/'+session.name)}"><a href="#/owner/{{session.id}}/{{session.name}}">{{session.name}}</a></li>
             <li><a ng-click="logout()" ng-show="session.loggedIn">Logout</a></li>
         </ul>
       </div>

@@ -2,7 +2,6 @@ package routes
 
 import (
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/session"
 	"github.com/zenazn/goji"
 	"regexp"
 )
@@ -10,7 +9,6 @@ import (
 var (
 	photoMgr     = models.NewPhotoManager()
 	userMgr      = models.NewUserManager()
-	sessionMgr   = session.NewSessionManager()
 	ownerUrl     = regexp.MustCompile(`/api/photos/owner/(?P<ownerID>\d+)$`)
 	photoUrl     = regexp.MustCompile(`/api/photos/(?P<id>\d+)$`)
 	titleUrl     = regexp.MustCompile(`/api/photos/(?P<id>\d+)/title$`)

@@ -78,7 +78,6 @@ angular.module('photoshare.services', [])
         Session.prototype.sync = function () {
             var $this = this, d = $q.defer();
             $this.resource.get({}, function (result) {
-                $this.$delete = result.$delete;
                 $this.login(result);
                 d.resolve(result);
             });

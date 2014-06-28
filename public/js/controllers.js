@@ -308,12 +308,12 @@ angular.module('photoshare.controllers', ['photoshare.services'])
     .controller('SignupCtrl', ['$scope',
                                '$location',
                                'User',
-                               'Authenticator',
+                               'Session',
                                'Alert',
                                'authToken', function ($scope,
                                                       $location,
                                                       User,
-                                                      Authenticator,
+                                                      Session,
                                                       Alert,
                                                       authToken) {
 
@@ -321,7 +321,7 @@ angular.module('photoshare.controllers', ['photoshare.services'])
         $scope.formErrors = {};
         $scope.signup = function () {
             $scope.newUser.$save(function (result, headers) {
-                Authenticator.login(result, headers(authToken));
+                Session.login(result, headers(authToken));
                 $scope.newUser = new User();
                 Alert.success("Welcome, " + result.name);
                 $location.path("/popular");

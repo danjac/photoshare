@@ -1,150 +1,151 @@
-'use strict';
 
+(function (){
+    'use strict';
+    // Declare app level module which depends on filters, and services
+    angular.module('photoshare', [
+        'ngRoute',
+        'ngResource',
+        'ngSanitize',
+        'photoshare.filters',
+        'photoshare.services',
+        'photoshare.directives',
+        'photoshare.controllers'
+    ]).
+        constant('urls', {
+            auth: '/api/auth/',
+            photos: '/api/photos/:id',
+            users: '/api/user/',
+            tags: '/api/tags/',
+            messages: '/api/messages'
+        }).
+        constant('authToken', 'X-Auth-Token').
+        config(['$routeProvider',
+                '$locationProvider',
+                '$httpProvider',
+                '$resourceProvider', function (
+            $routeProvider,
+            $locationProvider,
+            $httpProvider,
+            $resourceProvider
+        ) {
+            $routeProvider.
 
-// Declare app level module which depends on filters, and services
-angular.module('photoshare', [
-    'ngRoute',
-    'ngResource',
-    'ngSanitize',
-    'photoshare.filters',
-    'photoshare.services',
-    'photoshare.directives',
-    'photoshare.controllers'
-]).
-    constant('urls', {
-        auth: '/api/auth/',
-        photos: '/api/photos/:id',
-        users: '/api/user/',
-        tags: '/api/tags/',
-        messages: '/api/messages'
-    }).
-    constant('authToken', 'X-Auth-Token').
-    config(['$routeProvider',
-            '$locationProvider',
-            '$httpProvider',
-            '$resourceProvider', function (
-        $routeProvider,
-        $locationProvider,
-        $httpProvider,
-        $resourceProvider
-    ) {
-        $routeProvider.
+                when('/popular', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
 
-            when('/popular', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
+                when('/latest', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
 
-            when('/latest', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
+                when('/tags', {templateUrl: 'partials/tags.html', controller: 'TagsCtrl'}).
 
-            when('/tags', {templateUrl: 'partials/tags.html', controller: 'TagsCtrl'}).
+                when('/search/:q', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
 
-            when('/search/:q', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
+                when('/owner/:ownerID/:ownerName', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
 
-            when('/owner/:ownerID/:ownerName', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
+                when('/detail/:id', {templateUrl: 'partials/detail.html', controller: 'DetailCtrl'}).
 
-            when('/detail/:id', {templateUrl: 'partials/detail.html', controller: 'DetailCtrl'}).
+                when('/upload', {templateUrl: 'partials/upload.html', controller: 'UploadCtrl'}).
 
-            when('/upload', {templateUrl: 'partials/upload.html', controller: 'UploadCtrl'}).
+                when('/login', {templateUrl: 'partials/login.html', controller: 'LoginCtrl'}).
 
-            when('/login', {templateUrl: 'partials/login.html', controller: 'LoginCtrl'}).
+                when('/signup', {templateUrl: 'partials/signup.html', controller: 'SignupCtrl'}).
 
-            when('/signup', {templateUrl: 'partials/signup.html', controller: 'SignupCtrl'}).
+                otherwise({redirectTo: '/popular'});
+            //$locationProvider.html5Mode(true);
+            //
+            $resourceProvider.defaults.stripTrailingSlashes = false;
 
-            otherwise({redirectTo: '/popular'});
-        //$locationProvider.html5Mode(true);
-        //
-        $resourceProvider.defaults.stripTrailingSlashes = false;
+            //$httpProvider.defaults.xsrfCookieName = "csrf_token";
+            //$httpProvider.defaults.xsrfHeaderName = "X-CSRF-Token";
 
-        //$httpProvider.defaults.xsrfCookieName = "csrf_token";
-        //$httpProvider.defaults.xsrfHeaderName = "X-CSRF-Token";
+            // handle file uploads
 
-        // handle file uploads
+            $httpProvider.defaults.transformRequest = function (data, headersGetter) {
 
-        $httpProvider.defaults.transformRequest = function (data, headersGetter) {
+                if (data === undefined) {
+                    return data;
+                }
 
-            if (data === undefined) {
-                return data;
-            }
+                var fd = new FormData(),
+                    isFileUpload = false,
+                    headers = headersGetter();
 
-            var fd = new FormData(),
-                isFileUpload = false,
-                headers = headersGetter();
-
-            angular.forEach(data, function (value, key) {
-                if (value instanceof FileList) {
-                    isFileUpload = true;
-                    if (value.length === 1) {
-                        fd.append(key, value[0]);
+                angular.forEach(data, function (value, key) {
+                    if (value instanceof FileList) {
+                        isFileUpload = true;
+                        if (value.length === 1) {
+                            fd.append(key, value[0]);
+                        } else {
+                            angular.forEach(value, function (file, index) {
+                                fd.append(key + "_" + index, file);
+                            });
+                        }
                     } else {
-                        angular.forEach(value, function (file, index) {
-                            fd.append(key + "_" + index, file);
-                        });
+                        fd.append(key, value);
                     }
-                } else {
-                    fd.append(key, value);
+                });
+                if (isFileUpload) {
+                    headers["Content-Type"] = undefined;
+                    return fd;
                 }
+
+                return JSON.stringify(data);
+            };
+
+            var interceptors = ['AuthInterceptor', 'ErrorInterceptor'];
+
+            angular.forEach(interceptors, function (interceptor) {
+                $httpProvider.interceptors.push([
+                    '$injector', function ($injector) {
+                        return $injector.get(interceptor);
+                    }
+                ]);
             });
-            if (isFileUpload) {
-                headers["Content-Type"] = undefined;
-                return fd;
-            }
 
-            return JSON.stringify(data);
-        };
+        }]).factory('AuthInterceptor', function ($window, authToken) {
 
-        var interceptors = ['AuthInterceptor', 'ErrorInterceptor'];
-
-        angular.forEach(interceptors, function (interceptor) {
-            $httpProvider.interceptors.push([
-                '$injector', function ($injector) {
-                    return $injector.get(interceptor);
+            return {
+                request: function (config) {
+                    config.headers = config.headers || {};
+                    var token = $window.localStorage.getItem("authToken");
+                    if (token) {
+                        config.headers[authToken] = token;
+                    }
+                    return config;
                 }
-            ]);
+            };
+
+        }).factory('ErrorInterceptor', function ($q, $location, Session, Alert) {
+            return {
+
+                response: function (response) {
+                    return response;
+                },
+
+                responseError: function (response) {
+                    var rejection = $q.reject(response),
+                        status = response.status,
+                        defaultAlert = 'Sorry, an error has occurred';
+
+                    if (status == 401) {
+                        Session.redirectToLogin();
+                        return;
+                    }
+                    if (status == 403) {
+                        defaultAlert = "Sorry, you're not allowed to do this";
+                    }
+                    if (status == 400 && response.data.errors) {
+                        defaultAlert = "Sorry, your form contains errors, please try again";
+                    }
+                    if (status == 413) {
+                        defaultAlert = "The file was too large!";
+                    }
+                    if (response.data && typeof(response.data) === 'string') {
+                        alert = response.data;
+                    } else {
+                        alert = defaultAlert;
+                    }
+                    Alert.danger(alert);
+                    return rejection;
+                }
+            };
         });
-
-    }]).factory('AuthInterceptor', function ($window, authToken) {
-
-        return {
-            request: function (config) {
-                config.headers = config.headers || {};
-                var token = $window.localStorage.getItem("authToken");
-                if (token) {
-                    config.headers[authToken] = token;
-                }
-                return config;
-            }
-        };
-
-    }).factory('ErrorInterceptor', function ($q, $location, Session, Alert) {
-        return {
-
-            response: function (response) {
-                return response;
-            },
-
-            responseError: function (response) {
-                var rejection = $q.reject(response),
-                    status = response.status,
-                    defaultAlert = 'Sorry, an error has occurred';
-
-                if (status == 401) {
-                    Session.redirectToLogin();
-                    return;
-                }
-                if (status == 403) {
-                    defaultAlert = "Sorry, you're not allowed to do this";
-                }
-                if (status == 400 && response.data.errors) {
-                    defaultAlert = "Sorry, your form contains errors, please try again";
-                }
-                if (status == 413) {
-                    defaultAlert = "The file was too large!";
-                }
-                if (response.data && typeof(response.data) === 'string') {
-                    alert = response.data;
-                } else {
-                    alert = defaultAlert;
-                }
-                Alert.danger(alert);
-                return rejection;
-            }
-        };
-    });
+})();

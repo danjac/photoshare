@@ -31,7 +31,7 @@ describe('controllers', function (){
         expect(scope.photos.length).toBe(1);
     }));
 
-    it('should show upload form', inject(function ($location, $rootScope, $controller, _$httpBackend_, Session) {
+    it('should show upload form', inject(function ($location, $rootScope, $controller, _$httpBackend_, Auth, Session) {
         var scope = $rootScope.$new(),
             httpBackend = _$httpBackend_,
             data = {
@@ -46,8 +46,7 @@ describe('controllers', function (){
             'title': 'test'
         });
 
-        Session.loggedIn = true;
-
+        Session.check = function () {};
         $controller('UploadCtrl', { $scope: scope });
 
         scope.newPhoto.title = data.title;

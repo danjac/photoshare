@@ -281,19 +281,19 @@
                                   'Session',
                                   'Auth',
                                   'Alert',
-                                  'authToken', function ($scope,
-                                                         $location,
-                                                         Session,
-                                                         Auth,
-                                                         Alert,
-                                                         authToken) {
+                                  'authTokenHeader', function ($scope,
+                                                               $location,
+                                                               Session,
+                                                               Auth,
+                                                               Alert,
+                                                               authTokenHeader) {
 
             $scope.loginCreds = new Auth();
             $scope.login = function () {
                 $scope.loginCreds.$save(function (result, headers) {
                     $scope.loginCreds = new Auth();
                     if (result.loggedIn) {
-                        Session.login(result, headers(authToken));
+                        Session.login(result, headers(authTokenHeader));
                         //Authenticator.login(result, headers(authToken));
                         Alert.success("Welcome back, " + result.name);
                         var path = Session.getLastLoginUrl() || "/popular";
@@ -311,18 +311,18 @@
                                    'User',
                                    'Session',
                                    'Alert',
-                                   'authToken', function ($scope,
-                                                          $location,
-                                                          User,
-                                                          Session,
-                                                          Alert,
-                                                          authToken) {
+                                   'authTokenHeader', function ($scope,
+                                                                $location,
+                                                                User,
+                                                                Session,
+                                                                Alert,
+                                                                authTokenHeader) {
 
             $scope.newUser = new User();
             $scope.formErrors = {};
             $scope.signup = function () {
                 $scope.newUser.$save(function (result, headers) {
-                    Session.login(result, headers(authToken));
+                    Session.login(result, headers(authTokenHeader));
                     $scope.newUser = new User();
                     Alert.success("Welcome, " + result.name);
                     $location.path("/popular");

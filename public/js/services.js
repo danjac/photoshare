@@ -64,7 +64,12 @@
         .service('Session', ['$location',
                              '$window',
                              '$q',
-                             'Alert', function ($location, $window, $q, Alert) {
+                             'authTokenStorageKey',
+                             'Alert', function ($location,
+                                                $window,
+                                                $q,
+                                                authTokenStorageKey,
+                                                Alert) {
 
             function Session() {
                 this.clear();
@@ -129,7 +134,7 @@
                 this.set(result);
                 this.$delete = result.$delete;
                 if (token) {
-                    $window.localStorage.setItem("authToken", token)
+                    $window.localStorage.setItem(authTokenStorageKey, token)
                 }
             };
 
@@ -138,7 +143,7 @@
                 $this.$delete(function (result) {
                     $this.clear();
                     d.resolve(result);
-                    $window.localStorage.removeItem("authToken")
+                    $window.localStorage.removeItem(authTokenStorageKey)
                 });
                 return d.promise;
             };

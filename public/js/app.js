@@ -18,7 +18,8 @@
             tags: '/api/tags/',
             messages: '/api/messages'
         }).
-        constant('authToken', 'X-Auth-Token').
+        constant('authTokenHeader', 'X-Auth-Token').
+        constant('authTokenStorageKey', 'authToken').
         config(['$routeProvider',
                 '$locationProvider',
                 '$httpProvider',
@@ -100,14 +101,14 @@
                 ]);
             });
 
-        }]).factory('AuthInterceptor', function ($window, authToken) {
+        }]).factory('AuthInterceptor', function ($window, authTokenHeader, authTokenStorageKey) {
 
             return {
                 request: function (config) {
                     config.headers = config.headers || {};
-                    var token = $window.localStorage.getItem("authToken");
+                    var token = $window.localStorage.getItem(authTokenStorageKey);
                     if (token) {
-                        config.headers[authToken] = token;
+                        config.headers[authTokenHeader] = token;
                     }
                     return config;
                 }

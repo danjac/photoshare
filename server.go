@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/danjac/photoshare/api/config"
 	"github.com/danjac/photoshare/api/models"
-	"github.com/danjac/photoshare/api/routes"
+	_ "github.com/danjac/photoshare/api/routes"
 	"github.com/zenazn/goji"
 	"log"
 	"net/http"
@@ -35,8 +35,6 @@ func main() {
 	}
 
 	flag.Set("bind", "localhost:"+config.ServerPort)
-
-	routes.Setup()
 
 	// for local development
 	goji.Get("/*", http.FileServer(http.Dir(config.PublicDir)))

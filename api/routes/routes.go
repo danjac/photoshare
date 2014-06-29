@@ -18,7 +18,7 @@ var (
 	ownerFeedUrl = regexp.MustCompile(`/feeds/owner/(?P<ownerID>\d+)$`)
 )
 
-func Setup() {
+func init() {
 
 	goji.Get("/api/photos/", getPhotos)
 	goji.Post("/api/photos/", upload)

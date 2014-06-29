@@ -230,7 +230,7 @@
             });
 
             $scope.doSearch = function (tag) {
-                $location.path("/search/" + tag);
+                $location.path("/tag/" + tag);
             };
 
             $scope.orderTags = function (field) {

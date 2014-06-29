@@ -342,5 +342,9 @@ func (mgr *defaultPhotoManager) GetTagCounts() ([]TagCount, error) {
 }
 
 func getOffset(pageNum int64) int64 {
-	return (pageNum - 1) * PageSize
+	offset := (pageNum - 1) * PageSize
+	if offset < 0 {
+		offset = 0
+	}
+	return offset
 }

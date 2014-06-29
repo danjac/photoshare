@@ -3,7 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"github.com/danjac/photoshare/api/settings"
+	"github.com/danjac/photoshare/api/config"
 )
 
 type TestDB struct {
@@ -11,11 +11,6 @@ type TestDB struct {
 }
 
 func (tdb *TestDB) Clean() {
-	/*
-		if err := dbMap.TruncateTables(); err != nil {
-			panic(err)
-		}
-	*/
 	var tables = []string{"photo_tags", "tags", "photos", "users"}
 	for _, table := range tables {
 		if _, err := dbMap.Exec("DELETE FROM " + table); err != nil {
@@ -27,16 +22,16 @@ func (tdb *TestDB) Clean() {
 
 func MakeTestDB() (tdb *TestDB) {
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
-		settings.TestDBUser,
-		settings.TestDBName,
-		settings.TestDBPassword,
-		settings.TestDBHost,
+		config.TestDBUser,
+		config.TestDBName,
+		config.TestDBPassword,
+		config.TestDBHost,
 	))
 
 	if err != nil {
 		panic(err)
 	}
-	if _, err := InitDB(db); err != nil {
+	if _, err := InitDB(db, false); err != nil {
 		panic(err)
 	}
 

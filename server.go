@@ -4,13 +4,12 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"github.com/danjac/photoshare/api/config"
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/routes"
-	"github.com/danjac/photoshare/api/settings"
 	"github.com/zenazn/goji"
 	"log"
 	"net/http"
-	"os"
 	"runtime"
 )
 
@@ -19,10 +18,10 @@ func main() {
 	runtime.GOMAXPROCS((runtime.NumCPU() * 2) + 1)
 
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
-		settings.DBUser,
-		settings.DBName,
-		settings.DBPassword,
-		settings.DBHost,
+		config.DBUser,
+		config.DBName,
+		config.DBPassword,
+		config.DBHost,
 	))
 
 	if err != nil {
@@ -31,20 +30,16 @@ func main() {
 
 	defer db.Close()
 
-	if _, err := models.InitDB(db); err != nil {
+	if _, err := models.InitDB(db, config.LogSql); err != nil {
 		log.Fatal(err)
 	}
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "5000"
-	}
-	flag.Set("bind", "localhost:"+port)
+	flag.Set("bind", "localhost:"+config.ServerPort)
 
 	routes.Setup()
 
 	// for local development
-	goji.Get("/*", http.FileServer(http.Dir(settings.PublicDir)))
+	goji.Get("/*", http.FileServer(http.Dir(config.PublicDir)))
 	goji.Serve()
 
 }

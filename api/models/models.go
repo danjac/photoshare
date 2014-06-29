@@ -10,10 +10,12 @@ import (
 
 var dbMap *gorp.DbMap
 
-func InitDB(db *sql.DB) (*gorp.DbMap, error) {
+func InitDB(db *sql.DB, logSql bool) (*gorp.DbMap, error) {
 	dbMap = &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
 
-	dbMap.TraceOn("[sql]", log.New(os.Stdout, "", log.Ldate|log.Lmicroseconds))
+	if logSql {
+		dbMap.TraceOn("[sql]", log.New(os.Stdout, "", log.Ldate|log.Lmicroseconds))
+	}
 
 	dbMap.AddTableWithName(User{}, "users").SetKeys(true, "ID")
 	dbMap.AddTableWithName(Photo{}, "photos").SetKeys(true, "ID")

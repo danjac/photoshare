@@ -2,7 +2,7 @@ package storage
 
 import (
 	"code.google.com/p/graphics-go/graphics"
-	"github.com/danjac/photoshare/api/settings"
+	"github.com/danjac/photoshare/api/config"
 	"github.com/dchest/uniuri"
 	"image"
 	"image/jpeg"
@@ -32,11 +32,11 @@ func (processor LocalImageProcessor) Process(src multipart.File, contentType str
 
 	filename := generateRandomFilename(contentType)
 
-	if err := os.MkdirAll(settings.UploadsDir, 0777); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(config.UploadsDir, 0777); err != nil && !os.IsExist(err) {
 		return filename, err
 	}
 
-	if err := os.MkdirAll(settings.ThumbnailsDir, 0777); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(config.ThumbnailsDir, 0777); err != nil && !os.IsExist(err) {
 		return filename, err
 	}
 
@@ -59,7 +59,7 @@ func (processor LocalImageProcessor) Process(src multipart.File, contentType str
 	thumb := image.NewRGBA(image.Rect(0, 0, 300, 300))
 	graphics.Thumbnail(thumb, img)
 
-	dst, err := os.Create(path.Join(settings.ThumbnailsDir, filename))
+	dst, err := os.Create(path.Join(config.ThumbnailsDir, filename))
 
 	if err != nil {
 		return filename, err
@@ -75,7 +75,7 @@ func (processor LocalImageProcessor) Process(src multipart.File, contentType str
 
 	src.Seek(0, 0)
 
-	dst, err = os.Create(path.Join(settings.UploadsDir, filename))
+	dst, err = os.Create(path.Join(config.UploadsDir, filename))
 
 	if err != nil {
 		return filename, err

@@ -290,6 +290,7 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) (*PhotoList, err
 	clausesSql := strings.Join(clauses, " INTERSECT ")
 
 	countSql := fmt.Sprintf("SELECT COUNT(id) FROM (%s) q", clausesSql)
+
 	if total, err = dbMap.SelectInt(countSql, params...); err != nil {
 		return nil, err
 	}

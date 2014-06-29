@@ -1,7 +1,7 @@
 package session
 
 import (
-	"github.com/danjac/photoshare/api/settings"
+	"github.com/danjac/photoshare/api/config"
 	jwt "github.com/dgrijalva/jwt-go"
 	"io/ioutil"
 	"net/http"
@@ -19,11 +19,11 @@ var (
 
 func init() {
 	var err error
-	signKey, err = ioutil.ReadFile(settings.PrivKeyFile)
+	signKey, err = ioutil.ReadFile(config.PrivKeyFile)
 	if err != nil {
 		panic(err)
 	}
-	verifyKey, err = ioutil.ReadFile(settings.PubKeyFile)
+	verifyKey, err = ioutil.ReadFile(config.PubKeyFile)
 	if err != nil {
 		panic(err)
 	}

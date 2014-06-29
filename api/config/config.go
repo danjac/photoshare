@@ -1,4 +1,4 @@
-package settings
+package config
 
 import (
 	"log"
@@ -6,7 +6,10 @@ import (
 	"path"
 )
 
+var LogSql bool
+
 var (
+	ServerPort,
 	PrivKeyFile,
 	PubKeyFile,
 	DBHost,
@@ -17,11 +20,14 @@ var (
 	TestDBUser,
 	TestDBPassword,
 	TestDBHost,
-	LogPrefix,
 	PublicDir,
 	UploadsDir,
 	ThumbnailsDir string
 )
+
+func isEnv(name string) bool {
+	return os.Getenv(name) != ""
+}
 
 func getEnvOrDie(name string) string {
 	value := os.Getenv(name)
@@ -41,10 +47,12 @@ func getEnvOrElse(name, defaultValue string) string {
 
 func init() {
 
+	ServerPort = getEnvOrElse("PORT", "5000")
+
 	PrivKeyFile = getEnvOrDie("PRIVATE_KEY")
 	PubKeyFile = getEnvOrDie("PUBLIC_KEY")
 
-	LogPrefix = getEnvOrElse("LOG_PREFIX", "photoshare")
+	LogSql = isEnv("LOG_SQL")
 
 	DBName = getEnvOrDie("DB_NAME")
 	DBUser = getEnvOrDie("DB_USER")

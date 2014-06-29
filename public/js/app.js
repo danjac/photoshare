@@ -43,7 +43,7 @@
 
                 when('/detail/:id', {templateUrl: 'partials/detail.html', controller: 'DetailCtrl'}).
 
-                when('/upload', {templateUrl: 'partials/upload.html', controller: 'UploadCtrl'}).
+                when('/upload', {templateUrl: 'partials/upload.html', controller: 'UploadCtrl', loginRequired: true}).
 
                 when('/login', {templateUrl: 'partials/login.html', controller: 'LoginCtrl'}).
 

@@ -43,6 +43,12 @@
                     }
                 });
 
+                $scope.$on('$routeChangeStart', function (event, current, previous) {
+                    if (current.loginRequired) {
+                        Session.check();
+                    }
+                });
+
                 $scope.$on('$locationChangeStart', function (next, current) {
                     $scope.currentUrl = current;
                 });
@@ -240,7 +246,7 @@
                                                       Session,
                                                       Alert,
                                                       Photo) {
-            Session.check();
+            //Session.check();
             $scope.newPhoto = new Photo();
             $scope.upload = null;
             $scope.formDisabled = false;
@@ -294,7 +300,6 @@
                     $scope.loginCreds = new Auth();
                     if (result.loggedIn) {
                         Session.login(result, headers(authTokenHeader));
-                        //Authenticator.login(result, headers(authToken));
                         Alert.success("Welcome back, " + result.name);
                         var path = Session.getLastLoginUrl() || "/popular";
                         if (path == $location.path() || path == '/signup') {

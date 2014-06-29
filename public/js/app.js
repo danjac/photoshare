@@ -37,6 +37,8 @@
 
                 when('/tags', {templateUrl: 'partials/tags.html', controller: 'TagsCtrl'}).
 
+                when('/tag/:tag', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
+
                 when('/search/:q', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).
 
                 when('/owner/:ownerID/:ownerName', {templateUrl: 'partials/list.html', controller: 'ListCtrl'}).

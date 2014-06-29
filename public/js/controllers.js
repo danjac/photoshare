@@ -83,9 +83,11 @@
                     q = $routeParams.q || "",
                     ownerID = $routeParams.ownerID || "",
                     ownerName = $routeParams.ownerName || "",
+                    tag = $routeParams.tag || "",
                     orderBy = $location.path() == "/popular" ? "votes" : "";
 
                 $scope.photos = [];
+                $scope.tag = tag;
                 $scope.searchQuery = q;
                 $scope.ownerName = ownerName;
                 $scope.searchComplete = false;
@@ -96,6 +98,8 @@
 
                 if (q) {
                     apiCall = function (page) { return Photo.search({ q: q, page: page })};
+                } else if (tag) {
+                    apiCall = function (page) { return Photo.search({ q: "#" + tag, page: page })};
                 } else if (ownerID) {
                     apiCall = function (page) { return Photo.byOwner({ ownerID: ownerID, page: page })};
                 } else {

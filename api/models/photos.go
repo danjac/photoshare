@@ -256,15 +256,33 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) (*PhotoList, err
 		if word == "" || num > 6 {
 			break
 		}
-		word = "%" + word + "%"
+
 		num += 1
-		clauses = append(clauses, fmt.Sprintf(
-			"SELECT DISTINCT p.* FROM photos p "+
-				"INNER JOIN users u ON u.id = p.owner_id  "+
-				"LEFT JOIN photo_tags pt ON pt.photo_id = p.id "+
-				"LEFT JOIN tags t ON pt.tag_id=t.id "+
-				"WHERE UPPER(p.title::text) LIKE UPPER($%d) OR UPPER(u.name::text) LIKE UPPER($%d) OR t.name LIKE $%d",
-			num, num, num))
+
+		if strings.HasPrefix(word, "@") {
+			word = word[1:]
+			clauses = append(clauses, fmt.Sprintf(
+				"SELECT p.* FROM photos p "+
+					"INNER JOIN users u ON u.id = p.owner_id  "+
+					"WHERE UPPER(u.name::text) = UPPER($%d)", num))
+		} else if strings.HasPrefix(word, "#") {
+			word = word[1:]
+			clauses = append(clauses, fmt.Sprintf(
+				"SELECT p.* FROM photos p "+
+					"INNER JOIN photo_tags pt ON pt.photo_id = p.id "+
+					"INNER JOIN tags t ON pt.tag_id=t.id "+
+					"WHERE t.name = $%d", num))
+		} else {
+			word = "%" + word + "%"
+			clauses = append(clauses, fmt.Sprintf(
+				"SELECT DISTINCT p.* FROM photos p "+
+					"INNER JOIN users u ON u.id = p.owner_id  "+
+					"LEFT JOIN photo_tags pt ON pt.photo_id = p.id "+
+					"LEFT JOIN tags t ON pt.tag_id=t.id "+
+					"WHERE UPPER(p.title::text) LIKE UPPER($%d) OR "+
+					"UPPER(u.name::text) LIKE UPPER($%d) OR t.name LIKE $%d",
+				num, num, num))
+		}
 
 		params = append(params, interface{}(word))
 	}

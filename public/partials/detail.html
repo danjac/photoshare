@@ -52,7 +52,7 @@
             <dd>{{photo.createdAt|date:"dd/MM/yyyy"}}</dd>
             <dt ng-click="showEditTagsForm()">Tags <span ng-show="!editTags && photo.perms.edit" ng-click="showEditTagsForm()" class="glyphicon glyphicon-pencil"></span></dt>
             <dd ng-show="!editTags">
-                <span ng-repeat="tag in photo.tags"><a ng-href="#/search/{{tag}}">#{{tag}}</a>&nbsp;</span>
+                <span ng-repeat="tag in photo.tags"><a ng-href="#/tag/{{tag}}">#{{tag}}</a>&nbsp;</span>
                 <span ng-show="!photo.tags.length" ng-click="showEditTagsForm()">None</span>
             </dd>
             <dd ng-show="editTags">

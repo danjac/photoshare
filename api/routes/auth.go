@@ -207,7 +207,7 @@ func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 		if !user.IsAuthenticated {
-			writeString(w, "No user found for this email address", http.StatusBadRequest)
+			writeString(w, "Invalid code, no user found", http.StatusBadRequest)
 			return
 		}
 		user.ResetRecoveryCode()
@@ -244,7 +244,7 @@ func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	if !user.IsAuthenticated {
-		http.NotFound(w, r)
+		writeString(w, "No user found for this email address", http.StatusBadRequest)
 		return
 	}
 

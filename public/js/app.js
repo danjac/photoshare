@@ -48,6 +48,10 @@
 
                 when('/login', {templateUrl: 'partials/login.html', controller: 'LoginCtrl'}).
 
+                when('/recoverpass', {templateUrl: 'partials/recover_pass.html', controller: 'RecoverPassCtrl'}).
+
+                when('/changepass', {templateUrl: 'partials/change_pass.html', controller: 'ChangePassCtrl'}).
+
                 when('/signup', {templateUrl: 'partials/signup.html', controller: 'SignupCtrl'}).
 
                 otherwise({redirectTo: '/popular'});
@@ -145,7 +149,7 @@
                     } else {
                         alert = defaultAlert;
                     }
-                    Alert.danger(alert);
+                    Alert.danger(alert || defaultAlert);
                     return rejection;
                 }
             };

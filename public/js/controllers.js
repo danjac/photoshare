@@ -298,10 +298,10 @@
                                                                Alert,
                                                                authTokenHeader) {
 
-            $scope.loginCreds = new Auth();
+            $scope.formData = new Auth();
             $scope.login = function () {
-                $scope.loginCreds.$save(function (result, headers) {
-                    $scope.loginCreds = new Auth();
+                $scope.formData.$save(function (result, headers) {
+                    $scope.formData = new Auth();
                     if (result.loggedIn) {
                         Session.login(result, headers(authTokenHeader));
                         Alert.success("Welcome back, " + result.name);
@@ -313,6 +313,54 @@
                     }
                 });
             };
+        }])
+
+        .controller('RecoverPassCtrl', ['$scope',
+                                        '$location',
+                                        'Auth',
+                                        'Alert', function ($scope, $location, Auth, Alert) {
+
+            $scope.formData = {};
+
+            $scope.recoverPassword = function () {
+                Auth.recoverPassword({}, $scope.formData, function () {
+                   Alert.success("Check your email for a link to change your password")
+                   $location.path("/");
+                }, function (result) {
+                    Alert.danger(result.data);
+                });
+            }
+
+        }])
+
+        .controller('ChangePassCtrl', ['$scope',
+                                       '$location',
+                                       'Auth',
+                                       'Session',
+                                       'Alert', function ($scope, $location, Auth, Session, Alert) {
+
+            var code = $location.search()['code'];
+            $scope.formData = {};
+
+            if (code) {
+                $scope.formData.code = code;
+            } else {
+                Session.check();
+            }
+
+            $scope.changePassword = function () {
+                Auth.changePassword({}, $scope.formData, function () {
+                    Alert.success("Your password has been updated")
+                    if (!Session.loggedIn) {
+                        $location.path("/login")
+                    } else {
+                       $location.path("/");
+                    }
+                }, function (result) {
+                    Alert.danger(result.data || "Sorry, an error occurred");
+                });
+            }
+
         }])
 
         .controller('SignupCtrl', ['$scope',
@@ -327,12 +375,12 @@
                                                                 Alert,
                                                                 authTokenHeader) {
 
-            $scope.newUser = {};
+            $scope.formData = {};
             $scope.formErrors = {};
             $scope.signup = function () {
-                Auth.signup({}, $scope.newUser, function (result, headers) {
+                Auth.signup({}, $scope.formData, function (result, headers) {
                     Session.login(result, headers(authTokenHeader));
-                    $scope.newUser = {};
+                    $scope.formData = {};
                     Alert.success("Welcome, " + result.name);
                     $location.path("/popular");
                 }, function (result) {

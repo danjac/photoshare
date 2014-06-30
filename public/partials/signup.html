@@ -2,7 +2,7 @@
     <div class="form-group"
                ng-class="{'has-error': formErrors.name}">
         <input type="name"
-               ng-model="newUser.name"
+               ng-model="formData.name"
                required="required"
                class="form-control"
                placeholder="Name"/>
@@ -12,7 +12,7 @@
     <div class="form-group"
                ng-class="{'has-error': formErrors.email}">
         <input type="email"
-               ng-model="newUser.email"
+               ng-model="formData.email"
                required="required"
                class="form-control"
                placeholder="Email address"/>
@@ -22,7 +22,7 @@
     <div class="form-group"
                ng-class="{'has-error': formErrors.password}">
         <input type="password"
-               ng-model="newUser.password"
+               ng-model="formData.password"
                required="required"
                class="form-control"
                placeholder="Password"/>

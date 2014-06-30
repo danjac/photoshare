@@ -1,0 +1,11 @@
+<form role="form" name="form" action="" novalidate>
+    <div class="form-group">
+        <input type="email"
+               ng-model="formData.email"
+               required="required"
+               class="form-control"
+               placeholder="My email address"/>
+    </div>
+
+    <button class="btn btn-primary" ng-click="recoverPassword()" ng-disabled="form.$invalid">Recover my password</button>
+</form>

@@ -155,7 +155,9 @@
                           'urls',
                           function ($resource, urls) {
             return $resource(urls.auth, {}, {
-                'signup': { method: 'POST', url: urls.auth + 'signup' }
+                'signup': { method: 'POST', url: urls.auth + 'signup' },
+                'recoverPassword': { method: 'PUT', url: urls.auth + 'recoverpass' },
+                'changePassword': { method: 'PUT', url: urls.auth + 'changepass' }
             });
         }])
         .service('Photo', ['$resource', 'urls', function ($resource, urls) {

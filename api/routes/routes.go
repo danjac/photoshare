@@ -8,9 +8,9 @@ import (
 )
 
 var (
+	mailer       = email.NewMailer()
 	photoMgr     = models.NewPhotoManager()
 	userMgr      = models.NewUserManager()
-	mailer       = email.NewMailer()
 	ownerUrl     = regexp.MustCompile(`/api/photos/owner/(?P<ownerID>\d+)$`)
 	photoUrl     = regexp.MustCompile(`/api/photos/(?P<id>\d+)$`)
 	titleUrl     = regexp.MustCompile(`/api/photos/(?P<id>\d+)/title$`)
@@ -38,6 +38,8 @@ func init() {
 	goji.Post("/api/auth/", login)
 	goji.Delete("/api/auth/", logout)
 	goji.Post("/api/auth/signup", signup)
+	goji.Put("/api/auth/recoverpass", recoverPassword)
+	goji.Put("/api/auth/changepass", changePassword)
 
 	goji.Get("/api/tags/", getTags)
 

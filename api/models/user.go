@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 	"database/sql"
 	"github.com/coopernurse/gorp"
+	"strconv"
 	"time"
 )
 
@@ -13,6 +14,8 @@ type UserManager interface {
 	IsNameAvailable(user *User) (bool, error)
 	IsEmailAvailable(user *User) (bool, error)
 	GetActive(userID string) (*User, error)
+	GetByRecoveryCode(string) (*User, error)
+	GetByEmail(string) (*User, error)
 	Authenticate(identifier string, password string) (*User, error)
 }
 
@@ -76,7 +79,32 @@ func (mgr *defaultUserManager) GetActive(userID string) (*User, error) {
 
 }
 
-func (mgr *defaultUserManager) Authenticate(identifier string, password string) (*User, error) {
+func (mgr *defaultUserManager) GetByRecoveryCode(code string) (*User, error) {
+
+	user := &User{}
+	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, code); err != nil {
+		if err == sql.ErrNoRows {
+			return user, nil
+		}
+		return user, err
+	}
+	user.IsAuthenticated = true
+	return user, nil
+
+}
+func (mgr *defaultUserManager) GetByEmail(email string) (*User, error) {
+	user := &User{}
+	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
+		if err == sql.ErrNoRows {
+			return user, nil
+		}
+		return user, err
+	}
+	user.IsAuthenticated = true
+	return user, nil
+}
+
+func (mgr *defaultUserManager) Authenticate(identifier, password string) (*User, error) {
 	user := &User{}
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
 		if err == sql.ErrNoRows {
@@ -110,6 +138,7 @@ type User struct {
 	IsAdmin         bool      `db:"admin" json:"isAdmin"`
 	IsActive        bool      `db:"active" json:"isActive"`
 	IsAuthenticated bool      `db:"-" json:"isAuthenticated"`
+	RecoveryCode    string    `db:"-" json:""`
 }
 
 func (user *User) PreInsert(s gorp.SqlExecutor) error {
@@ -118,6 +147,15 @@ func (user *User) PreInsert(s gorp.SqlExecutor) error {
 	user.EncryptPassword()
 	user.Votes = "{}"
 	return nil
+}
+
+func (user *User) GenerateRecoveryCode() string {
+	return strconv.Itoa(int(user.ID))
+}
+
+func (user *User) ChangePassword(password string) error {
+	user.Password = password
+	return user.EncryptPassword()
 }
 
 func (user *User) EncryptPassword() error {

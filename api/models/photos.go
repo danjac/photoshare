@@ -271,7 +271,7 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) (*PhotoList, err
 				"SELECT p.* FROM photos p "+
 					"INNER JOIN photo_tags pt ON pt.photo_id = p.id "+
 					"INNER JOIN tags t ON pt.tag_id=t.id "+
-					"WHERE t.name = $%d", num))
+					"WHERE UPPER(t.name::text) = UPPER($%d)", num))
 		} else {
 			word = "%" + word + "%"
 			clauses = append(clauses, fmt.Sprintf(

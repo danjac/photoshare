@@ -131,7 +131,8 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := parseJSON(r, s); err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	photo.Title = s.Title
@@ -168,7 +169,8 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := parseJSON(r, s); err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	photo.Tags = s.Tags

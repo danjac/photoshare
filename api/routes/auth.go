@@ -15,7 +15,10 @@ import (
 
 var sessionMgr = session.NewSessionManager()
 
-var signupTmpl *template.Template
+var (
+	signupTmpl,
+	recoverPassTmpl *template.Template
+)
 
 var getUserValidator = func(user *models.User) validation.Validator {
 	return validation.NewUserValidator(user)
@@ -147,28 +150,129 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user.IsAuthenticated = true
 
-	msg, err := email.MessageFromTemplate(
+	if msg, err := email.MessageFromTemplate(
 		"Welcome to photoshare!",
 		[]string{user.Email},
 		config.DefaultEmailSender,
 		signupTmpl,
 		user,
-	)
+	); err == nil {
+		go func() {
+			if err := mailer.Mail(msg); err != nil {
+				log.Println(err)
+			}
+		}()
 
-	if err != nil {
+	} else {
 		panic(err)
 	}
-
-	go func() {
-		if err := mailer.Mail(msg); err != nil {
-			log.Println(err)
-		}
-	}()
 
 	writeJSON(w, newSessionInfo(user), http.StatusOK)
 
 }
 
+func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
+
+	var (
+		user *models.User
+		err  error
+	)
+
+	s := &struct {
+		Password     string `json:"password"`
+		RecoveryCode string `json:"code"`
+	}{}
+
+	if err = parseJSON(r, s); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if s.RecoveryCode == "" {
+		if user, err = getCurrentUser(c, r); err != nil {
+			panic(err)
+		}
+		if !user.IsAuthenticated {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+	} else {
+		if user, err = userMgr.GetByRecoveryCode(s.RecoveryCode); err != nil {
+			panic(err)
+		}
+		if !user.IsAuthenticated {
+			http.NotFound(w, r)
+			return
+		}
+		user.RecoveryCode = ""
+	}
+
+	if err = user.ChangePassword(s.Password); err != nil {
+		panic(err)
+	}
+
+	if err = userMgr.Update(user); err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+}
+
+func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
+
+	s := &struct {
+		Email string `json:"email"`
+	}{}
+
+	if err := parseJSON(r, s); err != nil {
+		panic(err)
+	}
+	if s.Email == "" {
+		writeString(w, "No email address provided", http.StatusBadRequest)
+		return
+	}
+	user, err := userMgr.GetByEmail(s.Email)
+	if err != nil {
+		panic(err)
+	}
+	if !user.IsAuthenticated {
+		http.NotFound(w, r)
+		return
+	}
+	code := user.GenerateRecoveryCode()
+
+	if err := userMgr.Update(user); err != nil {
+		panic(err)
+	}
+	if msg, err := email.MessageFromTemplate(
+		"Reset your password",
+		[]string{user.Email},
+		config.DefaultEmailSender,
+		recoverPassTmpl,
+		&struct {
+			Name         string
+			RecoveryCode string
+			Url          string
+		}{
+			user.Name,
+			code,
+			baseURL(r),
+		},
+	); err == nil {
+		go func() {
+			if err := mailer.Mail(msg); err != nil {
+				log.Println(err)
+			}
+		}()
+	} else {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func init() {
 	signupTmpl = parseTemplate("signup.tmpl")
+	recoverPassTmpl = parseTemplate("recover_pass.tmpl")
 }

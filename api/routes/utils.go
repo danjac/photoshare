@@ -3,8 +3,11 @@ package routes
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/danjac/photoshare/api/config"
 	"net/http"
+	"path"
 	"strconv"
+	"text/template"
 )
 
 func parseJSON(r *http.Request, value interface{}) error {
@@ -44,4 +47,8 @@ func writeJSON(w http.ResponseWriter, value interface{}, status int) {
 
 func writeError(w http.ResponseWriter, status int) {
 	http.Error(w, http.StatusText(status), status)
+}
+
+func parseTemplate(name string) *template.Template {
+	return template.Must(template.ParseFiles(path.Join(config.TemplateDir, name)))
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/zenazn/goji/web"
 	"log"
 	"net/http"
-	"path"
 	"strings"
 	"text/template"
 )
@@ -171,5 +170,5 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 }
 
 func init() {
-	signupTmpl = template.Must(template.ParseFiles(path.Join(config.TemplateDir, "signup.tmpl")))
+	signupTmpl = parseTemplate("signup.tmpl")
 }

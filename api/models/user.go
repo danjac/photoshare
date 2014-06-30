@@ -174,12 +174,12 @@ func (user *User) GenerateRecoveryCode() (string, error) {
 	}
 
 	code := buf.String()
-	user.RecoveryCode = sql.NullString{code, true}
+	user.RecoveryCode = sql.NullString{String: code, Valid: true}
 	return code, nil
 }
 
 func (user *User) ResetRecoveryCode() {
-	user.RecoveryCode = sql.NullString{"", false}
+	user.RecoveryCode = sql.NullString{String: "", Valid: false}
 }
 
 func (user *User) ChangePassword(password string) error {

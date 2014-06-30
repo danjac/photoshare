@@ -31,3 +31,12 @@ export UPLOADS_DIR = <some dir>
 
 export THUMBNAILS_DIR = <some dir>
 
+export TEMPLATE_DIR = "$(pwd)/templates"
+
+# if empty will use fake emailer (just writes messages to stdout)
+
+# export SMTP_NAME = "myname"
+# export SMTP_PASSWORD = "mypass"
+# export SMTP_HOST = "mail.myhost.com"
+
+# export DEFAULT_EMAIL_SENDER = "webmaster@localhost"

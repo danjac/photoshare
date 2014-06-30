@@ -160,7 +160,7 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		if err := mailer.Send(msg); err != nil {
+		if err := mailer.Mail(msg); err != nil {
 			log.Println(err)
 		}
 	}()

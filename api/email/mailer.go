@@ -49,20 +49,20 @@ func MessageFromTemplate(subject string,
 }
 
 type Mailer interface {
-	Send(*Message) error
+	Mail(*Message) error
 }
 
 type smtpMailer struct {
 	smtp.Auth
 }
 
-func (m *smtpMailer) Send(msg *Message) error {
+func (m *smtpMailer) Mail(msg *Message) error {
 	return smtp.SendMail(config.SmtpHost+":25", m.Auth, msg.From, msg.To, msg.Body)
 }
 
 type fakeMailer struct{}
 
-func (m *fakeMailer) Send(msg *Message) error {
+func (m *fakeMailer) Mail(msg *Message) error {
 	log.Println(msg)
 	return nil
 }

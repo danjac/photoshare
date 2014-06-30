@@ -88,6 +88,9 @@ func (mgr *defaultUserManager) GetActive(userID string) (*User, error) {
 func (mgr *defaultUserManager) GetByRecoveryCode(code string) (*User, error) {
 
 	user := &User{}
+	if code == "" {
+		return user, nil
+	}
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND recovery_code=$2", true, code); err != nil {
 		if err == sql.ErrNoRows {
 			return user, nil

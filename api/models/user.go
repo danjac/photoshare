@@ -167,8 +167,10 @@ func (user *User) GenerateRecoveryCode() (string, error) {
 		return "", err
 	}
 
+	numChars := len(recoveryCodeCharacters)
+
 	for i := 0; i < recoveryCodeLength; i++ {
-		index := int(randbytes[i]) % len(recoveryCodeCharacters)
+		index := int(randbytes[i]) % numChars
 		char := recoveryCodeCharacters[index]
 		buf.WriteString(string(char))
 	}

@@ -95,13 +95,17 @@
                 $scope.currentPage = 0;
                 $scope.numPages = 0;
                 $scope.showPagination = false;
+                $scope.showHeader = false;
 
                 if (q) {
                     apiCall = function (page) { return Photo.search({ q: q, page: page })};
+                    $scope.showHeader = true;
                 } else if (tag) {
                     apiCall = function (page) { return Photo.search({ q: "#" + tag, page: page })};
+                    $scope.showHeader = true;
                 } else if (ownerID) {
                     apiCall = function (page) { return Photo.byOwner({ ownerID: ownerID, page: page })};
+                    $scope.showHeader = true;
                 } else {
                     apiCall = function (page) { return Photo.query({ orderBy: orderBy, page: page })};
                 }
@@ -109,6 +113,9 @@
                 $scope.nextPage = function (page) {
                     pageLoaded = false;
                     apiCall(page).$promise.then(function (result) {
+                        if (result.total == 1) {
+                            $scope.getDetail(result.photos[0]);
+                        }
                         $scope.pageLoaded = true;
                         $scope.searchComplete = true;
                         $scope.photos = result.photos;
@@ -116,7 +123,6 @@
                         $scope.numPages = result.numPages;
                         $scope.currentPage = page;
                         $scope.showPagination = $scope.numPages > 1;
-
                     });
                 };
                 $scope.nextPage(1);

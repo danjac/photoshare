@@ -70,7 +70,22 @@
                                                 $q,
                                                 authTokenStorageKey,
                                                 Alert) {
+            var noRedirectUrls = [
+                "/login",
+                "/changepass",
+                "/recoverpass",
+                "/signup"
+            ];
 
+            function isNoRedirectFromLogin(url) {
+                var result = false;
+                angular.forEach(noRedirectUrls, function (value) {
+                    if (value == url) {
+                        result = true;
+                    }
+                });
+                return result;
+            }
             function Session() {
                 this.clear();
                 this.lastLoginUrl = null;
@@ -112,6 +127,9 @@
 
             Session.prototype.getLastLoginUrl = function () {
                 var url = this.lastLoginUrl;
+                if (isNoRedirectFromLogin(url)) {
+                    url = null;
+                }
                 this.lastLoginUrl = null;
                 return url;
             };

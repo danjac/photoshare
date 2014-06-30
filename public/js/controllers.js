@@ -306,9 +306,6 @@
                         Session.login(result, headers(authTokenHeader));
                         Alert.success("Welcome back, " + result.name);
                         var path = Session.getLastLoginUrl() || "/popular";
-                        if (path == $location.path() || path == '/signup') {
-                            path = "/popular";
-                        }
                         $location.path(path);
                     }
                 });

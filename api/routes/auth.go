@@ -91,7 +91,8 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := parseJSON(r, s); err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	if s.Identifier == "" || s.Password == "" {
@@ -118,17 +119,22 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 
 func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	user := &models.User{}
+	s := &struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}{}
 
-	if err := parseJSON(r, user); err != nil {
-		panic(err)
+	if err := parseJSON(r, s); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
-	// ensure nobody tries to make themselves an admin
-	user.IsAdmin = false
-
-	// email should always be lower case
-	user.Email = strings.ToLower(user.Email)
+	user := &models.User{
+		Name:     s.Name,
+		Email:    strings.ToLower(s.Email),
+		Password: s.Password,
+	}
 
 	validator := getUserValidator(user)
 
@@ -204,7 +210,7 @@ func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
 			http.NotFound(w, r)
 			return
 		}
-		user.RecoveryCode = ""
+		user.ResetRecoveryCode()
 	}
 
 	if err = user.ChangePassword(s.Password); err != nil {
@@ -226,7 +232,8 @@ func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := parseJSON(r, s); err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 	if s.Email == "" {
 		writeString(w, "No email address provided", http.StatusBadRequest)
@@ -240,7 +247,11 @@ func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	code := user.GenerateRecoveryCode()
+
+	code, err := user.GenerateRecoveryCode()
+	if err != nil {
+		panic(err)
+	}
 
 	if err := userMgr.Update(user); err != nil {
 		panic(err)

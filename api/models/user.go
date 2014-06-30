@@ -1,11 +1,17 @@
 package models
 
 import (
+	"bytes"
 	"code.google.com/p/go.crypto/bcrypt"
+	"crypto/rand"
 	"database/sql"
 	"github.com/coopernurse/gorp"
-	"strconv"
 	"time"
+)
+
+const (
+	recoveryCodeLength     = 30
+	recoveryCodeCharacters = "abcdefghijklmnopqrstuvwxyz0123456789"
 )
 
 type UserManager interface {
@@ -82,7 +88,7 @@ func (mgr *defaultUserManager) GetActive(userID string) (*User, error) {
 func (mgr *defaultUserManager) GetByRecoveryCode(code string) (*User, error) {
 
 	user := &User{}
-	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, code); err != nil {
+	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND recovery_code=$2", true, code); err != nil {
 		if err == sql.ErrNoRows {
 			return user, nil
 		}
@@ -129,16 +135,16 @@ func NewUserManager() UserManager {
 }
 
 type User struct {
-	ID              int64     `db:"id" json:"id"`
-	CreatedAt       time.Time `db:"created_at" json:"createdAt"`
-	Name            string    `db:"name" json:"name"`
-	Password        string    `db:"password" json:"password,omitempty"`
-	Email           string    `db:"email" json:"email"`
-	Votes           string    `db:"votes" json:""`
-	IsAdmin         bool      `db:"admin" json:"isAdmin"`
-	IsActive        bool      `db:"active" json:"isActive"`
-	IsAuthenticated bool      `db:"-" json:"isAuthenticated"`
-	RecoveryCode    string    `db:"-" json:""`
+	ID              int64          `db:"id" json:"id"`
+	CreatedAt       time.Time      `db:"created_at" json:"createdAt"`
+	Name            string         `db:"name" json:"name"`
+	Password        string         `db:"password" json:""`
+	Email           string         `db:"email" json:"email"`
+	Votes           string         `db:"votes" json:""`
+	IsAdmin         bool           `db:"admin" json:"isAdmin"`
+	IsActive        bool           `db:"active" json:"isActive"`
+	RecoveryCode    sql.NullString `db:"recovery_code" json:""`
+	IsAuthenticated bool           `db:"-" json:"isAuthenticated"`
 }
 
 func (user *User) PreInsert(s gorp.SqlExecutor) error {
@@ -149,8 +155,28 @@ func (user *User) PreInsert(s gorp.SqlExecutor) error {
 	return nil
 }
 
-func (user *User) GenerateRecoveryCode() string {
-	return strconv.Itoa(int(user.ID))
+func (user *User) GenerateRecoveryCode() (string, error) {
+
+	buf := bytes.Buffer{}
+	randbytes := make([]byte, recoveryCodeLength)
+
+	if _, err := rand.Read(randbytes); err != nil {
+		return "", err
+	}
+
+	for i := 0; i < recoveryCodeLength; i++ {
+		index := int(randbytes[i]) % len(recoveryCodeCharacters)
+		char := recoveryCodeCharacters[index]
+		buf.WriteString(string(char))
+	}
+
+	code := buf.String()
+	user.RecoveryCode = sql.NullString{code, true}
+	return code, nil
+}
+
+func (user *User) ResetRecoveryCode() {
+	user.RecoveryCode = sql.NullString{"", false}
 }
 
 func (user *User) ChangePassword(password string) error {

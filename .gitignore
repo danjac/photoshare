@@ -8,3 +8,4 @@ photoshare
 db/dbconf.yml
 logs
 *.sublime-project
+*.sublime-workspace

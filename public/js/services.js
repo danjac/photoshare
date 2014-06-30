@@ -153,22 +153,21 @@
         }])
         .service('Auth', ['$resource',
                           'urls',
-                          'Session', function ($resource, urls) {
-            return $resource(urls.auth);
+                          function ($resource, urls) {
+            return $resource(urls.auth, {}, {
+                'signup': { method: 'POST', url: urls.auth + 'signup' }
+            });
         }])
         .service('Photo', ['$resource', 'urls', function ($resource, urls) {
             return $resource(urls.photos, {id: '@id'}, {
                 'query': { method: 'GET', isArray: false },
                 'search': { method: 'GET', isArray: false, url: urls.photos + '/search' },
-                'byOwner': { method: 'GET', isArray: false, url: urls.photos + '/owner/:ownerID' }   ,
+                'byOwner': { method: 'GET', isArray: false, url: urls.photos + '/owner/:ownerID' },
                 'updateTitle': { method: 'PATCH', url: urls.photos + '/title' },
                 'updateTags': { method: 'PATCH', url: urls.photos + '/tags' },
                 'upvote': { method: 'PATCH', url: urls.photos + '/upvote'},
                 'downvote': { method: 'PATCH', url: urls.photos + '/downvote'},
             });
-        }])
-        .service('User', ['$resource', 'urls', function ($resource, urls) {
-            return $resource(urls.users);
         }])
         .service('Tag', ['$resource', 'urls', function ($resource, urls) {
             return $resource(urls.tags);

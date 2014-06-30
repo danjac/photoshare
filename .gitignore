@@ -7,3 +7,4 @@ photoshare
 .env
 db/dbconf.yml
 logs
+*.sublime-project

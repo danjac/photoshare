@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/danjac/photoshare/api/email"
 	"github.com/danjac/photoshare/api/models"
 	"github.com/zenazn/goji"
 	"regexp"
@@ -9,6 +10,7 @@ import (
 var (
 	photoMgr     = models.NewPhotoManager()
 	userMgr      = models.NewUserManager()
+	mailer       = email.NewMailer()
 	ownerUrl     = regexp.MustCompile(`/api/photos/owner/(?P<ownerID>\d+)$`)
 	photoUrl     = regexp.MustCompile(`/api/photos/(?P<id>\d+)$`)
 	titleUrl     = regexp.MustCompile(`/api/photos/(?P<id>\d+)/title$`)
@@ -35,7 +37,7 @@ func init() {
 	goji.Get("/api/auth/", authenticate)
 	goji.Post("/api/auth/", login)
 	goji.Delete("/api/auth/", logout)
-	goji.Post("/api/user/", signup)
+	goji.Post("/api/auth/signup", signup)
 
 	goji.Get("/api/tags/", getTags)
 

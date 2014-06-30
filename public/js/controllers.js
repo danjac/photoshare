@@ -317,22 +317,22 @@
 
         .controller('SignupCtrl', ['$scope',
                                    '$location',
-                                   'User',
+                                   'Auth',
                                    'Session',
                                    'Alert',
                                    'authTokenHeader', function ($scope,
                                                                 $location,
-                                                                User,
+                                                                Auth,
                                                                 Session,
                                                                 Alert,
                                                                 authTokenHeader) {
 
-            $scope.newUser = new User();
+            $scope.newUser = {};
             $scope.formErrors = {};
             $scope.signup = function () {
-                $scope.newUser.$save(function (result, headers) {
+                Auth.signup({}, $scope.newUser, function (result, headers) {
                     Session.login(result, headers(authTokenHeader));
-                    $scope.newUser = new User();
+                    $scope.newUser = {};
                     Alert.success("Welcome, " + result.name);
                     $location.path("/popular");
                 }, function (result) {

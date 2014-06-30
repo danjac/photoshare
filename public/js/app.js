@@ -14,7 +14,6 @@
         constant('urls', {
             auth: '/api/auth/',
             photos: '/api/photos/:id',
-            users: '/api/user/',
             tags: '/api/tags/',
             messages: '/api/messages'
         }).

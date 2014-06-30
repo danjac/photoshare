@@ -20,6 +20,9 @@ var (
 	TestDBUser,
 	TestDBPassword,
 	TestDBHost,
+	SmtpName,
+	SmtpPassword,
+	SmtpHost,
 	PublicDir,
 	UploadsDir,
 	ThumbnailsDir string
@@ -67,6 +70,10 @@ func init() {
 	if TestDBName == DBName {
 		log.Fatal("Test DB name same as DB name")
 	}
+
+	SmtpName = getEnvOrElse("SMTP_NAME", "")
+	SmtpPassword = getEnvOrElse("SMTP_PASSWORD", "")
+	SmtpHost = getEnvOrElse("SMTP_HOST", "localhost")
 
 	PublicDir = getEnvOrElse("PUBLIC_DIR", "./public/")
 	UploadsDir = getEnvOrElse("UPLOADS_DIR", path.Join(PublicDir, "uploads"))

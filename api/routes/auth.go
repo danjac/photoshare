@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/danjac/photoshare/api/email"
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/validation"
@@ -140,6 +141,15 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.IsAuthenticated = true
+
+	msg := &email.Message{
+		"Welcome to photoshare!",
+		[]byte("Welcome to Photoshare! Have fun!"),
+		[]string{user.Email},
+		"webmaster@site.com",
+	}
+
+	go mailer.Send(msg)
 
 	writeJSON(w, newSessionInfo(user), http.StatusOK)
 

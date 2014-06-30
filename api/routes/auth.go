@@ -1,16 +1,22 @@
 package routes
 
 import (
+	"github.com/danjac/photoshare/api/config"
 	"github.com/danjac/photoshare/api/email"
 	"github.com/danjac/photoshare/api/models"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/validation"
 	"github.com/zenazn/goji/web"
+	"log"
 	"net/http"
+	"path"
 	"strings"
+	"text/template"
 )
 
 var sessionMgr = session.NewSessionManager()
+
+var signupTmpl *template.Template
 
 var getUserValidator = func(user *models.User) validation.Validator {
 	return validation.NewUserValidator(user)
@@ -142,15 +148,28 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user.IsAuthenticated = true
 
-	msg := &email.Message{
+	msg, err := email.MessageFromTemplate(
 		"Welcome to photoshare!",
-		[]byte("Welcome to Photoshare! Have fun!"),
 		[]string{user.Email},
-		"webmaster@site.com",
+		config.DefaultEmailSender,
+		signupTmpl,
+		user,
+	)
+
+	if err != nil {
+		panic(err)
 	}
 
-	go mailer.Send(msg)
+	go func() {
+		if err := mailer.Send(msg); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	writeJSON(w, newSessionInfo(user), http.StatusOK)
 
+}
+
+func init() {
+	signupTmpl = template.Must(template.ParseFiles(path.Join(config.TemplateDir, "signup.tmpl")))
 }

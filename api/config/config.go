@@ -23,8 +23,10 @@ var (
 	SmtpName,
 	SmtpPassword,
 	SmtpHost,
+	DefaultEmailSender,
 	PublicDir,
 	UploadsDir,
+	TemplateDir,
 	ThumbnailsDir string
 )
 
@@ -75,7 +77,16 @@ func init() {
 	SmtpPassword = getEnvOrElse("SMTP_PASSWORD", "")
 	SmtpHost = getEnvOrElse("SMTP_HOST", "localhost")
 
-	PublicDir = getEnvOrElse("PUBLIC_DIR", "./public/")
+	baseDir, err := os.Getwd()
+	if err != nil {
+		baseDir = "."
+	}
+
+	DefaultEmailSender = getEnvOrElse("DEFAULT_EMAIL_SENDER", "webmaster@localhost")
+
+	PublicDir = getEnvOrElse("PUBLIC_DIR", path.Join(baseDir, "public"))
 	UploadsDir = getEnvOrElse("UPLOADS_DIR", path.Join(PublicDir, "uploads"))
 	ThumbnailsDir = getEnvOrElse("THUMBNAILS_DIR", path.Join(UploadsDir, "thumbnails"))
+
+	TemplateDir = getEnvOrElse("TEMPLATE_DIR", path.Join(baseDir, "templates"))
 }

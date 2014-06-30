@@ -1,0 +1,1122 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"a",
+				"authTokenStorageKey"
+			],
+			[
+				"autht",
+				"authTokenStorageKey"
+			],
+			[
+				"auth",
+				"authResource"
+			],
+			[
+				"get",
+				"getUserValidator"
+			],
+			[
+				"New",
+				"NewPhotoValidator"
+			],
+			[
+				"new",
+				"NewPhotoValidator"
+			],
+			[
+				"pro",
+				"prototype"
+			],
+			[
+				"stro",
+				"strconv"
+			],
+			[
+				"S",
+				"StatusForbidden"
+			],
+			[
+				"St",
+				"StatusUnauthorized"
+			],
+			[
+				"Is",
+				"IsAuthenticated"
+			],
+			[
+				"Staut",
+				"StatusInternalServerError"
+			],
+			[
+				"da",
+				"data"
+			],
+			[
+				"MatchNotifica",
+				"MatchNotificationManager"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "api/models/user.go",
+			"settings":
+			{
+				"buffer_size": 3734,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "api/models/testing.go",
+			"settings":
+			{
+				"buffer_size": 696,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "api/models/user_test.go",
+			"settings":
+			{
+				"buffer_size": 237,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "api/models/photos.go",
+			"settings":
+			{
+				"buffer_size": 8357,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "public/partials/list.html",
+			"settings":
+			{
+				"buffer_size": 1478,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "public/partials/pagination.html",
+			"settings":
+			{
+				"buffer_size": 509,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "api/models/models.go",
+			"settings":
+			{
+				"buffer_size": 557,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "api/models/utils.go",
+			"settings":
+			{
+				"buffer_size": 626,
+				"line_ending": "Unix",
+				"name": "package models"
+			}
+		},
+		{
+			"contents": "package config\n\nimport (\n	\"log\"\n	\"os\"\n	\"path\"\n)\n\nvar LogSql bool\n\nvar (\n	ServerPort,\n	PrivKeyFile,\n	PubKeyFile,\n	DBHost,\n	DBName,\n	DBUser,\n	DBPassword,\n	TestDBName,\n	TestDBUser,\n	TestDBPassword,\n	TestDBHost,\n	PublicDir,\n	UploadsDir,\n	ThumbnailsDir string\n)\n\nfunc isEnv(name string) bool {\n	return os.Getenv(name) != \"\"\n}\n\nfunc getEnvOrDie(name string) string {\n	value := os.Getenv(name)\n	if value == \"\" {\n		log.Fatal(\"Environment setting \", name, \" is missing\")\n	}\n	return value\n}\n\nfunc getEnvOrElse(name, defaultValue string) string {\n	value := os.Getenv(name)\n	if value == \"\" {\n		return defaultValue\n	}\n	return value\n}\n\nfunc init() {\n\n	ServerPort = getEnvOrElse(\"PORT\", \"5000\")\n\n	PrivKeyFile = getEnvOrDie(\"PRIVATE_KEY\")\n	PubKeyFile = getEnvOrDie(\"PUBLIC_KEY\")\n\n	LogSql = isEnv(\"LOG_SQL\")\n\n	DBName = getEnvOrDie(\"DB_NAME\")\n	DBUser = getEnvOrDie(\"DB_USER\")\n	DBPassword = getEnvOrDie(\"DB_PASS\")\n	DBHost = getEnvOrElse(\"DB_HOST\", \"localhost\")\n\n	TestDBName = getEnvOrElse(\"TEST_DB_NAME\", DBName+\"_test\")\n	TestDBUser = getEnvOrElse(\"TEST_DB_USER\", DBUser)\n	TestDBPassword = getEnvOrElse(\"TEST_DB_PASS\", DBPassword)\n	TestDBHost = getEnvOrElse(\"TEST_DB_HOST\", DBHost)\n\n	if TestDBName == DBName {\n		log.Fatal(\"Test DB name same as DB name\")\n	}\n\n	PublicDir = getEnvOrElse(\"PUBLIC_DIR\", \"./public/\")\n	UploadsDir = getEnvOrElse(\"UPLOADS_DIR\", path.Join(PublicDir, \"uploads\"))\n	ThumbnailsDir = getEnvOrElse(\"THUMBNAILS_DIR\", path.Join(UploadsDir, \"thumbnails\"))\n}\n",
+			"file": "api/settings/settings.go",
+			"file_size": -1,
+			"file_write_time": -1,
+			"settings":
+			{
+				"buffer_size": 1454,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "api/storage/image.go",
+			"settings":
+			{
+				"buffer_size": 1779,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "api/storage/storage.go",
+			"settings":
+			{
+				"buffer_size": 588,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "api/config/config.go",
+			"settings":
+			{
+				"buffer_size": 1454,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "api/models/photos_test.go",
+			"settings":
+			{
+				"buffer_size": 2479,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "test/unit/controllersSpec.js",
+			"settings":
+			{
+				"buffer_size": 1653,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "test/karma.conf.js",
+			"settings":
+			{
+				"buffer_size": 1007,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "api/routes/feeds.go",
+			"settings":
+			{
+				"buffer_size": 1955,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "public/partials/tags.html",
+			"settings":
+			{
+				"buffer_size": 776,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "public/partials/detail.html",
+			"settings":
+			{
+				"buffer_size": 3793,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "api/validation/photos.go",
+			"settings":
+			{
+				"buffer_size": 657,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Packages/Makefile/Make.sublime-build",
+	"command_palette":
+	{
+		"height": 211.0,
+		"selected_items":
+		[
+			[
+				":w",
+				":w - Save"
+			],
+			[
+				":q",
+				"Set Syntax: SQL"
+			],
+			[
+				":W",
+				":w - Save"
+			],
+			[
+				":",
+				":w - Save"
+			],
+			[
+				":wa",
+				":w - Save"
+			],
+			[
+				":pac",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 400.0
+	},
+	"console":
+	{
+		"height": 126.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '7183a2d3e96f11eeadd761d777e62404' + 'e330c659d4bb41d3bdf022e94cab3cd0'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://sublime.wbond.net/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by) "
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/danjac/go/src/github.com/danjac/photoshare/api/render/render.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/api/session/session.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/api/session/token.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/photoshare",
+		"/home/danjac/go/src/github.com/danjac/photoshare/api/routes/auth.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/api/routes/utils.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/api/validation/users.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/db/dbconf.yml",
+		"/home/danjac/go/src/github.com/danjac/photoshare/db/dbconf.yml.sample",
+		"/home/danjac/go/src/github.com/danjac/photoshare/.env",
+		"/home/danjac/go/src/github.com/danjac/photoshare/public/js/services.js",
+		"/home/danjac/go/src/github.com/danjac/photoshare/public/js/filters.js",
+		"/home/danjac/go/src/github.com/danjac/photoshare/db/migrations/20140620173116_ChangeTagCountView.sql",
+		"/home/danjac/go/src/github.com/danjac/photoshare/public/js/controllers.js",
+		"/home/danjac/go/src/github.com/danjac/photoshare/db/migrations/20140624084238_AddIndexes.sql",
+		"/home/danjac/go/src/github.com/danjac/photoshare/public/js/directives.js",
+		"/home/danjac/go/src/github.com/danjac/photoshare/public/partials/upload.html",
+		"/home/danjac/go/src/github.com/danjac/photoshare/public/css/app.css",
+		"/home/danjac/go/src/github.com/danjac/photoshare/public/index.html",
+		"/home/danjac/go/src/github.com/danjac/photoshare/.gitignore",
+		"/home/danjac/go/src/github.com/danjac/photoshare/bower.json",
+		"/home/danjac/go/src/github.com/danjac/photoshare/public/partials/login.html",
+		"/home/danjac/go/src/github.com/danjac/photoshare/public/partials/signup.html",
+		"/home/danjac/go/src/github.com/danjac/photoshare/api/routes/photos.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/api/routes/messages.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/README.md",
+		"/home/danjac/go/src/github.com/danjac/photoshare/api/routes/routes.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/db/migrations/20140620143108_Votes.sql",
+		"/home/danjac/go/src/github.com/danjac/photoshare/server.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/api/routes/photos_test.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/api/routes/testing.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/node_modules/karma/node_modules/socket.io/node_modules/socket.io-client/node_modules/active-x-obfuscator/node_modules/zeparser/benchmark.html",
+		"/home/danjac/go/src/github.com/danjac/photoshare/public/js/app.js",
+		"/home/danjac/go/src/github.com/danjac/photoshare/api/routes/context.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/api/routes/handler.go",
+		"/home/danjac/go/src/github.com/danjac/photoshare/sample_env",
+		"/home/danjac/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
+		"/home/danjac/.config/sublime-text-3/Packages/Default/Preferences.sublime-settings",
+		"/home/danjac/Projects/catchafire/django_caf/streams/admin.py"
+	],
+	"find":
+	{
+		"height": 34.0
+	},
+	"find_in_files":
+	{
+		"height": 88.0,
+		"where_history":
+		[
+			"/home/danjac/go/src/github.com/danjac/photoshare/api",
+			"<open folders>",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"lastLoginUrl",
+			"setLastLoginUrl",
+			"loginurl",
+			"settings",
+			"getOffset",
+			"tags",
+			"check",
+			"authtoken",
+			"authenticator",
+			"MockPhotoManager",
+			"NewUserValidator",
+			"validator",
+			"processor",
+			"NewImageProcessor",
+			"imageProcessor",
+			"readtoken",
+			"MockAnonymousSession",
+			"session.GetCurrentUser",
+			"NewSessionInfo",
+			"username",
+			"&Message",
+			"edit",
+			"render.Error",
+			"render.String",
+			"render.JSON",
+			"render.Status(w, http.StatusOK)",
+			"list.Photos",
+			"list, err",
+			"newphotolist",
+			"render.JSON(w, list",
+			"list, err",
+			"feeds",
+			"photos",
+			"photos\n",
+			"	photos.Get(\"/api/photos/\", getPhotos)\n	photos.Get(\"/api/photos/search\", searchPhotos)\n	photos.Get(ownerUrl, photosByOwnerID)\n	photos.Get(photoUrl, photoDetail)\n	photos.Delete(photoUrl, deletePhoto)\n	photos.Patch(titleUrl, editPhotoTitle)\n	photos.Patch(tagsUrl, editPhotoTags)\n	photos.Patch(downvoteUrl, voteDown)\n	photos.Patch(upvoteUrl, voteUp)\n\n",
+			"photos",
+			"return c.Error(err)",
+			"(c *Context) *Result",
+			"return c.Error(err)",
+			"writeJSON",
+			"(c *Context) *Result",
+			"getPageNum",
+			"verifykey",
+			"signkey",
+			"{id}",
+			"delet",
+			"sessionStorage",
+			"newphotolist",
+			"log",
+			"onNextPage",
+			"nextPage",
+			"NewPhotoList(photos, total, pageNum)",
+			"func getp",
+			"errors",
+			"query",
+			"search",
+			"getph",
+			"func",
+			"MakeAppHandler",
+			"NewPhotoValidator",
+			"popular",
+			"getdet",
+			"photodetail",
+			"newcon",
+			"getcurr",
+			"perm",
+			"perm.CanEdit()",
+			"list",
+			"view",
+			"update",
+			"canvote",
+			"welcom",
+			"votes",
+			"photopermi",
+			"detai",
+			"*Result",
+			"c.Result",
+			"Jsonify",
+			"error",
+			"c.JSON",
+			"render",
+			"getac",
+			"getcurrentuser",
+			"searchque",
+			"phototag",
+			"canedit",
+			"canEdit",
+			"getdet",
+			"AppContext",
+			"Searchctrl",
+			"search",
+			"Search",
+			"'",
+			"dashboard",
+			"def get_dash",
+			"dashboard"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"config",
+			"mockPhotoManager",
+			"MockAnonymousSessionManager",
+			"getCurrentUser",
+			"newSessionInfo",
+			"sender",
+			"NewMessage",
+			"writeError",
+			"writeString",
+			"writeJSON",
+			"w.WriteHeader(http.StatusOK)",
+			"photos",
+			"photos, err",
+			"render.JSON(w, photos",
+			"photos, err",
+			"goji",
+			"	photos.Get(\"/api/photos/\", getPhotos)\n	photos.Get(\"/api/photos/search\", searchPhotos)\n	photos.Get(ownerUrl, photosByOwnerID)\n	photos.Get(photoUrl, photoDetail)\n	photos.Delete(photoUrl, deletePhoto)\n	photos.Patch(titleUrl, editPhotoTitle)\n	photos.Patch(tagsUrl, editPhotoTags)\n	photos.Patch(downvoteUrl, voteDown)\n	photos.Patch(upvoteUrl, voteUp)\n\n	feeds := web.New()",
+			"panic(err)",
+			"(c web.C, w http.ResponseWriter, r *http.Request) ",
+			"panic(err)",
+			"render.JSON",
+			"(c web.C, w http.ResponseWriter, r *http.Request) ",
+			"{id:[0-9]+}",
+			"localStorage",
+			"nextPage",
+			"onNextPage",
+			"NewPhotoList(photos, total)",
+			"formErrors",
+			"NewAppHandler",
+			"",
+			"photo.CanEdit(user)",
+			"*Response",
+			"c.Response",
+			"Json",
+			"c.Jsonify",
+			"Context",
+			"",
+			"       STATUS_VOL_ACCEPTED',\n        STATUS_NPO_ACCEPTED_VOLUNTEER',\n        STATUS_INTERVIEW_REQUESTED',\n        STATUS_INTERVIEW_SCHEDULED',\n        STATUS_INTERVIEW_COMPLETE',\n        STATUS_NP_REJECTED',\n        STATUS_VOL_ACCEPTED_PROJECT',\n            'STATUS_STARTED',\n            'STATUS_PAYMENT_PENDING',\n  \n",
+			"\n  \n  ",
+			"        STATUS_VOL_ACCEPTED',\n        STATUS_NPO_ACCEPTED_VOLUNTEER',\n        STATUS_INTERVIEW_REQUESTED',\n        STATUS_INTERVIEW_SCHEDULED',\n        STATUS_INTERVIEW_COMPLETE',\n        STATUS_NP_REJECTED',\n        STATUS_VOL_ACCEPTED_PROJECT',\n            'STATUS_STARTED',\n            'STATUS_PAYMENT_PENDING',\n  \n  "
+		],
+		"reverse": false,
+		"show_context": false,
+		"use_buffer2": false,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 18,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "api/models/user.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3734,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2457,
+								2457
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Go/Go.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1302.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "api/models/testing.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 696,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								640,
+								640
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Go/Go.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "api/models/user_test.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 237,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								162,
+								162
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Go/Go.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 18,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "api/models/photos.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8357,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								226,
+								226
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Go/Go.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "public/partials/list.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1478,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								243,
+								243
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 14,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "public/partials/pagination.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 509,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								387,
+								387
+							]
+						],
+						"settings":
+						{
+							"auto_name": "",
+							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "api/models/models.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 557,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								271,
+								271
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Go/Go.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "api/models/utils.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 626,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								50,
+								50
+							]
+						],
+						"settings":
+						{
+							"auto_name": "package models",
+							"syntax": "Packages/Go/Go.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "api/settings/settings.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1454,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								764,
+								764
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Go/Go.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 499.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "api/storage/image.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1779,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/SQL/SQL.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "api/storage/storage.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 588,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								30,
+								30
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Go/Go.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "api/config/config.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1454,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								13,
+								13
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Go/Go.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "api/models/photos_test.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2479,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1634,
+								1634
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Go/Go.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1140.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "test/unit/controllersSpec.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1653,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1332,
+								1332
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 155.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 16,
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "test/karma.conf.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1007,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								311,
+								311
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 17,
+					"type": "text"
+				},
+				{
+					"buffer": 15,
+					"file": "api/routes/feeds.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1955,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1710,
+								1710
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Go/Go.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 530.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 15,
+					"type": "text"
+				},
+				{
+					"buffer": 16,
+					"file": "public/partials/tags.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 776,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								557,
+								557
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 13,
+					"type": "text"
+				},
+				{
+					"buffer": 17,
+					"file": "public/partials/detail.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3793,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2783,
+								2783
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 589.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 18,
+					"file": "api/validation/photos.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 657,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								171,
+								171
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Go/Go.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 34.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"project": "photoshare.sublime-project",
+	"replace":
+	{
+		"height": 62.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 277.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

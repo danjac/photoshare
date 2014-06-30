@@ -1,6 +1,9 @@
 
 <div class="row" ng-show="pageLoaded">
-<ul class="nav nav-pills pull-right">
+<div class="col-md-6 pull-left">
+	<input class="form-control" type="text" placeholder="Filter" ng-model="tagFilter">
+</div>
+<ul class="col-md-6 nav nav-pills pull-right">
     <li ng-class="{active: orderField=='-numPhotos'}"><a ng-click="orderTags('-numPhotos')">Popularity</a></li>
     <li ng-class="{active: orderField=='name'}"><a ng-click="orderTags('name')">A-Z</a></li>
 </ul>
@@ -11,7 +14,7 @@
 <div class="spinner" ng-show="!pageLoaded"></div>
 
 <div class="row" ng-show="tags.length && pageLoaded">
-    <div ng-repeat="tag in tags|orderBy:orderField" class="col-xs-6 col-md-3">
+    <div ng-repeat="tag in tags|filter:tagFilter|orderBy:orderField" class="col-xs-6 col-md-3">
         <div class="thumbnail" ng-click="doSearch(tag.name)">
             <img alt="{{tag.name}}" class="img-responsive" ng-src="uploads/thumbnails/{{tag.photo}}" />
             <div class="caption">

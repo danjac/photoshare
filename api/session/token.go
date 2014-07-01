@@ -19,11 +19,11 @@ var (
 
 func init() {
 	var err error
-	signKey, err = ioutil.ReadFile(config.PrivKeyFile)
+	signKey, err = ioutil.ReadFile(config.Keys.Private)
 	if err != nil {
 		panic(err)
 	}
-	verifyKey, err = ioutil.ReadFile(config.PubKeyFile)
+	verifyKey, err = ioutil.ReadFile(config.Keys.Public)
 	if err != nil {
 		panic(err)
 	}

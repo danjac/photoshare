@@ -15,8 +15,8 @@ type defaultPhotoCleaner struct {
 
 func (c *defaultPhotoCleaner) Clean(name string) error {
 
-	imagePath := path.Join(config.UploadsDir, name)
-	thumbnailPath := path.Join(config.ThumbnailsDir, name)
+	imagePath := path.Join(config.Dirs.Uploads, name)
+	thumbnailPath := path.Join(config.Dirs.Thumbnails, name)
 
 	if err := os.Remove(imagePath); err != nil {
 		return err

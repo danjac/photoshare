@@ -159,7 +159,7 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 	if msg, err := email.MessageFromTemplate(
 		"Welcome to photoshare!",
 		[]string{user.Email},
-		config.DefaultEmailSender,
+		config.Smtp.DefaultSender,
 		signupTmpl,
 		user,
 	); err == nil {
@@ -259,7 +259,7 @@ func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
 	if msg, err := email.MessageFromTemplate(
 		"Reset your password",
 		[]string{user.Email},
-		config.DefaultEmailSender,
+		config.Smtp.DefaultSender,
 		recoverPassTmpl,
 		&struct {
 			Name         string

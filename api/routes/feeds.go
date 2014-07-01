@@ -10,7 +10,13 @@ import (
 	"time"
 )
 
-func photoFeed(c web.C, w http.ResponseWriter, r *http.Request, title string, description string, link string, photos *models.PhotoList) {
+func photoFeed(c web.C,
+	w http.ResponseWriter,
+	r *http.Request,
+	title string,
+	description string,
+	link string,
+	photos *models.PhotoList) {
 
 	baseURL := baseURL(r)
 

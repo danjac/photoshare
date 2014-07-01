@@ -1,9 +1,9 @@
 
 <div class="row" ng-show="pageLoaded">
-<div class="col-md-6 pull-left">
-	<input class="form-control" type="text" placeholder="Find a tag" ng-model="tagFilter">
+<div class="pull-left col-md-6">
+	<input class="form-control input-lg" type="text" placeholder="Find a tag" ng-model="tagFilter">
 </div>
-<ul class="col-md-6 nav nav-pills pull-right">
+<ul class="nav nav-pills pull-right">
     <li ng-class="{active: orderField=='-numPhotos'}"><a ng-click="orderTags('-numPhotos')">Popularity</a></li>
     <li ng-class="{active: orderField=='name'}"><a ng-click="orderTags('name')">A-Z</a></li>
 </ul>

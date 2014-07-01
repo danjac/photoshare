@@ -28,7 +28,7 @@ func (msg *Message) String() string {
 	)
 }
 
-// Creates a new message from a template
+// Creates a new message from a template; message body set to rendered template
 func MessageFromTemplate(subject string,
 	to []string,
 	from string,
@@ -57,7 +57,7 @@ type smtpMailer struct {
 }
 
 func (m *smtpMailer) Mail(msg *Message) error {
-	return smtp.SendMail(config.SmtpHost+":25", m.Auth, msg.From, msg.To, msg.Body)
+	return smtp.SendMail(config.Smtp.Host+":25", m.Auth, msg.From, msg.To, msg.Body)
 }
 
 type fakeMailer struct{}
@@ -69,7 +69,7 @@ func (m *fakeMailer) Mail(msg *Message) error {
 
 func newSmtpMailer() Mailer {
 	m := &smtpMailer{}
-	m.Auth = smtp.PlainAuth("", config.SmtpName, config.SmtpPassword, config.SmtpHost)
+	m.Auth = smtp.PlainAuth("", config.Smtp.Name, config.Smtp.Password, config.Smtp.Host)
 	return m
 }
 
@@ -78,7 +78,7 @@ func NewMailer() Mailer {
 }
 
 func init() {
-	if config.SmtpName == "" || config.SmtpPassword == "" {
+	if config.Smtp.Name == "" {
 		log.Println("WARNING: using fake mailer, messages will not be sent by SMTP. " +
 			"Set SMTP_NAME and SMTP_PASSWORD in environment to enable.")
 		mailer = &fakeMailer{}

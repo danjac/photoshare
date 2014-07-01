@@ -50,5 +50,5 @@ func writeError(w http.ResponseWriter, status int) {
 }
 
 func parseTemplate(name string) *template.Template {
-	return template.Must(template.ParseFiles(path.Join(config.TemplateDir, name)))
+	return template.Must(template.ParseFiles(path.Join(config.Dirs.Templates, name)))
 }

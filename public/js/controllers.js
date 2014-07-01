@@ -156,7 +156,9 @@
                 $scope.pageLoaded = false;
 
                 function calcScore() {
-                    $scope.photo.score = $scope.photo.upVotes - $scope.photo.downVotes;
+                    if ($scope.photo) {
+                        $scope.photo.score = $scope.photo.upVotes - $scope.photo.downVotes;
+                    }
                 }
 
                 $scope.$watch('photo.upVotes', function () { calcScore(); });

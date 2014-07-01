@@ -1,92 +1,112 @@
 package config
 
 import (
+	"github.com/danryan/env"
 	"log"
 	"os"
 	"path"
 )
 
-var LogSql bool
+var DB = &struct {
+	Name     string `env:"key=DB_NAME required=true"`
+	User     string `env:"key=DB_USER required=true"`
+	Password string `env:"key=DB_PASS required=true"`
+	Host     string `env:"key=DB_HOST default=localhost"`
+	LogSql   bool   `env:"key=LOG_SQL default=false"`
+}{}
 
-var (
-	ServerPort,
-	PrivKeyFile,
-	PubKeyFile,
-	DBHost,
-	DBName,
-	DBUser,
-	DBPassword,
-	TestDBName,
-	TestDBUser,
-	TestDBPassword,
-	TestDBHost,
-	SmtpName,
-	SmtpPassword,
-	SmtpHost,
-	DefaultEmailSender,
-	PublicDir,
-	UploadsDir,
-	TemplateDir,
-	ThumbnailsDir string
-)
+var TestDB = &struct {
+	Name     string `env:"key=TEST_DB_NAME"`
+	User     string `env:"key=TEST_DB_USER"`
+	Password string `env:"key=TEST_DB_PASS"`
+	Host     string `env:"key=TEST_DB_HOST"`
+}{}
 
-func isEnv(name string) bool {
-	return os.Getenv(name) != ""
-}
+var Smtp = &struct {
+	Name          string `env:"key=SMTP_NAME"`
+	Password      string `env:"key=SMTP_PASS"`
+	User          string `env:"key=SMTP_USER"`
+	Host          string `env:"key=SMTP_HOST default=localhost"`
+	DefaultSender string `env"key=DEFAULT_EMAIL_SENDER default=webmaster@localhost"`
+}{}
 
-func getEnvOrDie(name string) string {
-	value := os.Getenv(name)
-	if value == "" {
-		log.Fatal("Environment setting ", name, " is missing")
-	}
-	return value
-}
+var Dirs = &struct {
+	Base       string `env:"key=BASE_DIR"`
+	Public     string `env:"key=PUBLIC_DIR"`
+	Uploads    string `env:"key=UPLOADS_DIR"`
+	Thumbnails string `env:"key=THUMBNAILS_DIR"`
+	Templates  string `env:"key=TEMPLATES_DIR"`
+}{}
 
-func getEnvOrElse(name, defaultValue string) string {
-	value := os.Getenv(name)
-	if value == "" {
-		return defaultValue
-	}
-	return value
-}
+var Keys = &struct {
+	Private string `env:"key=PRIVATE_KEY required=true"`
+	Public  string `env:"key=PUBLIC_KEY required=true"`
+}{}
+
+var Server = &struct {
+	Port int `env:"key=PORT default=5000"`
+}{}
 
 func init() {
 
-	ServerPort = getEnvOrElse("PORT", "5000")
+	if err := env.Process(DB); err != nil {
+		log.Fatal(err)
+	}
 
-	PrivKeyFile = getEnvOrDie("PRIVATE_KEY")
-	PubKeyFile = getEnvOrDie("PUBLIC_KEY")
+	if err := env.Process(TestDB); err != nil {
+		log.Fatal(err)
+	}
 
-	LogSql = isEnv("LOG_SQL")
+	if err := env.Process(Keys); err != nil {
+		log.Fatal(err)
+	}
 
-	DBName = getEnvOrDie("DB_NAME")
-	DBUser = getEnvOrDie("DB_USER")
-	DBPassword = getEnvOrDie("DB_PASS")
-	DBHost = getEnvOrElse("DB_HOST", "localhost")
+	if err := env.Process(Dirs); err != nil {
+		log.Fatal(err)
+	}
 
-	TestDBName = getEnvOrElse("TEST_DB_NAME", DBName+"_test")
-	TestDBUser = getEnvOrElse("TEST_DB_USER", DBUser)
-	TestDBPassword = getEnvOrElse("TEST_DB_PASS", DBPassword)
-	TestDBHost = getEnvOrElse("TEST_DB_HOST", DBHost)
+	if err := env.Process(Server); err != nil {
+		log.Fatal(err)
+	}
 
-	if TestDBName == DBName {
+	if TestDB.Name == "" {
+		TestDB.Name = DB.Name + "_test"
+	}
+
+	if TestDB.User == "" {
+		TestDB.User = DB.User
+	}
+
+	if TestDB.Password == "" {
+		TestDB.Password = DB.Password
+	}
+
+	if TestDB.Name == DB.Name {
 		log.Fatal("Test DB name same as DB name")
 	}
 
-	SmtpName = getEnvOrElse("SMTP_NAME", "")
-	SmtpPassword = getEnvOrElse("SMTP_PASSWORD", "")
-	SmtpHost = getEnvOrElse("SMTP_HOST", "localhost")
-
-	baseDir, err := os.Getwd()
+	defaultBaseDir, err := os.Getwd()
 	if err != nil {
-		baseDir = "."
+		defaultBaseDir = "."
 	}
 
-	DefaultEmailSender = getEnvOrElse("DEFAULT_EMAIL_SENDER", "webmaster@localhost")
+	if Dirs.Base == "" {
+		Dirs.Base = defaultBaseDir
+	}
 
-	PublicDir = getEnvOrElse("PUBLIC_DIR", path.Join(baseDir, "public"))
-	UploadsDir = getEnvOrElse("UPLOADS_DIR", path.Join(PublicDir, "uploads"))
-	ThumbnailsDir = getEnvOrElse("THUMBNAILS_DIR", path.Join(UploadsDir, "thumbnails"))
+	if Dirs.Public == "" {
+		Dirs.Public = path.Join(Dirs.Base, "public")
+	}
 
-	TemplateDir = getEnvOrElse("TEMPLATE_DIR", path.Join(baseDir, "templates"))
+	if Dirs.Uploads == "" {
+		Dirs.Uploads = path.Join(Dirs.Public, "uploads")
+	}
+
+	if Dirs.Thumbnails == "" {
+		Dirs.Thumbnails = path.Join(Dirs.Uploads, "thumbnails")
+	}
+
+	if Dirs.Templates == "" {
+		Dirs.Templates = path.Join(Dirs.Base, "templates")
+	}
 }

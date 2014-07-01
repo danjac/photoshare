@@ -18,10 +18,10 @@ func main() {
 	runtime.GOMAXPROCS((runtime.NumCPU() * 2) + 1)
 
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
-		config.DBUser,
-		config.DBName,
-		config.DBPassword,
-		config.DBHost,
+		config.DB.User,
+		config.DB.Name,
+		config.DB.Password,
+		config.DB.Host,
 	))
 
 	if err != nil {
@@ -30,14 +30,14 @@ func main() {
 
 	defer db.Close()
 
-	if _, err := models.InitDB(db, config.LogSql); err != nil {
+	if _, err := models.InitDB(db, config.DB.LogSql); err != nil {
 		log.Fatal(err)
 	}
 
-	flag.Set("bind", "localhost:"+config.ServerPort)
+	flag.Set("bind", fmt.Sprintf("localhost:%d", config.Server.Port))
 
 	// for local development
-	goji.Get("/*", http.FileServer(http.Dir(config.PublicDir)))
+	goji.Get("/*", http.FileServer(http.Dir(config.Dirs.Public)))
 	goji.Serve()
 
 }

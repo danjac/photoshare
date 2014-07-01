@@ -155,10 +155,18 @@
                 $scope.editTags = false;
                 $scope.pageLoaded = false;
 
+                function calcScore() {
+                    $scope.photo.score = $scope.photo.upVotes - $scope.photo.downVotes;
+                }
+
+                $scope.$watch('photo.upVotes', function () { calcScore(); });
+                $scope.$watch('photo.downVotes', function () { calcScore(); });
+
                 Photo.get({id: $routeParams.id}).$promise.then(function (photo) {
                     $scope.photo = photo;
                     $scope.photo.taglist = $scope.photo.tags ? $scope.photo.tags.join(" ") : "";
                     $scope.pageLoaded = true;
+                    calcScore();
                 });
 
                 $scope.voteUp = function () {

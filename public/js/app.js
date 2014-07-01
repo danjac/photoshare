@@ -129,27 +129,25 @@
                 responseError: function (response) {
                     var rejection = $q.reject(response),
                         status = response.status,
-                        defaultAlert = 'Sorry, an error has occurred';
+                        msg = 'Sorry, an error has occurred';
 
                     if (status == 401) {
                         Session.redirectToLogin();
                         return;
                     }
                     if (status == 403) {
-                        defaultAlert = "Sorry, you're not allowed to do this";
+                        msg = "Sorry, you're not allowed to do this";
                     }
                     if (status == 400 && response.data.errors) {
-                        defaultAlert = "Sorry, your form contains errors, please try again";
+                        msg = "Sorry, your form contains errors, please try again";
                     }
                     if (status == 413) {
-                        defaultAlert = "The file was too large!";
+                        msg = "The file was too large!";
                     }
                     if (response.data && typeof(response.data) === 'string') {
-                        alert = response.data;
-                    } else {
-                        alert = defaultAlert;
+                        msg = response.data;
                     }
-                    Alert.danger(alert || defaultAlert);
+                    Alert.danger(msg);
                     return rejection;
                 }
             };

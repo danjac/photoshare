@@ -169,6 +169,9 @@ func (mgr *defaultPhotoManager) UpdateTags(photo *Photo) error {
 }
 
 func (mgr *defaultPhotoManager) Get(photoID string) (*Photo, error) {
+	if photoID == "" {
+		return nil, nil
+	}
 
 	photo := &Photo{}
 	obj, err := dbMap.Get(photo, photoID)
@@ -182,6 +185,10 @@ func (mgr *defaultPhotoManager) Get(photoID string) (*Photo, error) {
 }
 
 func (mgr *defaultPhotoManager) GetDetail(photoID string, user *User) (*PhotoDetail, error) {
+
+	if photoID == "" {
+		return nil, nil
+	}
 
 	photo := &PhotoDetail{}
 
@@ -223,7 +230,9 @@ func (mgr *defaultPhotoManager) ByOwnerID(pageNum int64, ownerID string) (*Photo
 		err    error
 		total  int64
 	)
-
+	if ownerID == "" {
+		return nil, nil
+	}
 	if total, err = dbMap.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {
 		return nil, err
 	}

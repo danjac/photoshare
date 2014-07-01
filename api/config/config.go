@@ -81,17 +81,16 @@ func init() {
 		TestDB.Password = DB.Password
 	}
 
+	if TestDB.Host == "" {
+		TestDB.Host = DB.Host
+	}
+
 	if TestDB.Name == DB.Name {
 		log.Fatal("Test DB name same as DB name")
 	}
 
-	defaultBaseDir, err := os.Getwd()
-	if err != nil {
-		defaultBaseDir = "."
-	}
-
 	if Dirs.Base == "" {
-		Dirs.Base = defaultBaseDir
+		Dirs.Base = getDefaultBaseDir()
 	}
 
 	if Dirs.Public == "" {
@@ -109,4 +108,12 @@ func init() {
 	if Dirs.Templates == "" {
 		Dirs.Templates = path.Join(Dirs.Base, "templates")
 	}
+}
+
+func getDefaultBaseDir() string {
+	defaultBaseDir, err := os.Getwd()
+	if err != nil {
+		defaultBaseDir = "."
+	}
+	return defaultBaseDir
 }

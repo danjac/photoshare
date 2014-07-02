@@ -48,7 +48,7 @@
                                 break;
                             case 'logout':
                                 content = msg.sender + " has logged out";
-                                break
+                                break;
                             case 'photo_deleted':
                                 content = msg.sender + " has deleted a photo";
                                 break;
@@ -62,7 +62,7 @@
                         $this.newMessage = content;
                         $rootScope.$digest();
                     };
-                };
+                }
 
                 return new Mq();
             }
@@ -102,7 +102,7 @@
                 Session.prototype.init = function(authResource) {
                     this.resource = authResource;
                     this.sync();
-                }
+                };
 
                 Session.prototype.sync = function() {
                     var $this = this,
@@ -119,7 +119,7 @@
                     this.setLastLoginUrl();
                     Alert.danger("You must be logged in");
                     $location.path("/login");
-                }
+                };
 
                 Session.prototype.check = function() {
                     var $this = this;
@@ -128,7 +128,7 @@
                             $this.redirectToLogin();
                         }
                     });
-                }
+                };
 
                 Session.prototype.setLastLoginUrl = function() {
                     this.lastLoginUrl = $location.path();
@@ -161,7 +161,7 @@
                     this.set(result);
                     this.$delete = result.$delete;
                     if (token) {
-                        $window.localStorage.setItem(authTokenStorageKey, token)
+                        $window.localStorage.setItem(authTokenStorageKey, token);
                     }
                 };
 
@@ -171,7 +171,7 @@
                     $this.$delete(function(result) {
                         $this.clear();
                         d.resolve(result);
-                        $window.localStorage.removeItem(authTokenStorageKey)
+                        $window.localStorage.removeItem(authTokenStorageKey);
                     });
                     return d.promise;
                 };

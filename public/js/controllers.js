@@ -26,7 +26,7 @@
 
                 $scope.isActive = function(url) {
                     return $scope.currentUrl.indexOf(url, $scope.currentUrl.length - url.length) !== -1;
-                }
+                };
 
                 Session.init(Auth);
 
@@ -104,7 +104,7 @@
                     return Photo.search({
                         q: q,
                         page: page
-                    })
+                    });
                 };
                 $scope.showHeader = true;
             } else if (tag) {
@@ -112,7 +112,7 @@
                     return Photo.search({
                         q: "#" + tag,
                         page: page
-                    })
+                    });
                 };
                 $scope.showHeader = true;
             } else if (ownerID) {
@@ -120,7 +120,7 @@
                     return Photo.byOwner({
                         ownerID: ownerID,
                         page: page
-                    })
+                    });
                 };
                 $scope.showHeader = true;
             } else {
@@ -128,7 +128,7 @@
                     return Photo.query({
                         orderBy: orderBy,
                         page: page
-                    })
+                    });
                 };
             }
 
@@ -205,22 +205,22 @@
                     return;
                 }
                 $scope.photo.perms.vote = false;
-                $scope.photo.upVotes += 1
+                $scope.photo.upVotes += 1;
                 Photo.upvote({
                     id: $scope.photo.id
                 });
-            }
+            };
 
             $scope.voteDown = function() {
                 if (!$scope.photo.perms.vote) {
                     return;
                 }
                 $scope.photo.perms.vote = false;
-                $scope.photo.downVotes += 1
+                $scope.photo.downVotes += 1;
                 Photo.downvote({
                     id: $scope.photo.id
                 });
-            }
+            };
 
             $scope.deletePhoto = function() {
                 if (!$scope.photo.perms.delete || !$window.confirm('You sure you want to delete this?')) {
@@ -382,12 +382,12 @@
 
             $scope.recoverPassword = function() {
                 Auth.recoverPassword({}, $scope.formData, function() {
-                    Alert.success("Check your email for a link to change your password")
+                    Alert.success("Check your email for a link to change your password");
                     $location.path("/");
                 }, function(result) {
                     Alert.danger(result.data);
                 });
-            }
+            };
 
         }
     ])
@@ -399,7 +399,7 @@
         'Alert',
         function($scope, $location, Auth, Session, Alert) {
 
-            var code = $location.search()['code'];
+            var code = $location.search().code;
             $scope.formData = {};
 
             if (code) {
@@ -410,17 +410,16 @@
 
             $scope.changePassword = function() {
                 Auth.changePassword({}, $scope.formData, function() {
-                    Alert.success("Your password has been updated")
+                    Alert.success("Your password has been updated");
                     if (!Session.loggedIn) {
-                        $location.path("/login")
+                        $location.path("/login");
                     } else {
                         $location.path("/");
                     }
                 }, function(result) {
                     Alert.danger(result.data || "Sorry, an error occurred");
                 });
-            }
-
+            };
         }
     ])
 

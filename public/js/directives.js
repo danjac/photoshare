@@ -57,6 +57,6 @@
             },
             templateUrl: 'partials/pagination.html'
 
-        }
+        };
     });
 })();

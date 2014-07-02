@@ -156,25 +156,28 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user.IsAuthenticated = true
 
-	if msg, err := email.MessageFromTemplate(
+	go func() {
+		if err := sendWelcomeMail(user); err != nil {
+			log.Println(err)
+		}
+	}()
+
+	writeJSON(w, newSessionInfo(user), http.StatusOK)
+
+}
+
+func sendWelcomeMail(user *models.User) error {
+	msg, err := email.MessageFromTemplate(
 		"Welcome to photoshare!",
 		[]string{user.Email},
 		config.Smtp.DefaultSender,
 		signupTmpl,
 		user,
-	); err == nil {
-		go func() {
-			if err := mailer.Mail(msg); err != nil {
-				log.Println(err)
-			}
-		}()
-
-	} else {
-		panic(err)
+	)
+	if err != nil {
+		return err
 	}
-
-	writeJSON(w, newSessionInfo(user), http.StatusOK)
-
+	return mailer.Mail(msg)
 }
 
 func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -249,6 +252,7 @@ func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	code, err := user.GenerateRecoveryCode()
+
 	if err != nil {
 		panic(err)
 	}
@@ -256,7 +260,18 @@ func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err := userMgr.Update(user); err != nil {
 		panic(err)
 	}
-	if msg, err := email.MessageFromTemplate(
+
+	go func() {
+		if err := sendResetPasswordMail(user, code, r); err != nil {
+			log.Println(err)
+		}
+	}()
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func sendResetPasswordMail(user *models.User, recoveryCode string, r *http.Request) error {
+	msg, err := email.MessageFromTemplate(
 		"Reset your password",
 		[]string{user.Email},
 		config.Smtp.DefaultSender,
@@ -267,20 +282,15 @@ func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
 			Url          string
 		}{
 			user.Name,
-			code,
+			recoveryCode,
 			baseURL(r),
 		},
-	); err == nil {
-		go func() {
-			if err := mailer.Mail(msg); err != nil {
-				log.Println(err)
-			}
-		}()
-	} else {
-		panic(err)
+	)
+	if err != nil {
+		return err
 	}
+	return mailer.Mail(msg)
 
-	w.WriteHeader(http.StatusOK)
 }
 
 func init() {

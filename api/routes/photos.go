@@ -222,7 +222,10 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	photo := &models.Photo{Title: title,
-		OwnerID: user.ID, Filename: filename, Tags: tags}
+		OwnerID:  user.ID,
+		Filename: filename,
+		Tags:     tags,
+	}
 
 	validator := getPhotoValidator(photo)
 

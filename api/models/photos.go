@@ -16,8 +16,8 @@ type PhotoManager interface {
 	Insert(*Photo) error
 	Update(*Photo) error
 	Delete(*Photo) error
-	Get(string) (*Photo, error)
-	GetDetail(string, *User) (*PhotoDetail, error)
+	Get(int64) (*Photo, error)
+	GetDetail(int64, *User) (*PhotoDetail, error)
 	GetTagCounts() ([]TagCount, error)
 	All(int64, string) (*PhotoList, error)
 	ByOwnerID(int64, string) (*PhotoList, error)
@@ -168,8 +168,8 @@ func (mgr *defaultPhotoManager) UpdateTags(photo *Photo) error {
 
 }
 
-func (mgr *defaultPhotoManager) Get(photoID string) (*Photo, error) {
-	if photoID == "" {
+func (mgr *defaultPhotoManager) Get(photoID int64) (*Photo, error) {
+	if photoID == 0 {
 		return nil, nil
 	}
 
@@ -184,9 +184,9 @@ func (mgr *defaultPhotoManager) Get(photoID string) (*Photo, error) {
 	return obj.(*Photo), nil
 }
 
-func (mgr *defaultPhotoManager) GetDetail(photoID string, user *User) (*PhotoDetail, error) {
+func (mgr *defaultPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, error) {
 
-	if photoID == "" {
+	if photoID == 0 {
 		return nil, nil
 	}
 

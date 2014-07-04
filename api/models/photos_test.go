@@ -1,7 +1,6 @@
 package models
 
 import (
-	"strconv"
 	"testing"
 )
 
@@ -21,7 +20,7 @@ func TestGetIfNotNone(t *testing.T) {
 		return
 	}
 
-	photo, err := NewPhotoManager().Get(strconv.FormatInt(photo.ID, 10))
+	photo, err := NewPhotoManager().Get(photo.ID)
 	if err != nil {
 		t.Error(err)
 		return
@@ -37,7 +36,7 @@ func TestGetIfNone(t *testing.T) {
 	tdb := MakeTestDB()
 	defer tdb.Clean()
 
-	photo, err := NewPhotoManager().Get("1")
+	photo, err := NewPhotoManager().Get(1)
 	if err != nil {
 		t.Error(err)
 		return

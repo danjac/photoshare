@@ -33,8 +33,18 @@
         </ul>
             <form class="navbar-form navbar-left" role="search" name="searchForm" novalidate>
               <div class="form-group">
-                <input type="text" class="form-control" placeholder="Search" ng-model="searchQuery" required>
-              <button type="submit" class="btn btn-default" ng-disabled="searchForm.$invalid" ng-click="doSearch()"><span class="glyphicon glyphicon-search"></span></button>
+                <input type="text"
+                       class="form-control"
+                       placeholder="Search"
+                       ng-model="searchQuery"
+                       data-toggle="tooltip"
+                       data-placement="bottom"
+                       title="Prefix search with '#' for tags and '@' for users"
+                       required>
+              <button type="submit"
+                      class="btn btn-default"
+                      ng-disabled="searchForm.$invalid"
+                      ng-click="doSearch()"><span class="glyphicon glyphicon-search"></span></button>
               </div>
             </form>
 

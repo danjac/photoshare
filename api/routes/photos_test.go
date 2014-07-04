@@ -11,11 +11,11 @@ import (
 type mockPhotoManager struct {
 }
 
-func (m *mockPhotoManager) Get(photoID string) (*models.Photo, error) {
+func (m *mockPhotoManager) Get(photoID int64) (*models.Photo, error) {
 	return nil, nil
 }
 
-func (m *mockPhotoManager) GetDetail(photoID string, user *models.User) (*models.PhotoDetail, error) {
+func (m *mockPhotoManager) GetDetail(photoID int64, user *models.User) (*models.PhotoDetail, error) {
 	canEdit := user.ID == 1
 	photo := &models.PhotoDetail{
 		Photo: models.Photo{
@@ -73,7 +73,12 @@ type emptyPhotoManager struct {
 	mockPhotoManager
 }
 
-func (m *emptyPhotoManager) GetDetail(photoID string, user *models.User) (*models.PhotoDetail, error) {
+func (m *emptyPhotoManager) All(pageNum int64, orderBy string) (*models.PhotoList, error) {
+	var photos []models.Photo
+	return &models.PhotoList{photos, 0, 1, 0}, nil
+}
+
+func (m *emptyPhotoManager) GetDetail(photoID int64, user *models.User) (*models.PhotoDetail, error) {
 	return nil, nil
 }
 
@@ -100,6 +105,7 @@ func TestGetPhotoDetail(t *testing.T) {
 	req := &http.Request{}
 	res := httptest.NewRecorder()
 	c := newContext()
+	c.URLParams["id"] = "1"
 
 	getCurrentUser = func(c web.C, r *http.Request) (*models.User, error) {
 		return &models.User{}, nil
@@ -111,13 +117,13 @@ func TestGetPhotoDetail(t *testing.T) {
 	value := &models.PhotoDetail{}
 	parseJsonBody(res, value)
 	if res.Code != 200 {
-		t.Fail()
+		t.Fatal("Photo not found")
 	}
 	if value.Title != "test" {
-		t.Fail()
+		t.Fatal("Title should be test")
 	}
 	if value.Permissions.Edit {
-		t.Fail()
+		t.Fatal("User should have edit permission")
 	}
 }
 

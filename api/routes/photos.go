@@ -37,6 +37,22 @@ func getPage(r *http.Request) int64 {
 	return page
 }
 
+func getPhotoDetail(c web.C, user *models.User) (*models.PhotoDetail, error) {
+	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
+	if err != nil {
+		return nil, nil
+	}
+	return photoMgr.GetDetail(photoID, user)
+}
+
+func getPhoto(c web.C) (*models.Photo, error) {
+	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
+	if err != nil {
+		return nil, nil
+	}
+	return photoMgr.Get(photoID)
+}
+
 func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user, err := getCurrentUser(c, r)
@@ -50,7 +66,7 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	photo, err := photoMgr.Get(c.URLParams["id"])
+	photo, err := getPhoto(c)
 	if err != nil {
 		panic(err)
 	}
@@ -77,7 +93,8 @@ func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	photo, err := photoMgr.GetDetail(c.URLParams["id"], user)
+
+	photo, err := getPhotoDetail(c, user)
 	if err != nil {
 		panic(err)
 	}
@@ -100,7 +117,7 @@ func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*models.Ph
 		return nil, false
 	}
 
-	photo, err := photoMgr.Get(c.URLParams["id"])
+	photo, err := getPhoto(c)
 
 	if err != nil {
 		panic(err)
@@ -296,7 +313,7 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *models
 		writeError(w, http.StatusUnauthorized)
 		return
 	}
-	photo, err = photoMgr.Get(c.URLParams["id"])
+	photo, err = getPhoto(c)
 	if err != nil {
 		panic(err)
 	}

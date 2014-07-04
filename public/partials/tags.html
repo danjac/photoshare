@@ -1,7 +1,7 @@
 
 <div class="row" ng-show="pageLoaded">
 <div class="pull-left col-md-6">
-	<input class="form-control input-lg" type="text" placeholder="Find a tag" ng-model="tagFilter">
+	<input class="form-control input-lg" type="text" placeholder="Find a tag" ng-model="tagFilter.name">
 </div>
 <ul class="nav nav-pills pull-right">
     <li ng-class="{active: orderField=='-numPhotos'}"><a ng-click="orderTags('-numPhotos')">Popularity</a></li>

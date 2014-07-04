@@ -76,28 +76,26 @@ func (mgr *defaultUserManager) GetActive(userID int64) (*User, error) {
 	user := &User{}
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
 		if err == sql.ErrNoRows {
-			return user, nil
+			return nil, nil
 		}
-		return user, err
+		return nil, err
 	}
-	user.IsAuthenticated = true
 	return user, nil
 
 }
 
 func (mgr *defaultUserManager) GetByRecoveryCode(code string) (*User, error) {
 
-	user := &User{}
 	if code == "" {
-		return user, nil
+		return nil, nil
 	}
+	user := &User{}
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND recovery_code=$2", true, code); err != nil {
 		if err == sql.ErrNoRows {
-			return user, nil
+			return nil, nil
 		}
-		return user, err
+		return nil, err
 	}
-	user.IsAuthenticated = true
 	return user, nil
 
 }
@@ -105,28 +103,26 @@ func (mgr *defaultUserManager) GetByEmail(email string) (*User, error) {
 	user := &User{}
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
 		if err == sql.ErrNoRows {
-			return user, nil
+			return nil, nil
 		}
-		return user, err
+		return nil, err
 	}
-	user.IsAuthenticated = true
 	return user, nil
 }
 
 func (mgr *defaultUserManager) Authenticate(identifier, password string) (*User, error) {
 	user := &User{}
+
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
 		if err == sql.ErrNoRows {
-			return user, nil
+			return nil, nil
 		}
-		return user, err
+		return nil, err
 	}
 
 	if !user.CheckPassword(password) {
-		return user, nil
+		return nil, nil
 	}
-
-	user.IsAuthenticated = true
 
 	return user, nil
 }

@@ -105,7 +105,7 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	if !user.IsAuthenticated {
+	if user == nil {
 		writeString(w, "Invalid email or password", http.StatusBadRequest)
 		return
 	}
@@ -113,6 +113,9 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 	if _, err := sessionMgr.Login(w, user); err != nil {
 		panic(err)
 	}
+
+	user.IsAuthenticated = true
+
 	sendMessage(&Message{user.Name, "", 0, "login"})
 	writeJSON(w, newSessionInfo(user), http.StatusOK)
 }

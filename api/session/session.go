@@ -37,6 +37,12 @@ func (mgr *defaultSessionManager) GetCurrentUser(r *http.Request) (*models.User,
 		return nil, err
 	}
 
+	if user == nil {
+		return &models.User{}, nil
+	}
+
+	user.IsAuthenticated = true
+
 	return user, nil
 }
 

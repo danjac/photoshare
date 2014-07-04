@@ -3,7 +3,6 @@ package session
 import (
 	"github.com/danjac/photoshare/api/models"
 	"net/http"
-	"strconv"
 )
 
 var userMgr = models.NewUserManager()
@@ -29,7 +28,7 @@ func (mgr *defaultSessionManager) GetCurrentUser(r *http.Request) (*models.User,
 
 	// no token found, user not yet auth'd. Return unauthenticated user
 
-	if userID == "" {
+	if userID == 0 {
 		return &models.User{}, nil
 	}
 
@@ -42,9 +41,9 @@ func (mgr *defaultSessionManager) GetCurrentUser(r *http.Request) (*models.User,
 }
 
 func (mgr *defaultSessionManager) Login(w http.ResponseWriter, user *models.User) (string, error) {
-	return createToken(w, strconv.FormatInt(user.ID, 10))
+	return writeToken(w, user.ID)
 }
 
 func (mgr *defaultSessionManager) Logout(w http.ResponseWriter) (string, error) {
-	return createToken(w, "")
+	return writeToken(w, 0)
 }

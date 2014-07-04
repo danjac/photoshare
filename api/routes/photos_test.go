@@ -41,7 +41,7 @@ func (m *mockPhotoManager) All(pageNum int64, orderBy string) (*models.PhotoList
 	return models.NewPhotoList(photos, 1, 1), nil
 }
 
-func (m *mockPhotoManager) ByOwnerID(pageNum int64, ownerID string) (*models.PhotoList, error) {
+func (m *mockPhotoManager) ByOwnerID(pageNum int64, ownerID int64) (*models.PhotoList, error) {
 	return &models.PhotoList{}, nil
 }
 
@@ -98,6 +98,24 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 	if res.Code != 404 {
 		t.Fail()
 	}
+}
+
+func TestGetPhotoDetailWithBadID(t *testing.T) {
+	req := &http.Request{}
+	res := httptest.NewRecorder()
+	c := newContext()
+	c.URLParams["id"] = "fiddlesticks"
+
+	getCurrentUser = func(c web.C, r *http.Request) (*models.User, error) {
+		return &models.User{}, nil
+	}
+
+	photoMgr = &mockPhotoManager{}
+	photoDetail(c, res, req)
+	if res.Code != 404 {
+		t.Fatal("Should be a 404")
+	}
+
 }
 
 func TestGetPhotoDetail(t *testing.T) {

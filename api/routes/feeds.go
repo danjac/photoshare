@@ -69,7 +69,11 @@ func popularFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 }
 
 func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
-	ownerID := c.URLParams["ownerID"]
+	ownerID, err := strconv.ParseInt(c.URLParams["ownerID"], 10, 0)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
 	owner, err := userMgr.GetActive(ownerID)
 	if err != nil {
 		panic(err)

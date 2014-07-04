@@ -19,7 +19,7 @@ type UserManager interface {
 	Update(user *User) error
 	IsNameAvailable(user *User) (bool, error)
 	IsEmailAvailable(user *User) (bool, error)
-	GetActive(userID string) (*User, error)
+	GetActive(userID int64) (*User, error)
 	GetByRecoveryCode(string) (*User, error)
 	GetByEmail(string) (*User, error)
 	Authenticate(identifier string, password string) (*User, error)
@@ -71,7 +71,7 @@ func (mgr *defaultUserManager) IsEmailAvailable(user *User) (bool, error) {
 	}
 	return num == 0, nil
 }
-func (mgr *defaultUserManager) GetActive(userID string) (*User, error) {
+func (mgr *defaultUserManager) GetActive(userID int64) (*User, error) {
 
 	user := &User{}
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {

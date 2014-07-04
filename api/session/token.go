@@ -5,6 +5,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -30,10 +31,10 @@ func init() {
 
 }
 
-func readToken(r *http.Request) (string, error) {
+func readToken(r *http.Request) (int64, error) {
 	tokenString := r.Header.Get(tokenHeader)
 	if tokenString == "" {
-		return "", nil
+		return 0, nil
 	}
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) ([]byte, error) {
 		return verifyKey, nil
@@ -41,19 +42,24 @@ func readToken(r *http.Request) (string, error) {
 	switch err.(type) {
 	case nil:
 		if !token.Valid {
-			return "", nil
+			return 0, nil
 		}
-		return token.Claims["uid"].(string), nil
+		token := token.Claims["uid"].(string)
+		if userID, err := strconv.ParseInt(token, 10, 0); err != nil {
+			return 0, nil
+		} else {
+			return userID, nil
+		}
 	case *jwt.ValidationError:
-		return "", nil
+		return 0, nil
 	default:
-		return "", err
+		return 0, err
 	}
 }
 
-func createToken(w http.ResponseWriter, userID string) (string, error) {
+func writeToken(w http.ResponseWriter, userID int64) (string, error) {
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
-	token.Claims["uid"] = userID
+	token.Claims["uid"] = strconv.FormatInt(userID, 10)
 	token.Claims["exp"] = time.Now().Add(time.Minute * expiry).Unix()
 	tokenString, err := token.SignedString(signKey)
 	if err != nil {

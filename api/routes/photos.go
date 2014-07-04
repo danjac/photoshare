@@ -271,7 +271,12 @@ func searchPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
 }
 
 func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) {
-	photos, err := photoMgr.ByOwnerID(getPage(r), c.URLParams["ownerID"])
+	ownerID, err := strconv.ParseInt(c.URLParams["ownerID"], 10, 0)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	photos, err := photoMgr.ByOwnerID(getPage(r), ownerID)
 	if err != nil {
 		panic(err)
 	}
@@ -309,6 +314,10 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *models
 	)
 
 	user, err := getCurrentUser(c, r)
+	if err != nil {
+		panic(err)
+	}
+
 	if !user.IsAuthenticated {
 		writeError(w, http.StatusUnauthorized)
 		return

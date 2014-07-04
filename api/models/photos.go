@@ -20,7 +20,7 @@ type PhotoManager interface {
 	GetDetail(int64, *User) (*PhotoDetail, error)
 	GetTagCounts() ([]TagCount, error)
 	All(int64, string) (*PhotoList, error)
-	ByOwnerID(int64, string) (*PhotoList, error)
+	ByOwnerID(int64, int64) (*PhotoList, error)
 	Search(int64, string) (*PhotoList, error)
 	UpdateTags(*Photo) error
 }
@@ -223,14 +223,14 @@ func (mgr *defaultPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDeta
 
 }
 
-func (mgr *defaultPhotoManager) ByOwnerID(pageNum int64, ownerID string) (*PhotoList, error) {
+func (mgr *defaultPhotoManager) ByOwnerID(pageNum int64, ownerID int64) (*PhotoList, error) {
 
 	var (
 		photos []Photo
 		err    error
 		total  int64
 	)
-	if ownerID == "" {
+	if ownerID == 0 {
 		return nil, nil
 	}
 	if total, err = dbMap.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {

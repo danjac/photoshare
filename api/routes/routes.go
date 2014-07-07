@@ -4,6 +4,7 @@ import (
 	"github.com/danjac/photoshare/api/email"
 	"github.com/danjac/photoshare/api/models"
 	"github.com/zenazn/goji"
+	"github.com/zenazn/goji/web"
 	"regexp"
 )
 
@@ -22,30 +23,46 @@ var (
 
 func init() {
 
-	goji.Get("/api/photos/", getPhotos)
-	goji.Post("/api/photos/", upload)
-	goji.Get("/api/photos/search", searchPhotos)
-	goji.Get(ownerUrl, photosByOwnerID)
-	goji.Get(photoUrl, photoDetail)
-	goji.Delete(photoUrl, deletePhoto)
+	photos := web.New()
+	photos.Get("/api/photos/", getPhotos)
+	photos.Get("/api/photos/search", searchPhotos)
+	photos.Get(ownerUrl, photosByOwnerID)
+	photos.Get(photoUrl, photoDetail)
 
-	goji.Patch(titleUrl, editPhotoTitle)
-	goji.Patch(tagsUrl, editPhotoTags)
-	goji.Patch(downvoteUrl, voteDown)
-	goji.Patch(upvoteUrl, voteUp)
+	photos.Post("/api/photos/", upload)
+	photos.Delete(photoUrl, deletePhoto)
+	photos.Patch(titleUrl, editPhotoTitle)
+	photos.Patch(tagsUrl, editPhotoTags)
+	photos.Patch(downvoteUrl, voteDown)
+	photos.Patch(upvoteUrl, voteUp)
 
-	goji.Get("/api/auth/", authenticate)
-	goji.Post("/api/auth/", login)
-	goji.Delete("/api/auth/", logout)
-	goji.Post("/api/auth/signup", signup)
-	goji.Put("/api/auth/recoverpass", recoverPassword)
-	goji.Put("/api/auth/changepass", changePassword)
+	goji.Handle("/api/photos/*", photos)
 
-	goji.Get("/api/tags/", getTags)
+	tags := web.New()
+	tags.Get("/api/tags/", getTags)
 
-	goji.Get("/feeds/", latestFeed)
-	goji.Get("/feeds/popular/", popularFeed)
-	goji.Get(ownerFeedUrl, ownerFeed)
+	goji.Handle("/api/tags/*", tags)
 
-	goji.Handle("/api/messages/*", messageHandler)
+	messages := web.New()
+	messages.Handle("/api/messages/*", messageHandler)
+
+	goji.Handle("/api/messages/*", messages)
+
+	auth := web.New()
+	auth.Get("/api/auth/", authenticate)
+	auth.Post("/api/auth/", login)
+	auth.Delete("/api/auth/", logout)
+	auth.Post("/api/auth/signup", signup)
+	auth.Put("/api/auth/recoverpass", recoverPassword)
+	auth.Put("/api/auth/changepass", changePassword)
+
+	goji.Handle("/api/auth/*", auth)
+
+	feeds := web.New()
+	feeds.Get("/feeds/", latestFeed)
+	feeds.Get("/feeds/popular/", popularFeed)
+	feeds.Get(ownerFeedUrl, ownerFeed)
+
+	goji.Handle("/feeds/*", feeds)
+
 }

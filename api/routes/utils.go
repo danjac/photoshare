@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/danjac/photoshare/api/config"
-	"log"
 	"net/http"
 	"path"
-	"strconv"
 	"text/template"
 )
 
@@ -24,41 +22,6 @@ func scheme(r *http.Request) string {
 
 func baseURL(r *http.Request) string {
 	return fmt.Sprintf("%s://%s", scheme(r), r.Host)
-}
-
-func writeBody(w http.ResponseWriter, body []byte, status int, contentType string) {
-	w.WriteHeader(status)
-	w.Header().Set("Content-Type", contentType+";charset=utf8")
-	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
-	w.Write(body)
-}
-
-// write a plain text message
-func writeString(w http.ResponseWriter, body string, status int) {
-	writeBody(w, []byte(body), status, "text/plain")
-}
-
-func writeServerError(w http.ResponseWriter, err error) {
-	// maybe send email etc in production...
-	log.Println(err)
-	writeError(w, http.StatusInternalServerError)
-}
-
-func writeJSON(w http.ResponseWriter, value interface{}, status int) {
-	body, err := json.Marshal(value)
-	if err != nil {
-		writeServerError(w, err)
-		return
-	}
-	writeBody(w, body, status, "application/json")
-}
-
-func writeError(w http.ResponseWriter, status int) {
-	http.Error(w, http.StatusText(status), status)
-}
-
-func writeStatus(w http.ResponseWriter, status int) {
-	writeString(w, http.StatusText(status), status)
 }
 
 func parseTemplate(name string) *template.Template {

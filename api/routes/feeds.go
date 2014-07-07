@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"github.com/danjac/photoshare/api/models"
+	"github.com/danjac/photoshare/api/render"
 	"github.com/gorilla/feeds"
 	"github.com/zenazn/goji/web"
 	"net/http"
@@ -39,12 +40,7 @@ func photoFeed(c web.C,
 		feed.Add(item)
 	}
 
-	atom, err := feed.ToAtom()
-	if err != nil {
-		writeServerError(w, err)
-		return
-	}
-	writeBody(w, []byte(atom), http.StatusOK, "application/atom+xml")
+	render.Atom(w, feed)
 }
 
 func latestFeed(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -52,7 +48,7 @@ func latestFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.All(1, "")
 
 	if err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 
@@ -64,7 +60,7 @@ func popularFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.All(1, "votes")
 
 	if err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 
@@ -79,7 +75,7 @@ func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 	owner, err := userMgr.GetActive(ownerID)
 	if err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 	if owner == nil {
@@ -94,7 +90,7 @@ func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.ByOwnerID(1, ownerID)
 
 	if err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 	photoFeed(c, w, r, title, description, link, photos)

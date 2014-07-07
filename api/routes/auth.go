@@ -4,6 +4,7 @@ import (
 	"github.com/danjac/photoshare/api/config"
 	"github.com/danjac/photoshare/api/email"
 	"github.com/danjac/photoshare/api/models"
+	"github.com/danjac/photoshare/api/render"
 	"github.com/danjac/photoshare/api/session"
 	"github.com/danjac/photoshare/api/validation"
 	"github.com/zenazn/goji/web"
@@ -41,6 +42,20 @@ var getCurrentUser = func(c web.C, r *http.Request) (*models.User, error) {
 	return user, nil
 }
 
+func checkAuth(c web.C, w http.ResponseWriter, r *http.Request) (*models.User, bool) {
+
+	user, err := getCurrentUser(c, r)
+	if err != nil {
+		render.ServerError(w, err)
+		return nil, false
+	}
+	if !user.IsAuthenticated {
+		render.Status(w, http.StatusUnauthorized)
+		return user, false
+	}
+	return user, true
+}
+
 // Basic user session info
 type sessionInfo struct {
 	ID       int64  `json:"id"`
@@ -59,18 +74,18 @@ func newSessionInfo(user *models.User) *sessionInfo {
 
 func logout(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	user, err := getCurrentUser(c, r)
-	if !user.IsAuthenticated {
-		w.WriteHeader(http.StatusUnauthorized)
+	user, ok := checkAuth(c, w, r)
+	if !ok {
 		return
 	}
-	if _, err = sessionMgr.Logout(w); err != nil {
-		writeServerError(w, err)
+
+	if _, err := sessionMgr.Logout(w); err != nil {
+		render.ServerError(w, err)
 		return
 	}
 
 	sendMessage(&Message{user.Name, "", 0, "logout"})
-	writeJSON(w, newSessionInfo(&models.User{}), http.StatusOK)
+	render.JSON(w, newSessionInfo(&models.User{}), http.StatusOK)
 
 }
 
@@ -78,11 +93,11 @@ func authenticate(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user, err := getCurrentUser(c, r)
 	if err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 
-	writeJSON(w, newSessionInfo(user), http.StatusOK)
+	render.JSON(w, newSessionInfo(user), http.StatusOK)
 }
 
 func login(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -93,35 +108,35 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := parseJSON(r, s); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		render.Error(w, http.StatusBadRequest)
 		return
 	}
 
 	if s.Identifier == "" || s.Password == "" {
-		writeString(w, "Missing login details", http.StatusBadRequest)
+		render.String(w, "Missing login details", http.StatusBadRequest)
 		return
 	}
 
 	user, err := userMgr.Authenticate(s.Identifier, s.Password)
 
 	if err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 	if user == nil {
-		writeString(w, "Invalid email or password", http.StatusBadRequest)
+		render.String(w, "Invalid email or password", http.StatusBadRequest)
 		return
 	}
 
 	if _, err := sessionMgr.Login(w, user); err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 
 	user.IsAuthenticated = true
 
 	sendMessage(&Message{user.Name, "", 0, "login"})
-	writeJSON(w, newSessionInfo(user), http.StatusOK)
+	render.JSON(w, newSessionInfo(user), http.StatusOK)
 }
 
 func signup(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -147,20 +162,20 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
-			writeServerError(w, err)
+			render.ServerError(w, err)
 			return
 		}
-		writeJSON(w, result, http.StatusBadRequest)
+		render.JSON(w, result, http.StatusBadRequest)
 		return
 	}
 
 	if err := userMgr.Insert(user); err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 
 	if _, err := sessionMgr.Login(w, user); err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 
@@ -172,7 +187,7 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	writeJSON(w, newSessionInfo(user), http.StatusOK)
+	render.JSON(w, newSessionInfo(user), http.StatusOK)
 
 }
 
@@ -209,7 +224,7 @@ func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	if s.RecoveryCode == "" {
 		if user, err = getCurrentUser(c, r); err != nil {
-			writeServerError(w, err)
+			render.ServerError(w, err)
 			return
 		}
 		if !user.IsAuthenticated {
@@ -218,23 +233,23 @@ func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		if user, err = userMgr.GetByRecoveryCode(s.RecoveryCode); err != nil {
-			writeServerError(w, err)
+			render.ServerError(w, err)
 			return
 		}
 		if !user.IsAuthenticated {
-			writeString(w, "Invalid code, no user found", http.StatusBadRequest)
+			render.String(w, "Invalid code, no user found", http.StatusBadRequest)
 			return
 		}
 		user.ResetRecoveryCode()
 	}
 
 	if err = user.ChangePassword(s.Password); err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 
 	if err = userMgr.Update(user); err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 
@@ -253,28 +268,28 @@ func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if s.Email == "" {
-		writeString(w, "No email address provided", http.StatusBadRequest)
+		render.String(w, "No email address provided", http.StatusBadRequest)
 		return
 	}
 	user, err := userMgr.GetByEmail(s.Email)
 	if err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 	if !user.IsAuthenticated {
-		writeString(w, "No user found for this email address", http.StatusBadRequest)
+		render.String(w, "No user found for this email address", http.StatusBadRequest)
 		return
 	}
 
 	code, err := user.GenerateRecoveryCode()
 
 	if err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 
 	if err := userMgr.Update(user); err != nil {
-		writeServerError(w, err)
+		render.ServerError(w, err)
 		return
 	}
 
@@ -284,7 +299,7 @@ func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	w.WriteHeader(http.StatusOK)
+	render.Status(w, http.StatusOK)
 }
 
 func sendResetPasswordMail(user *models.User, recoveryCode string, r *http.Request) error {

@@ -41,7 +41,8 @@ func photoFeed(c web.C,
 
 	atom, err := feed.ToAtom()
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	writeBody(w, []byte(atom), http.StatusOK, "application/atom+xml")
 }
@@ -51,7 +52,8 @@ func latestFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.All(1, "")
 
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 
 	photoFeed(c, w, r, "Latest photos", "Most recent photos", "/latest", photos)
@@ -62,7 +64,8 @@ func popularFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.All(1, "votes")
 
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 
 	photoFeed(c, w, r, "Popular photos", "Most upvoted photos", "/popular", photos)
@@ -76,7 +79,8 @@ func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 	owner, err := userMgr.GetActive(ownerID)
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	if owner == nil {
 		http.NotFound(w, r)
@@ -90,7 +94,8 @@ func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.ByOwnerID(1, ownerID)
 
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	photoFeed(c, w, r, title, description, link, photos)
 }

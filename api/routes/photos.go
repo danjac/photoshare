@@ -58,7 +58,8 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 	user, err := getCurrentUser(c, r)
 
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 
 	if !user.IsAuthenticated {
@@ -68,7 +69,8 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	photo, err := getPhoto(c)
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 
 	if photo == nil {
@@ -80,23 +82,26 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := photoMgr.Delete(photo); err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 
 	sendMessage(&Message{user.Name, "", photo.ID, "photo_deleted"})
-	w.WriteHeader(http.StatusOK)
+	writeStatus(w, http.StatusOK)
 }
 
 func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user, err := getCurrentUser(c, r)
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 
 	photo, err := getPhotoDetail(c, user)
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	if photo == nil {
 		http.NotFound(w, r)
@@ -109,7 +114,8 @@ func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*models.Photo, bool) {
 	user, err := getCurrentUser(c, r)
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return nil, false
 	}
 
 	if !user.IsAuthenticated {
@@ -120,7 +126,8 @@ func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*models.Ph
 	photo, err := getPhoto(c)
 
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return nil, false
 	}
 
 	if photo == nil {
@@ -148,7 +155,7 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := parseJSON(r, s); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		writeStatus(w, http.StatusBadRequest)
 		return
 	}
 
@@ -158,19 +165,21 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
-			panic(err)
+			writeServerError(w, err)
+			return
 		}
 		writeJSON(w, result, http.StatusBadRequest)
 		return
 	}
 
 	if err := photoMgr.Update(photo); err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	if user, err := getCurrentUser(c, r); err == nil {
 		sendMessage(&Message{user.Name, "", photo.ID, "photo_updated"})
 	}
-	w.WriteHeader(http.StatusOK)
+	writeStatus(w, http.StatusOK)
 }
 
 func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -186,26 +195,28 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := parseJSON(r, s); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		writeStatus(w, http.StatusBadRequest)
 		return
 	}
 
 	photo.Tags = s.Tags
 
 	if err := photoMgr.UpdateTags(photo); err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	if user, err := getCurrentUser(c, r); err == nil {
 		sendMessage(&Message{user.Name, "", photo.ID, "photo_updated"})
 	}
-	w.WriteHeader(http.StatusOK)
+	writeStatus(w, http.StatusOK)
 }
 
 func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user, err := getCurrentUser(c, r)
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	if !user.IsAuthenticated {
 		writeError(w, http.StatusUnauthorized)
@@ -221,7 +232,8 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 			writeString(w, "No image was posted", http.StatusBadRequest)
 			return
 		}
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	contentType := hdr.Header["Content-Type"][0]
 
@@ -235,7 +247,8 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 	filename, err := imageProcessor.Process(src, contentType)
 
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 
 	photo := &models.Photo{Title: title,
@@ -248,14 +261,16 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
-			panic(err)
+			writeServerError(w, err)
+			return
 		}
 		writeJSON(w, result, http.StatusBadRequest)
 		return
 	}
 
 	if err := photoMgr.Insert(photo); err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 
 	sendMessage(&Message{user.Name, "", photo.ID, "photo_uploaded"})
@@ -265,7 +280,8 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 func searchPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.Search(getPage(r), r.FormValue("q"))
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	writeJSON(w, photos, http.StatusOK)
 }
@@ -278,7 +294,8 @@ func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 	photos, err := photoMgr.ByOwnerID(getPage(r), ownerID)
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	writeJSON(w, photos, http.StatusOK)
 }
@@ -286,7 +303,8 @@ func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) {
 func getPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.All(getPage(r), r.FormValue("orderBy"))
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	writeJSON(w, photos, http.StatusOK)
 }
@@ -294,7 +312,8 @@ func getPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
 func getTags(c web.C, w http.ResponseWriter, r *http.Request) {
 	tags, err := photoMgr.GetTagCounts()
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	writeJSON(w, tags, http.StatusOK)
 }
@@ -315,7 +334,8 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *models
 
 	user, err := getCurrentUser(c, r)
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 
 	if !user.IsAuthenticated {
@@ -324,7 +344,8 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *models
 	}
 	photo, err = getPhoto(c)
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	if photo == nil {
 		http.NotFound(w, r)
@@ -339,13 +360,15 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *models
 	fn(photo)
 
 	if err = photoMgr.Update(photo); err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 
 	user.RegisterVote(photo.ID)
 
 	if err = userMgr.Update(user); err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
-	w.WriteHeader(http.StatusOK)
+	writeStatus(w, http.StatusOK)
 }

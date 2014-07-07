@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/danjac/photoshare/api/config"
+	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -37,16 +38,27 @@ func writeString(w http.ResponseWriter, body string, status int) {
 	writeBody(w, []byte(body), status, "text/plain")
 }
 
+func writeServerError(w http.ResponseWriter, err error) {
+	// maybe send email etc in production...
+	log.Println(err)
+	writeError(w, http.StatusInternalServerError)
+}
+
 func writeJSON(w http.ResponseWriter, value interface{}, status int) {
 	body, err := json.Marshal(value)
 	if err != nil {
-		panic(err)
+		writeServerError(w, err)
+		return
 	}
 	writeBody(w, body, status, "application/json")
 }
 
 func writeError(w http.ResponseWriter, status int) {
 	http.Error(w, http.StatusText(status), status)
+}
+
+func writeStatus(w http.ResponseWriter, status int) {
+	writeString(w, http.StatusText(status), status)
 }
 
 func parseTemplate(name string) *template.Template {

@@ -27,7 +27,7 @@ type SmtpConfig struct {
 	Password      string `env:"key=SMTP_PASS"`
 	User          string `env:"key=SMTP_USER"`
 	Host          string `env:"key=SMTP_HOST default=localhost"`
-	DefaultSender string `env"key=DEFAULT_EMAIL_SENDER default=webmaster@localhost"`
+	DefaultSender string `env:"key=DEFAULT_EMAIL_SENDER default=webmaster@localhost"`
 }
 
 type DirConfig struct {

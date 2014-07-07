@@ -83,7 +83,7 @@ func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	title := "Feeds for " + owner.Name
 	description := "List of feeds for " + owner.Name
-	link := fmt.Sprintf("/owner/%s/%s", ownerID, owner.Name)
+	link := fmt.Sprintf("/owner/%d/%s", ownerID, owner.Name)
 
 	photos, err := photoMgr.ByOwnerID(1, ownerID)
 

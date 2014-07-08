@@ -192,6 +192,7 @@ func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
 	var (
 		user *User
 		err  error
+		ok   bool
 	)
 
 	s := &struct {
@@ -200,17 +201,12 @@ func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err = parseJSON(r, s); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		render.Status(w, http.StatusBadRequest)
 		return
 	}
 
 	if s.RecoveryCode == "" {
-		if user, err = getCurrentUser(c, r); err != nil {
-			render.ServerError(w, err)
-			return
-		}
-		if !user.IsAuthenticated {
-			w.WriteHeader(http.StatusUnauthorized)
+		if user, ok = checkAuth(c, w, r); !ok {
 			return
 		}
 	} else {
@@ -235,7 +231,7 @@ func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	render.Status(w, http.StatusOK)
 
 }
 

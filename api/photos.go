@@ -192,15 +192,11 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 
 func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	user, err := getCurrentUser(c, r)
-	if err != nil {
-		render.ServerError(w, err)
+	user, ok := checkAuth(c, w, r)
+	if !ok {
 		return
 	}
-	if !user.IsAuthenticated {
-		render.Error(w, http.StatusUnauthorized)
-		return
-	}
+
 	title := r.FormValue("title")
 	taglist := r.FormValue("taglist")
 	tags := strings.Split(taglist, " ")

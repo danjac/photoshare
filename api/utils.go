@@ -26,7 +26,7 @@ func baseURL(r *http.Request) string {
 }
 
 func parseTemplate(name string) *template.Template {
-	return template.Must(template.ParseFiles(path.Join(Config.TemplatesDir, name)))
+	return template.Must(template.ParseFiles(path.Join(config.TemplatesDir, name)))
 }
 
 // Converts a Pg Array (returned as string) to an int slice

@@ -177,7 +177,7 @@ func sendWelcomeMail(user *User) error {
 	msg, err := MessageFromTemplate(
 		"Welcome to photoshare!",
 		[]string{user.Email},
-		Config.SmtpDefaultSender,
+		config.SmtpDefaultSender,
 		signupTmpl,
 		user,
 	)
@@ -284,7 +284,7 @@ func sendResetPasswordMail(user *User, recoveryCode string, r *http.Request) err
 	msg, err := MessageFromTemplate(
 		"Reset your password",
 		[]string{user.Email},
-		Config.SmtpDefaultSender,
+		config.SmtpDefaultSender,
 		recoverPassTmpl,
 		&struct {
 			Name         string

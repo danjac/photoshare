@@ -33,11 +33,11 @@ type defaultSessionManager struct{}
 
 func initSession() {
 	var err error
-	signKey, err = ioutil.ReadFile(Config.PrivateKey)
+	signKey, err = ioutil.ReadFile(config.PrivateKey)
 	if err != nil {
 		panic(err)
 	}
-	verifyKey, err = ioutil.ReadFile(Config.PublicKey)
+	verifyKey, err = ioutil.ReadFile(config.PublicKey)
 	if err != nil {
 		panic(err)
 	}

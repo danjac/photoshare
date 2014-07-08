@@ -61,7 +61,7 @@ type smtpMailer struct {
 }
 
 func (m *smtpMailer) Mail(msg *Message) error {
-	return smtp.SendMail(Config.SmtpHost+":25", m.Auth, msg.From, msg.To, msg.Body)
+	return smtp.SendMail(config.SmtpHost+":25", m.Auth, msg.From, msg.To, msg.Body)
 }
 
 type fakeMailer struct{}
@@ -73,7 +73,7 @@ func (m *fakeMailer) Mail(msg *Message) error {
 
 func newSmtpMailer() Mailer {
 	m := &smtpMailer{}
-	m.Auth = smtp.PlainAuth("", Config.SmtpName, Config.SmtpPassword, Config.SmtpHost)
+	m.Auth = smtp.PlainAuth("", config.SmtpName, config.SmtpPassword, config.SmtpHost)
 	return m
 }
 
@@ -82,7 +82,7 @@ func NewMailer() Mailer {
 }
 
 func initEmail() {
-	if Config.SmtpName == "" {
+	if config.SmtpName == "" {
 		log.Println("WARNING: using fake mailer, messages will not be sent by SMTP. " +
 			"Set SMTP_NAME and SMTP_PASSWORD in environment to enable.")
 		mailer = &fakeMailer{}

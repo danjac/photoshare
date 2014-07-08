@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	initConfig()
+	initconfig()
 	initRoutes()
 	initEmail()
 	initSession()
@@ -19,10 +19,10 @@ func init() {
 
 func getDbConn() (*sql.DB, error) {
 	return sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
-		Config.DBUser,
-		Config.DBName,
-		Config.DBPassword,
-		Config.DBHost,
+		config.DBUser,
+		config.DBName,
+		config.DBPassword,
+		config.DBHost,
 	))
 
 }
@@ -39,14 +39,14 @@ func RunServer() {
 
 	defer db.Close()
 
-	if _, err := InitDB(db, Config.LogSql); err != nil {
+	if _, err := InitDB(db, config.LogSql); err != nil {
 		log.Fatal(err)
 	}
 
-	flag.Set("bind", fmt.Sprintf("localhost:%d", Config.ServerPort))
+	flag.Set("bind", fmt.Sprintf("localhost:%d", config.ServerPort))
 
 	// for local development
-	goji.Get("/*", http.FileServer(http.Dir(Config.PublicDir)))
+	goji.Get("/*", http.FileServer(http.Dir(config.PublicDir)))
 	goji.Serve()
 
 }

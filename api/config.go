@@ -38,52 +38,52 @@ type AppConfig struct {
 	ServerPort int `env:"key=PORT default=5000"`
 }
 
-var Config = &AppConfig{}
+var config = &AppConfig{}
 
-func initConfig() {
+func initconfig() {
 
-	if err := env.Process(Config); err != nil {
+	if err := env.Process(config); err != nil {
 		log.Fatal(err)
 	}
 
-	if Config.TestDBName == "" {
-		Config.TestDBName = Config.DBName + "_test"
+	if config.TestDBName == "" {
+		config.TestDBName = config.DBName + "_test"
 	}
 
-	if Config.TestDBUser == "" {
-		Config.TestDBUser = Config.DBUser
+	if config.TestDBUser == "" {
+		config.TestDBUser = config.DBUser
 	}
 
-	if Config.TestDBPassword == "" {
-		Config.TestDBPassword = Config.DBPassword
+	if config.TestDBPassword == "" {
+		config.TestDBPassword = config.DBPassword
 	}
 
-	if Config.TestDBHost == "" {
-		Config.TestDBHost = Config.DBHost
+	if config.TestDBHost == "" {
+		config.TestDBHost = config.DBHost
 	}
 
-	if Config.TestDBName == Config.DBName {
+	if config.TestDBName == config.DBName {
 		log.Fatal("Test DB name same as DB name")
 	}
 
-	if Config.BaseDir == "" {
-		Config.BaseDir = getDefaultBaseDir()
+	if config.BaseDir == "" {
+		config.BaseDir = getDefaultBaseDir()
 	}
 
-	if Config.PublicDir == "" {
-		Config.PublicDir = path.Join(Config.BaseDir, "public")
+	if config.PublicDir == "" {
+		config.PublicDir = path.Join(config.BaseDir, "public")
 	}
 
-	if Config.UploadsDir == "" {
-		Config.UploadsDir = path.Join(Config.PublicDir, "uploads")
+	if config.UploadsDir == "" {
+		config.UploadsDir = path.Join(config.PublicDir, "uploads")
 	}
 
-	if Config.ThumbnailsDir == "" {
-		Config.ThumbnailsDir = path.Join(Config.UploadsDir, "thumbnails")
+	if config.ThumbnailsDir == "" {
+		config.ThumbnailsDir = path.Join(config.UploadsDir, "thumbnails")
 	}
 
-	if Config.TemplatesDir == "" {
-		Config.TemplatesDir = path.Join(Config.BaseDir, "templates")
+	if config.TemplatesDir == "" {
+		config.TemplatesDir = path.Join(config.BaseDir, "templates")
 	}
 }
 

@@ -23,8 +23,8 @@ const (
 
 var dbMap *gorp.DbMap
 
-var photoMgr = NewPhotoManager()
 var userMgr = NewUserManager()
+var photoMgr = NewPhotoManager()
 
 func InitDB(db *sql.DB, logSql bool) (*gorp.DbMap, error) {
 	dbMap = &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
@@ -149,7 +149,6 @@ func (mgr *defaultPhotoManager) Delete(photo *Photo) error {
 }
 
 func (mgr *defaultPhotoManager) Update(photo *Photo) error {
-
 	_, err := dbMap.Update(photo)
 	return err
 }

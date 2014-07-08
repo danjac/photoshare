@@ -16,6 +16,10 @@ var (
 	ownerFeedUrl = regexp.MustCompile(`/feeds/owner/(?P<ownerID>\d+)$`)
 )
 
+type Context struct {
+	User *User
+}
+
 func initRoutes() {
 
 	photos := web.New()

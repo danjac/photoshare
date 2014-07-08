@@ -47,7 +47,7 @@ func photoFeed(c web.C,
 
 func latestFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	photos, err := photoMgr.All(1, "")
+	photos, err := photoMgr.All(NewPage(1), "")
 
 	if err != nil {
 		handleServerError(w, err)
@@ -59,7 +59,7 @@ func latestFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 
 func popularFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	photos, err := photoMgr.All(1, "votes")
+	photos, err := photoMgr.All(NewPage(1), "votes")
 
 	if err != nil {
 		handleServerError(w, err)
@@ -89,7 +89,7 @@ func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	description := "List of feeds for " + owner.Name
 	link := fmt.Sprintf("/owner/%d/%s", ownerID, owner.Name)
 
-	photos, err := photoMgr.ByOwnerID(1, ownerID)
+	photos, err := photoMgr.ByOwnerID(NewPage(1), ownerID)
 
 	if err != nil {
 		handleServerError(w, err)

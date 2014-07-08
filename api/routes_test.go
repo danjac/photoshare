@@ -30,7 +30,7 @@ func (m *mockPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, b
 	return photo, true, nil
 }
 
-func (m *mockPhotoManager) All(pageNum int64, orderBy string) (*PhotoList, error) {
+func (m *mockPhotoManager) All(page *Page, orderBy string) (*PhotoList, error) {
 	item := &Photo{
 		ID:      1,
 		Title:   "test",
@@ -40,11 +40,11 @@ func (m *mockPhotoManager) All(pageNum int64, orderBy string) (*PhotoList, error
 	return NewPhotoList(photos, 1, 1), nil
 }
 
-func (m *mockPhotoManager) ByOwnerID(pageNum int64, ownerID int64) (*PhotoList, error) {
+func (m *mockPhotoManager) ByOwnerID(page *Page, ownerID int64) (*PhotoList, error) {
 	return &PhotoList{}, nil
 }
 
-func (m *mockPhotoManager) Search(pageNum int64, q string) (*PhotoList, error) {
+func (m *mockPhotoManager) Search(page *Page, q string) (*PhotoList, error) {
 	return &PhotoList{}, nil
 }
 
@@ -72,7 +72,7 @@ type emptyPhotoManager struct {
 	mockPhotoManager
 }
 
-func (m *emptyPhotoManager) All(pageNum int64, orderBy string) (*PhotoList, error) {
+func (m *emptyPhotoManager) All(page *Page, orderBy string) (*PhotoList, error) {
 	var photos []Photo
 	return &PhotoList{photos, 0, 1, 0}, nil
 }

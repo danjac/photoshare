@@ -64,7 +64,7 @@ func TestSearchPhotos(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	result, err := photoMgr.Search(1, "test")
+	result, err := photoMgr.Search(NewPage(1), "test")
 	if err != nil {
 		t.Error(err)
 		return
@@ -91,7 +91,7 @@ func TestAllPhotos(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	result, err := photoMgr.All(1, "")
+	result, err := photoMgr.All(NewPage(1), "")
 	if err != nil {
 		t.Error(err)
 		return

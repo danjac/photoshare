@@ -47,9 +47,9 @@ type PhotoManager interface {
 	Get(int64) (*Photo, bool, error)
 	GetDetail(int64, *User) (*PhotoDetail, bool, error)
 	GetTagCounts() ([]TagCount, error)
-	All(int64, string) (*PhotoList, error)
-	ByOwnerID(int64, int64) (*PhotoList, error)
-	Search(int64, string) (*PhotoList, error)
+	All(*Page, string) (*PhotoList, error)
+	ByOwnerID(*Page, int64) (*PhotoList, error)
+	Search(*Page, string) (*PhotoList, error)
 	UpdateTags(*Photo) error
 }
 
@@ -248,7 +248,7 @@ func (mgr *defaultPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDeta
 
 }
 
-func (mgr *defaultPhotoManager) ByOwnerID(pageNum int64, ownerID int64) (*PhotoList, error) {
+func (mgr *defaultPhotoManager) ByOwnerID(page *Page, ownerID int64) (*PhotoList, error) {
 
 	var (
 		photos []Photo
@@ -265,13 +265,13 @@ func (mgr *defaultPhotoManager) ByOwnerID(pageNum int64, ownerID int64) (*PhotoL
 	if _, err = dbMap.Select(&photos,
 		"SELECT * FROM photos WHERE owner_id = $1"+
 			"ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $2 OFFSET $3",
-		ownerID, pageSize, getPageOffset(pageNum)); err != nil {
+		ownerID, page.Size, page.Offset); err != nil {
 		return nil, err
 	}
-	return NewPhotoList(photos, total, pageNum), nil
+	return NewPhotoList(photos, total, page.Index), nil
 }
 
-func (mgr *defaultPhotoManager) Search(pageNum int64, q string) (*PhotoList, error) {
+func (mgr *defaultPhotoManager) Search(page *Page, q string) (*PhotoList, error) {
 
 	var (
 		clauses []string
@@ -334,16 +334,16 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) (*PhotoList, err
 	sql := fmt.Sprintf("SELECT * FROM (%s) q ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $%d OFFSET $%d",
 		clausesSql, numParams+1, numParams+2)
 
-	params = append(params, interface{}(pageSize))
-	params = append(params, interface{}(getPageOffset(pageNum)))
+	params = append(params, interface{}(page.Size))
+	params = append(params, interface{}(page.Offset))
 
 	if _, err = dbMap.Select(&photos, sql, params...); err != nil {
 		return nil, err
 	}
-	return NewPhotoList(photos, total, pageNum), nil
+	return NewPhotoList(photos, total, page.Index), nil
 }
 
-func (mgr *defaultPhotoManager) All(pageNum int64, orderBy string) (*PhotoList, error) {
+func (mgr *defaultPhotoManager) All(page *Page, orderBy string) (*PhotoList, error) {
 
 	var (
 		total  int64
@@ -362,10 +362,10 @@ func (mgr *defaultPhotoManager) All(pageNum int64, orderBy string) (*PhotoList, 
 
 	if _, err = dbMap.Select(&photos,
 		"SELECT * FROM photos "+
-			"ORDER BY "+orderBy+" DESC LIMIT $1 OFFSET $2", pageSize, getPageOffset(pageNum)); err != nil {
+			"ORDER BY "+orderBy+" DESC LIMIT $1 OFFSET $2", page.Size, page.Offset); err != nil {
 		return nil, err
 	}
-	return NewPhotoList(photos, total, pageNum), nil
+	return NewPhotoList(photos, total, page.Index), nil
 }
 
 func (mgr *defaultPhotoManager) GetTagCounts() ([]TagCount, error) {
@@ -580,4 +580,18 @@ func (user *User) GetVotes() []int64 {
 
 func (user *User) SetVotes(votes []int64) {
 	user.Votes = intSliceToPgArr(votes)
+}
+
+type Page struct {
+	Index  int64
+	Offset int64
+	Size   int64
+}
+
+func NewPage(index int64) *Page {
+	offset := (index - 1) * pageSize
+	if offset < 0 {
+		offset = 0
+	}
+	return &Page{index, offset, pageSize}
 }

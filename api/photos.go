@@ -21,14 +21,6 @@ func isAllowedContentType(contentType string) bool {
 	return false
 }
 
-func getPage(r *http.Request) int64 {
-	page, err := strconv.ParseInt(r.FormValue("page"), 10, 64)
-	if err != nil {
-		page = 1
-	}
-	return page
-}
-
 func getPhotoDetail(c web.C, user *User) (*PhotoDetail, bool, error) {
 	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
 	if err != nil {
@@ -340,4 +332,12 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func getPage(r *http.Request) *Page {
+	pageNum, err := strconv.ParseInt(r.FormValue("page"), 10, 64)
+	if err != nil {
+		pageNum = 1
+	}
+	return NewPage(pageNum)
 }

@@ -3,7 +3,16 @@ package api
 import (
 	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 )
+
+var routeParam = func(r *http.Request, name string) string {
+	return mux.Vars(r)[name]
+}
+
+var routeParamInt64 = func(r *http.Request, name string) (int64, error) {
+	return strconv.ParseInt(routeParam(r, name), 10, 0)
+}
 
 func setupRoutes() *mux.Router {
 

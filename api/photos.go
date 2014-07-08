@@ -1,9 +1,7 @@
 package api
 
 import (
-	"github.com/gorilla/mux"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -22,7 +20,7 @@ func isAllowedContentType(contentType string) bool {
 }
 
 func getPhotoDetail(r *http.Request, user *User) (*PhotoDetail, bool, error) {
-	photoID, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
+	photoID, err := routeParamInt64(r, "id")
 	if err != nil {
 		return nil, false, nil
 	}
@@ -30,7 +28,7 @@ func getPhotoDetail(r *http.Request, user *User) (*PhotoDetail, bool, error) {
 }
 
 func getPhoto(r *http.Request) (*Photo, bool, error) {
-	photoID, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
+	photoID, err := routeParamInt64(r, "id")
 	if err != nil {
 		return nil, false, nil
 	}
@@ -254,7 +252,7 @@ func searchPhotos(w http.ResponseWriter, r *http.Request) {
 }
 
 func photosByOwnerID(w http.ResponseWriter, r *http.Request) {
-	ownerID, err := strconv.ParseInt(mux.Vars(r)["ownerID"], 10, 0)
+	ownerID, err := routeParamInt64(r, "ownerID")
 	if err != nil {
 		http.NotFound(w, r)
 		return

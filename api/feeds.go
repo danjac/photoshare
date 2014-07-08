@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	"github.com/gorilla/feeds"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 	"time"
@@ -69,7 +68,7 @@ func popularFeed(w http.ResponseWriter, r *http.Request) {
 }
 
 func ownerFeed(w http.ResponseWriter, r *http.Request) {
-	ownerID, err := strconv.ParseInt(mux.Vars(r)["ownerID"], 10, 0)
+	ownerID, err := routeParamInt64(r, "ownerID")
 	if err != nil {
 		http.NotFound(w, r)
 		return

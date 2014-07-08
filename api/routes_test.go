@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/zenazn/goji/web"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -85,15 +84,14 @@ func (m *emptyPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, 
 func TestGetPhotoDetailIfNone(t *testing.T) {
 	req := &http.Request{}
 	res := httptest.NewRecorder()
-	c := newContext()
 
-	getCurrentUser = func(c web.C, r *http.Request) (*User, error) {
+	getCurrentUser = func(r *http.Request) (*User, error) {
 		return &User{}, nil
 	}
 
 	photoMgr = &emptyPhotoManager{}
 
-	photoDetail(c, res, req)
+	photoDetail(res, req)
 	if res.Code != 404 {
 		t.Fail()
 	}
@@ -102,15 +100,13 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 func TestGetPhotoDetailWithBadID(t *testing.T) {
 	req := &http.Request{}
 	res := httptest.NewRecorder()
-	c := newContext()
-	c.URLParams["id"] = "fiddlesticks"
 
-	getCurrentUser = func(c web.C, r *http.Request) (*User, error) {
+	getCurrentUser = func(r *http.Request) (*User, error) {
 		return &User{}, nil
 	}
 
 	photoMgr = &mockPhotoManager{}
-	photoDetail(c, res, req)
+	photoDetail(res, req)
 	if res.Code != 404 {
 		t.Fatal("Should be a 404")
 	}
@@ -119,18 +115,20 @@ func TestGetPhotoDetailWithBadID(t *testing.T) {
 
 func TestGetPhotoDetail(t *testing.T) {
 
-	req := &http.Request{}
+	req, _ := http.NewRequest("GET", "http://localhost/api/photos/1", nil)
 	res := httptest.NewRecorder()
-	c := newContext()
-	c.URLParams["id"] = "1"
 
-	getCurrentUser = func(c web.C, r *http.Request) (*User, error) {
+	getCurrentUser = func(r *http.Request) (*User, error) {
 		return &User{}, nil
+	}
+
+	routeParamInt64 = func(r *http.Request, name string) (int64, error) {
+		return int64(1), nil
 	}
 
 	photoMgr = &mockPhotoManager{}
 
-	photoDetail(c, res, req)
+	photoDetail(res, req)
 	value := &PhotoDetail{}
 	parseJsonBody(res, value)
 	if res.Code != 200 {
@@ -150,7 +148,7 @@ func TestGetPhotos(t *testing.T) {
 	res := httptest.NewRecorder()
 
 	photoMgr = &mockPhotoManager{}
-	getPhotos(web.C{}, res, req)
+	getPhotos(res, req)
 	value := &PhotoList{}
 	parseJsonBody(res, value)
 	if value.Total != 1 {

@@ -20,13 +20,13 @@ func TestGetIfNotNone(t *testing.T) {
 		return
 	}
 
-	photo, err := NewPhotoManager().Get(photo.ID)
+	photo, exists, err := NewPhotoManager().Get(photo.ID)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	if photo == nil {
-		t.Error("Photo should not be nil")
+	if !exists {
+		t.Error("Photo should exist")
 	}
 
 }
@@ -36,13 +36,13 @@ func TestGetIfNone(t *testing.T) {
 	tdb := MakeTestDB()
 	defer tdb.Clean()
 
-	photo, err := NewPhotoManager().Get(1)
+	_, exists, err := NewPhotoManager().Get(1)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	if photo != nil {
-		t.Error("Photo should be nil")
+	if exists {
+		t.Error("Photo should not exist")
 	}
 
 }

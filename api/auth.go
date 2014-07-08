@@ -99,13 +99,13 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := userMgr.Authenticate(s.Identifier, s.Password)
+	user, exists, err := userMgr.Authenticate(s.Identifier, s.Password)
 
 	if err != nil {
 		handleServerError(w, err)
 		return
 	}
-	if user == nil {
+	if !exists {
 		http.Error(w, "Invalid email or password", http.StatusBadRequest)
 		return
 	}
@@ -210,11 +210,11 @@ func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		if user, err = userMgr.GetByRecoveryCode(s.RecoveryCode); err != nil {
+		if user, ok, err = userMgr.GetByRecoveryCode(s.RecoveryCode); err != nil {
 			handleServerError(w, err)
 			return
 		}
-		if user == nil {
+		if !ok {
 			http.Error(w, "Invalid code, no user found", http.StatusBadRequest)
 			return
 		}
@@ -249,12 +249,12 @@ func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No email address provided", http.StatusBadRequest)
 		return
 	}
-	user, err := userMgr.GetByEmail(s.Email)
+	user, exists, err := userMgr.GetByEmail(s.Email)
 	if err != nil {
 		handleServerError(w, err)
 		return
 	}
-	if user == nil {
+	if !exists {
 		http.Error(w, "No user found for this email address", http.StatusBadRequest)
 		return
 	}

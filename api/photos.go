@@ -29,18 +29,18 @@ func getPage(r *http.Request) int64 {
 	return page
 }
 
-func getPhotoDetail(c web.C, user *User) (*PhotoDetail, error) {
+func getPhotoDetail(c web.C, user *User) (*PhotoDetail, bool, error) {
 	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
 	if err != nil {
-		return nil, nil
+		return nil, false, nil
 	}
 	return photoMgr.GetDetail(photoID, user)
 }
 
-func getPhoto(c web.C) (*Photo, error) {
+func getPhoto(c web.C) (*Photo, bool, error) {
 	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
 	if err != nil {
-		return nil, nil
+		return nil, false, nil
 	}
 	return photoMgr.Get(photoID)
 }
@@ -52,13 +52,13 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	photo, err := getPhoto(c)
+	photo, exists, err := getPhoto(c)
 	if err != nil {
 		handleServerError(w, err)
 		return
 	}
 
-	if photo == nil {
+	if !exists {
 		http.NotFound(w, r)
 		return
 	}
@@ -83,12 +83,12 @@ func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	photo, err := getPhotoDetail(c, user)
+	photo, exists, err := getPhotoDetail(c, user)
 	if err != nil {
 		handleServerError(w, err)
 		return
 	}
-	if photo == nil {
+	if !exists {
 		http.NotFound(w, r)
 		return
 	}
@@ -102,14 +102,14 @@ func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, bo
 		return nil, false
 	}
 
-	photo, err := getPhoto(c)
+	photo, exists, err := getPhoto(c)
 
 	if err != nil {
 		handleServerError(w, err)
 		return nil, false
 	}
 
-	if photo == nil {
+	if !exists {
 		http.NotFound(w, r)
 		return nil, false
 	}
@@ -311,12 +311,12 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)
 		return
 	}
 
-	photo, err = getPhoto(c)
+	photo, exists, err := getPhoto(c)
 	if err != nil {
 		handleServerError(w, err)
 		return
 	}
-	if photo == nil {
+	if !exists {
 		http.NotFound(w, r)
 		return
 	}

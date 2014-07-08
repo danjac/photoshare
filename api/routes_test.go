@@ -10,11 +10,11 @@ import (
 type mockPhotoManager struct {
 }
 
-func (m *mockPhotoManager) Get(photoID int64) (*Photo, error) {
-	return nil, nil
+func (m *mockPhotoManager) Get(photoID int64) (*Photo, bool, error) {
+	return nil, false, nil
 }
 
-func (m *mockPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, error) {
+func (m *mockPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, bool, error) {
 	canEdit := user.ID == 1
 	photo := &PhotoDetail{
 		Photo: Photo{
@@ -27,7 +27,7 @@ func (m *mockPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, e
 			Edit: canEdit,
 		},
 	}
-	return photo, nil
+	return photo, true, nil
 }
 
 func (m *mockPhotoManager) All(pageNum int64, orderBy string) (*PhotoList, error) {
@@ -77,8 +77,8 @@ func (m *emptyPhotoManager) All(pageNum int64, orderBy string) (*PhotoList, erro
 	return &PhotoList{photos, 0, 1, 0}, nil
 }
 
-func (m *emptyPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, error) {
-	return nil, nil
+func (m *emptyPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, bool, error) {
+	return nil, false, nil
 }
 
 // should return a 404

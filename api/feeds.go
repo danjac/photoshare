@@ -75,12 +75,12 @@ func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	owner, err := userMgr.GetActive(ownerID)
+	owner, exists, err := userMgr.GetActive(ownerID)
 	if err != nil {
 		handleServerError(w, err)
 		return
 	}
-	if owner == nil {
+	if !exists {
 		http.NotFound(w, r)
 		return
 	}

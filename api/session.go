@@ -57,13 +57,13 @@ func (mgr *defaultSessionManager) GetCurrentUser(r *http.Request) (*User, error)
 		return &User{}, nil
 	}
 
-	user, err := userMgr.GetActive(userID)
+	user, exists, err := userMgr.GetActive(userID)
 	if err != nil {
-		return nil, err
+		return user, err
 	}
 
-	if user == nil {
-		return &User{}, nil
+	if !exists {
+		return user, nil
 	}
 
 	user.IsAuthenticated = true

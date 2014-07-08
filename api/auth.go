@@ -1,34 +1,26 @@
 package api
 
 import (
-	"github.com/zenazn/goji/web"
 	"log"
 	"net/http"
 	"strings"
 )
 
-// lazily looks up user in session and stores in context.
-var getCurrentUser = func(c web.C, r *http.Request) (*User, error) {
-
-	obj, ok := c.Env["user"]
-	if ok {
-		return obj.(*User), nil
-	}
+var getCurrentUser = func(r *http.Request) (*User, error) {
 
 	user, err := sessionMgr.GetCurrentUser(r)
 	if err != nil {
 		return nil, err
 	}
 
-	c.Env["user"] = user
 	return user, nil
 }
 
 // gets current user. If user not authenticated, writes a 401 error. Returns true
 // if no error/user authenticated.
-func getUserOr401(c web.C, w http.ResponseWriter, r *http.Request) (*User, bool) {
+func getUserOr401(w http.ResponseWriter, r *http.Request) (*User, bool) {
 
-	user, err := getCurrentUser(c, r)
+	user, err := getCurrentUser(r)
 	if err != nil {
 		serverError(w, err)
 		return nil, false
@@ -56,9 +48,9 @@ func newSessionInfo(user *User) *sessionInfo {
 	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
-func logout(c web.C, w http.ResponseWriter, r *http.Request) {
+func logout(w http.ResponseWriter, r *http.Request) {
 
-	user, ok := getUserOr401(c, w, r)
+	user, ok := getUserOr401(w, r)
 	if !ok {
 		return
 	}
@@ -73,9 +65,9 @@ func logout(c web.C, w http.ResponseWriter, r *http.Request) {
 
 }
 
-func authenticate(c web.C, w http.ResponseWriter, r *http.Request) {
+func authenticate(w http.ResponseWriter, r *http.Request) {
 
-	user, err := getCurrentUser(c, r)
+	user, err := getCurrentUser(r)
 	if err != nil {
 		serverError(w, err)
 		return
@@ -84,7 +76,7 @@ func authenticate(c web.C, w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
-func login(c web.C, w http.ResponseWriter, r *http.Request) {
+func login(w http.ResponseWriter, r *http.Request) {
 
 	s := &struct {
 		Identifier string `json:"identifier"`
@@ -123,7 +115,7 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
-func signup(c web.C, w http.ResponseWriter, r *http.Request) {
+func signup(w http.ResponseWriter, r *http.Request) {
 
 	s := &struct {
 		Name     string `json:"name"`
@@ -189,7 +181,7 @@ func sendWelcomeMail(user *User) error {
 	return mailer.Mail(msg)
 }
 
-func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
+func changePassword(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		user *User
@@ -208,7 +200,7 @@ func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if s.RecoveryCode == "" {
-		if user, ok = getUserOr401(c, w, r); !ok {
+		if user, ok = getUserOr401(w, r); !ok {
 			return
 		}
 	} else {
@@ -237,7 +229,7 @@ func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
 
 }
 
-func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
+func recoverPassword(w http.ResponseWriter, r *http.Request) {
 
 	s := &struct {
 		Email string `json:"email"`

@@ -1,63 +1,50 @@
 package api
 
 import (
-	"github.com/zenazn/goji"
-	"github.com/zenazn/goji/web"
-	"regexp"
+	"github.com/gorilla/mux"
+	"net/http"
 )
 
-var (
-	ownerUrl     = regexp.MustCompile(`/api/photos/owner/(?P<ownerID>\d+)$`)
-	photoUrl     = regexp.MustCompile(`/api/photos/(?P<id>\d+)$`)
-	titleUrl     = regexp.MustCompile(`/api/photos/(?P<id>\d+)/title$`)
-	tagsUrl      = regexp.MustCompile(`/api/photos/(?P<id>\d+)/tags$`)
-	downvoteUrl  = regexp.MustCompile(`/api/photos/(?P<id>\d+)/downvote$`)
-	upvoteUrl    = regexp.MustCompile(`/api/photos/(?P<id>\d+)/upvote$`)
-	ownerFeedUrl = regexp.MustCompile(`/feeds/owner/(?P<ownerID>\d+)$`)
-)
+func setupRoutes() *mux.Router {
 
-func initRoutes() {
+	router := mux.NewRouter()
 
-	photos := web.New()
-	photos.Get("/api/photos/", getPhotos)
-	photos.Get("/api/photos/search", searchPhotos)
-	photos.Get(ownerUrl, photosByOwnerID)
-	photos.Get(photoUrl, photoDetail)
+	api := router.PathPrefix("/api").Subrouter()
 
-	photos.Post("/api/photos/", upload)
-	photos.Delete(photoUrl, deletePhoto)
-	photos.Patch(titleUrl, editPhotoTitle)
-	photos.Patch(tagsUrl, editPhotoTags)
-	photos.Patch(downvoteUrl, voteDown)
-	photos.Patch(upvoteUrl, voteUp)
+	photos := api.PathPrefix("/photos").Subrouter()
 
-	goji.Handle("/api/photos/*", photos)
+	photos.HandleFunc("/", getPhotos).Methods("GET")
+	photos.HandleFunc("/", upload).Methods("POST")
+	photos.HandleFunc("/search", searchPhotos).Methods("GET")
+	photos.HandleFunc("/owner/{ownerID:[0-9]+}", photosByOwnerID).Methods("GET")
 
-	tags := web.New()
-	tags.Get("/api/tags/", getTags)
+	photos.HandleFunc("/{id:[0-9]+}", photoDetail).Methods("GET")
+	photos.HandleFunc("/{id:[0-9]+}", deletePhoto).Methods("DELETE")
+	photos.HandleFunc("/{id:[0-9]+}/title", editPhotoTitle).Methods("PUT")
+	photos.HandleFunc("/{id:[0-9]+}/tags", editPhotoTags).Methods("PUT")
+	photos.HandleFunc("/{id:[0-9]+}/upvote", voteUp).Methods("PUT")
+	photos.HandleFunc("/{id:[0-9]+}/downvote", voteDown).Methods("PUT")
 
-	goji.Handle("/api/tags/*", tags)
+	api.HandleFunc("/tags/", getTags).Methods("GET")
+	api.Handle("/messages/", messageHandler)
 
-	messages := web.New()
-	messages.Handle("/api/messages/*", messageHandler)
+	auth := api.PathPrefix("/auth").Subrouter()
 
-	goji.Handle("/api/messages/*", messages)
+	auth.HandleFunc("/", authenticate).Methods("GET")
+	auth.HandleFunc("/", login).Methods("POST")
+	auth.HandleFunc("/", logout).Methods("DELETE")
+	auth.HandleFunc("/signup", signup).Methods("POST")
+	auth.HandleFunc("/recoverpass", recoverPassword).Methods("PUT")
+	auth.HandleFunc("/changepass", changePassword).Methods("PUT")
 
-	auth := web.New()
-	auth.Get("/api/auth/", authenticate)
-	auth.Post("/api/auth/", login)
-	auth.Delete("/api/auth/", logout)
-	auth.Post("/api/auth/signup", signup)
-	auth.Put("/api/auth/recoverpass", recoverPassword)
-	auth.Put("/api/auth/changepass", changePassword)
+	feeds := router.PathPrefix("/feeds").Subrouter()
 
-	goji.Handle("/api/auth/*", auth)
+	feeds.HandleFunc("/feeds/", latestFeed).Methods("GET")
+	feeds.HandleFunc("/feeds/popular/", popularFeed).Methods("GET")
+	feeds.HandleFunc("/feeds/owner/{ownerID:[0-9]+}", ownerFeed).Methods("GET")
 
-	feeds := web.New()
-	feeds.Get("/feeds/", latestFeed)
-	feeds.Get("/feeds/popular/", popularFeed)
-	feeds.Get(ownerFeedUrl, ownerFeed)
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir(config.PublicDir)))
 
-	goji.Handle("/feeds/*", feeds)
+	return router
 
 }

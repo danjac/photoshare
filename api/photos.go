@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/zenazn/goji/web"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 	"strings"
@@ -21,30 +21,30 @@ func isAllowedContentType(contentType string) bool {
 	return false
 }
 
-func getPhotoDetail(c web.C, user *User) (*PhotoDetail, bool, error) {
-	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
+func getPhotoDetail(r *http.Request, user *User) (*PhotoDetail, bool, error) {
+	photoID, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
 	if err != nil {
 		return nil, false, nil
 	}
 	return photoMgr.GetDetail(photoID, user)
 }
 
-func getPhoto(c web.C) (*Photo, bool, error) {
-	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
+func getPhoto(r *http.Request) (*Photo, bool, error) {
+	photoID, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
 	if err != nil {
 		return nil, false, nil
 	}
 	return photoMgr.Get(photoID)
 }
 
-func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
+func deletePhoto(w http.ResponseWriter, r *http.Request) {
 
-	user, ok := getUserOr401(c, w, r)
+	user, ok := getUserOr401(w, r)
 	if !ok {
 		return
 	}
 
-	photo, exists, err := getPhoto(c)
+	photo, exists, err := getPhoto(r)
 	if err != nil {
 		serverError(w, err)
 		return
@@ -67,15 +67,15 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
+func photoDetail(w http.ResponseWriter, r *http.Request) {
 
-	user, err := getCurrentUser(c, r)
+	user, err := getCurrentUser(r)
 	if err != nil {
 		serverError(w, err)
 		return
 	}
 
-	photo, exists, err := getPhotoDetail(c, user)
+	photo, exists, err := getPhotoDetail(r, user)
 	if err != nil {
 		serverError(w, err)
 		return
@@ -88,13 +88,13 @@ func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, photo, http.StatusOK)
 }
 
-func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, bool) {
-	user, ok := getUserOr401(c, w, r)
+func getPhotoToEdit(w http.ResponseWriter, r *http.Request) (*Photo, bool) {
+	user, ok := getUserOr401(w, r)
 	if !ok {
 		return nil, false
 	}
 
-	photo, exists, err := getPhoto(c)
+	photo, exists, err := getPhoto(r)
 
 	if err != nil {
 		serverError(w, err)
@@ -113,9 +113,9 @@ func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, bo
 	return photo, true
 }
 
-func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
+func editPhotoTitle(w http.ResponseWriter, r *http.Request) {
 
-	photo, ok := getPhotoToEdit(c, w, r)
+	photo, ok := getPhotoToEdit(w, r)
 
 	if !ok {
 		return
@@ -147,15 +147,15 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 		serverError(w, err)
 		return
 	}
-	if user, err := getCurrentUser(c, r); err == nil {
+	if user, err := getCurrentUser(r); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
 	w.WriteHeader(http.StatusOK)
 }
 
-func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
+func editPhotoTags(w http.ResponseWriter, r *http.Request) {
 
-	photo, ok := getPhotoToEdit(c, w, r)
+	photo, ok := getPhotoToEdit(w, r)
 
 	if !ok {
 		return
@@ -176,15 +176,15 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 		serverError(w, err)
 		return
 	}
-	if user, err := getCurrentUser(c, r); err == nil {
+	if user, err := getCurrentUser(r); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
 	w.WriteHeader(http.StatusOK)
 }
 
-func upload(c web.C, w http.ResponseWriter, r *http.Request) {
+func upload(w http.ResponseWriter, r *http.Request) {
 
-	user, ok := getUserOr401(c, w, r)
+	user, ok := getUserOr401(w, r)
 	if !ok {
 		return
 	}
@@ -244,7 +244,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, photo, http.StatusOK)
 }
 
-func searchPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
+func searchPhotos(w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.Search(getPage(r), r.FormValue("q"))
 	if err != nil {
 		serverError(w, err)
@@ -253,8 +253,8 @@ func searchPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, photos, http.StatusOK)
 }
 
-func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) {
-	ownerID, err := strconv.ParseInt(c.URLParams["ownerID"], 10, 0)
+func photosByOwnerID(w http.ResponseWriter, r *http.Request) {
+	ownerID, err := strconv.ParseInt(mux.Vars(r)["ownerID"], 10, 0)
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -267,7 +267,7 @@ func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, photos, http.StatusOK)
 }
 
-func getPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
+func getPhotos(w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.All(getPage(r), r.FormValue("orderBy"))
 	if err != nil {
 		serverError(w, err)
@@ -276,7 +276,7 @@ func getPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, photos, http.StatusOK)
 }
 
-func getTags(c web.C, w http.ResponseWriter, r *http.Request) {
+func getTags(w http.ResponseWriter, r *http.Request) {
 	tags, err := photoMgr.GetTagCounts()
 	if err != nil {
 		serverError(w, err)
@@ -285,25 +285,25 @@ func getTags(c web.C, w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, tags, http.StatusOK)
 }
 
-func voteDown(c web.C, w http.ResponseWriter, r *http.Request) {
-	vote(c, w, r, func(photo *Photo) { photo.DownVotes += 1 })
+func voteDown(w http.ResponseWriter, r *http.Request) {
+	vote(w, r, func(photo *Photo) { photo.DownVotes += 1 })
 }
 
-func voteUp(c web.C, w http.ResponseWriter, r *http.Request) {
-	vote(c, w, r, func(photo *Photo) { photo.UpVotes += 1 })
+func voteUp(w http.ResponseWriter, r *http.Request) {
+	vote(w, r, func(photo *Photo) { photo.UpVotes += 1 })
 }
 
-func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)) {
+func vote(w http.ResponseWriter, r *http.Request, fn func(photo *Photo)) {
 	var (
 		photo *Photo
 		err   error
 	)
-	user, ok := getUserOr401(c, w, r)
+	user, ok := getUserOr401(w, r)
 	if !ok {
 		return
 	}
 
-	photo, exists, err := getPhoto(c)
+	photo, exists, err := getPhoto(r)
 	if err != nil {
 		serverError(w, err)
 		return

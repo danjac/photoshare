@@ -3,14 +3,13 @@ package api
 import (
 	"fmt"
 	"github.com/gorilla/feeds"
-	"github.com/zenazn/goji/web"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 	"time"
 )
 
-func photoFeed(c web.C,
-	w http.ResponseWriter,
+func photoFeed(w http.ResponseWriter,
 	r *http.Request,
 	title string,
 	description string,
@@ -45,7 +44,7 @@ func photoFeed(c web.C,
 	writeBody(w, []byte(atom), http.StatusOK, "application/atom+xml")
 }
 
-func latestFeed(c web.C, w http.ResponseWriter, r *http.Request) {
+func latestFeed(w http.ResponseWriter, r *http.Request) {
 
 	photos, err := photoMgr.All(NewPage(1), "")
 
@@ -54,10 +53,10 @@ func latestFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	photoFeed(c, w, r, "Latest photos", "Most recent photos", "/latest", photos)
+	photoFeed(w, r, "Latest photos", "Most recent photos", "/latest", photos)
 }
 
-func popularFeed(c web.C, w http.ResponseWriter, r *http.Request) {
+func popularFeed(w http.ResponseWriter, r *http.Request) {
 
 	photos, err := photoMgr.All(NewPage(1), "votes")
 
@@ -66,11 +65,11 @@ func popularFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	photoFeed(c, w, r, "Popular photos", "Most upvoted photos", "/popular", photos)
+	photoFeed(w, r, "Popular photos", "Most upvoted photos", "/popular", photos)
 }
 
-func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
-	ownerID, err := strconv.ParseInt(c.URLParams["ownerID"], 10, 0)
+func ownerFeed(w http.ResponseWriter, r *http.Request) {
+	ownerID, err := strconv.ParseInt(mux.Vars(r)["ownerID"], 10, 0)
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -95,5 +94,5 @@ func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 		serverError(w, err)
 		return
 	}
-	photoFeed(c, w, r, title, description, link, photos)
+	photoFeed(w, r, title, description, link, photos)
 }

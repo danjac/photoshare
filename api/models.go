@@ -263,7 +263,7 @@ func (mgr *defaultPhotoManager) ByOwnerID(pageNum int64, ownerID int64) (*PhotoL
 	if _, err = dbMap.Select(&photos,
 		"SELECT * FROM photos WHERE owner_id = $1"+
 			"ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $2 OFFSET $3",
-		ownerID, pageSize, getOffset(pageNum)); err != nil {
+		ownerID, pageSize, getPageOffset(pageNum)); err != nil {
 		return nil, err
 	}
 	return NewPhotoList(photos, total, pageNum), nil
@@ -333,7 +333,7 @@ func (mgr *defaultPhotoManager) Search(pageNum int64, q string) (*PhotoList, err
 		clausesSql, numParams+1, numParams+2)
 
 	params = append(params, interface{}(pageSize))
-	params = append(params, interface{}(getOffset(pageNum)))
+	params = append(params, interface{}(getPageOffset(pageNum)))
 
 	if _, err = dbMap.Select(&photos, sql, params...); err != nil {
 		return nil, err
@@ -360,7 +360,7 @@ func (mgr *defaultPhotoManager) All(pageNum int64, orderBy string) (*PhotoList, 
 
 	if _, err = dbMap.Select(&photos,
 		"SELECT * FROM photos "+
-			"ORDER BY "+orderBy+" DESC LIMIT $1 OFFSET $2", pageSize, getOffset(pageNum)); err != nil {
+			"ORDER BY "+orderBy+" DESC LIMIT $1 OFFSET $2", pageSize, getPageOffset(pageNum)); err != nil {
 		return nil, err
 	}
 	return NewPhotoList(photos, total, pageNum), nil
@@ -372,14 +372,6 @@ func (mgr *defaultPhotoManager) GetTagCounts() ([]TagCount, error) {
 		return tags, err
 	}
 	return tags, nil
-}
-
-func getOffset(pageNum int64) int64 {
-	offset := (pageNum - 1) * pageSize
-	if offset < 0 {
-		offset = 0
-	}
-	return offset
 }
 
 type UserManager interface {

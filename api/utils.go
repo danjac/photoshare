@@ -74,3 +74,11 @@ func intSliceToPgArr(items []int64) string {
 	}
 	return "{" + strings.Join(s, ",") + "}"
 }
+
+func getPageOffset(pageNum int64) int64 {
+	offset := (pageNum - 1) * pageSize
+	if offset < 0 {
+		offset = 0
+	}
+	return offset
+}

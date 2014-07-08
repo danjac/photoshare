@@ -32,7 +32,7 @@ func checkAuth(c web.C, w http.ResponseWriter, r *http.Request) (*User, bool) {
 		return nil, false
 	}
 	if !user.IsAuthenticated {
-		w.WriteHeader(http.StatusUnauthorized)
+		http.Error(w, "You must be logged in", http.StatusUnauthorized)
 		return user, false
 	}
 	return user, true
@@ -130,7 +130,7 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := parseJSON(r, s); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, "Invalid signup data", http.StatusBadRequest)
 		return
 	}
 

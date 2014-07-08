@@ -24,6 +24,8 @@ var getCurrentUser = func(c web.C, r *http.Request) (*User, error) {
 	return user, nil
 }
 
+// gets current user. If user not authenticated, writes a 401 error. Returns true
+// if no error/user authenticated.
 func getUserOr401(c web.C, w http.ResponseWriter, r *http.Request) (*User, bool) {
 
 	user, err := getCurrentUser(c, r)

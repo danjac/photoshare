@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	initconfig()
+	initConfig()
 	initRoutes()
 	initEmail()
 	initSession()

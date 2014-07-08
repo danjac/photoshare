@@ -40,7 +40,7 @@ type AppConfig struct {
 
 var config = &AppConfig{}
 
-func initconfig() {
+func initConfig() {
 
 	if err := env.Process(config); err != nil {
 		log.Fatal(err)

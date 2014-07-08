@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	photoCleaner   = &defaultPhotoCleaner{}
+	photoCleaner   = NewPhotoCleaner()
 	imageProcessor = NewImageProcessor()
 )
 
@@ -39,7 +39,7 @@ func (c *defaultPhotoCleaner) Clean(name string) error {
 }
 
 func NewPhotoCleaner() PhotoCleaner {
-	return photoCleaner
+	return &defaultPhotoCleaner{}
 }
 
 func generateRandomFilename(contentType string) string {

@@ -31,13 +31,13 @@ func NewSessionManager() SessionManager {
 
 type defaultSessionManager struct{}
 
-func init() {
+func initSession() {
 	var err error
-	signKey, err = ioutil.ReadFile(Config.Keys.Private)
+	signKey, err = ioutil.ReadFile(Config.PrivateKey)
 	if err != nil {
 		panic(err)
 	}
-	verifyKey, err = ioutil.ReadFile(Config.Keys.Public)
+	verifyKey, err = ioutil.ReadFile(Config.PublicKey)
 	if err != nil {
 		panic(err)
 	}

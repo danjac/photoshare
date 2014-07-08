@@ -16,11 +16,6 @@ var (
 	recoverPassTmpl *template.Template
 )
 
-func initTemplates() {
-	signupTmpl = parseTemplate("signup.tmpl")
-	recoverPassTmpl = parseTemplate("recover_pass.tmpl")
-}
-
 type Message struct {
 	Subject string
 	Body    []byte
@@ -66,7 +61,7 @@ type smtpMailer struct {
 }
 
 func (m *smtpMailer) Mail(msg *Message) error {
-	return smtp.SendMail(Config.Smtp.Host+":25", m.Auth, msg.From, msg.To, msg.Body)
+	return smtp.SendMail(Config.SmtpHost+":25", m.Auth, msg.From, msg.To, msg.Body)
 }
 
 type fakeMailer struct{}
@@ -78,7 +73,7 @@ func (m *fakeMailer) Mail(msg *Message) error {
 
 func newSmtpMailer() Mailer {
 	m := &smtpMailer{}
-	m.Auth = smtp.PlainAuth("", Config.Smtp.Name, Config.Smtp.Password, Config.Smtp.Host)
+	m.Auth = smtp.PlainAuth("", Config.SmtpName, Config.SmtpPassword, Config.SmtpHost)
 	return m
 }
 
@@ -87,7 +82,7 @@ func NewMailer() Mailer {
 }
 
 func initEmail() {
-	if Config.Smtp.Name == "" {
+	if Config.SmtpName == "" {
 		log.Println("WARNING: using fake mailer, messages will not be sent by SMTP. " +
 			"Set SMTP_NAME and SMTP_PASSWORD in environment to enable.")
 		mailer = &fakeMailer{}

@@ -37,10 +37,10 @@ func (tdb *TestDB) Clean() {
 
 func MakeTestDB() (tdb *TestDB) {
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
-		Config.TestDB.User,
-		Config.TestDB.Name,
-		Config.TestDB.Password,
-		Config.TestDB.Host,
+		Config.TestDBUser,
+		Config.TestDBName,
+		Config.TestDBPassword,
+		Config.TestDBHost,
 	))
 
 	if err != nil {

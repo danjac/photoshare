@@ -17,16 +17,21 @@ func init() {
 	initSession()
 }
 
-func RunServer() {
-
-	runtime.GOMAXPROCS((runtime.NumCPU() * 2) + 1)
-
-	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
+func getDbConn() (*sql.DB, error) {
+	return sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
 		Config.DBUser,
 		Config.DBName,
 		Config.DBPassword,
 		Config.DBHost,
 	))
+
+}
+
+func RunServer() {
+
+	runtime.GOMAXPROCS((runtime.NumCPU() * 2) + 1)
+
+	db, err := getDbConn()
 
 	if err != nil {
 		log.Fatal(err)

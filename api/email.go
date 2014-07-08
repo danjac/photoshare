@@ -77,10 +77,6 @@ func newSmtpMailer() Mailer {
 	return m
 }
 
-func NewMailer() Mailer {
-	return mailer
-}
-
 func initEmail() {
 	if config.SmtpName == "" {
 		log.Println("WARNING: using fake mailer, messages will not be sent by SMTP. " +

@@ -20,7 +20,7 @@ func isAllowedContentType(contentType string) bool {
 }
 
 func getPhotoDetail(r *http.Request, user *User) (*PhotoDetail, bool, error) {
-	photoID, err := routeParamInt64(r, "id")
+	photoID, err := NewRouteParams(r).Int("id")
 	if err != nil {
 		return nil, false, nil
 	}
@@ -28,7 +28,7 @@ func getPhotoDetail(r *http.Request, user *User) (*PhotoDetail, bool, error) {
 }
 
 func getPhoto(r *http.Request) (*Photo, bool, error) {
-	photoID, err := routeParamInt64(r, "id")
+	photoID, err := NewRouteParams(r).Int("id")
 	if err != nil {
 		return nil, false, nil
 	}
@@ -252,7 +252,7 @@ func searchPhotos(w http.ResponseWriter, r *http.Request) {
 }
 
 func photosByOwnerID(w http.ResponseWriter, r *http.Request) {
-	ownerID, err := routeParamInt64(r, "ownerID")
+	ownerID, err := NewRouteParams(r).Int("ownerID")
 	if err != nil {
 		http.NotFound(w, r)
 		return

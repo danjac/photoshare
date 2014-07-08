@@ -68,7 +68,11 @@ func popularFeed(w http.ResponseWriter, r *http.Request) {
 }
 
 func ownerFeed(w http.ResponseWriter, r *http.Request) {
-	ownerID, err := routeParamInt64(r, "ownerID")
+	ownerID, err := NewRouteParams(r).Int("ownerID")
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
 	if err != nil {
 		http.NotFound(w, r)
 		return

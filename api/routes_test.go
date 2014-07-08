@@ -6,6 +6,16 @@ import (
 	"testing"
 )
 
+type FakeRouteParams struct{}
+
+func (p *FakeRouteParams) String(name string) string {
+	return "test"
+}
+
+func (p *FakeRouteParams) Int(name string) (int64, error) {
+	return 1, nil
+}
+
 type mockPhotoManager struct {
 }
 
@@ -122,8 +132,8 @@ func TestGetPhotoDetail(t *testing.T) {
 		return &User{}, nil
 	}
 
-	routeParamInt64 = func(r *http.Request, name string) (int64, error) {
-		return int64(1), nil
+	NewRouteParams = func(r *http.Request) RouteParamsGetter {
+		return &FakeRouteParams{}
 	}
 
 	photoMgr = &mockPhotoManager{}

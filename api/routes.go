@@ -6,12 +6,25 @@ import (
 	"strconv"
 )
 
-var routeParam = func(r *http.Request, name string) string {
-	return mux.Vars(r)[name]
+type RouteParamsGetter interface {
+	String(string) string
+	Int(string) (int64, error)
 }
 
-var routeParamInt64 = func(r *http.Request, name string) (int64, error) {
-	return strconv.ParseInt(routeParam(r, name), 10, 0)
+var NewRouteParams = func(r *http.Request) RouteParamsGetter {
+	return &defaultRouteParams{mux.Vars(r)}
+}
+
+type defaultRouteParams struct {
+	Params map[string]string
+}
+
+func (p *defaultRouteParams) String(name string) string {
+	return p.Params[name]
+}
+
+func (p *defaultRouteParams) Int(name string) (int64, error) {
+	return strconv.ParseInt(p.String(name), 10, 0)
 }
 
 func setupRoutes() *mux.Router {
@@ -35,7 +48,7 @@ func setupRoutes() *mux.Router {
 	photos.HandleFunc("/{id:[0-9]+}/downvote", voteDown).Methods("PUT")
 
 	api.HandleFunc("/tags/", getTags).Methods("GET")
-	api.Handle("/messages/", messageHandler)
+	api.PathPrefix("/messages").Handler(messageHandler)
 
 	auth := api.PathPrefix("/auth").Subrouter()
 
@@ -48,9 +61,9 @@ func setupRoutes() *mux.Router {
 
 	feeds := router.PathPrefix("/feeds").Subrouter()
 
-	feeds.HandleFunc("/feeds/", latestFeed).Methods("GET")
-	feeds.HandleFunc("/feeds/popular/", popularFeed).Methods("GET")
-	feeds.HandleFunc("/feeds/owner/{ownerID:[0-9]+}", ownerFeed).Methods("GET")
+	feeds.HandleFunc("/", latestFeed).Methods("GET")
+	feeds.HandleFunc("/popular/", popularFeed).Methods("GET")
+	feeds.HandleFunc("/owner/{ownerID:[0-9]+}", ownerFeed).Methods("GET")
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(config.PublicDir)))
 

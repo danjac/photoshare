@@ -13,9 +13,9 @@ type Render struct{}
 var render = &Render{}
 
 func (render *Render) writeBody(w http.ResponseWriter, body []byte, status int, contentType string) {
-	w.WriteHeader(status)
-	w.Header().Set("Content-Type", contentType+"; charset=utf8")
+	w.Header().Set("Content-Type", contentType+"; charset=UTF8")
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+	w.WriteHeader(status)
 	w.Write(body)
 }
 

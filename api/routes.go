@@ -49,7 +49,6 @@ func initRoutes() {
 	auth.Delete("/api/auth/", logout)
 	auth.Post("/api/auth/signup", signup)
 	auth.Put("/api/auth/recoverpass", recoverPassword)
-
 	auth.Put("/api/auth/changepass", changePassword)
 
 	goji.Handle("/api/auth/*", auth)

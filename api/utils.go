@@ -3,12 +3,35 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"path"
 	"strconv"
 	"strings"
 	"text/template"
 )
+
+func writeBody(w http.ResponseWriter, body []byte, status int, contentType string) {
+	w.Header().Set("Content-Type", contentType+"; charset=UTF8")
+	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+	w.WriteHeader(status)
+	w.Write(body)
+}
+
+func handleServerError(w http.ResponseWriter, err error) {
+	// maybe send email etc in production...
+	log.Println(err)
+	http.Error(w, "Sorry, an error has occurred", http.StatusInternalServerError)
+}
+
+func writeJSON(w http.ResponseWriter, value interface{}, status int) {
+	body, err := json.Marshal(value)
+	if err != nil {
+		handleServerError(w, err)
+		return
+	}
+	writeBody(w, body, status, "application/json")
+}
 
 func parseJSON(r *http.Request, value interface{}) error {
 	return json.NewDecoder(r.Body).Decode(value)

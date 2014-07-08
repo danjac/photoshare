@@ -39,14 +39,14 @@ func getPhoto(c web.C) (*Photo, bool, error) {
 
 func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	user, ok := checkAuth(c, w, r)
+	user, ok := getUserOr401(c, w, r)
 	if !ok {
 		return
 	}
 
 	photo, exists, err := getPhoto(c)
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
@@ -59,7 +59,7 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := photoMgr.Delete(photo); err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
@@ -71,13 +71,13 @@ func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user, err := getCurrentUser(c, r)
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
 	photo, exists, err := getPhotoDetail(c, user)
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	if !exists {
@@ -89,7 +89,7 @@ func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, bool) {
-	user, ok := checkAuth(c, w, r)
+	user, ok := getUserOr401(c, w, r)
 	if !ok {
 		return nil, false
 	}
@@ -97,7 +97,7 @@ func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, bo
 	photo, exists, err := getPhoto(c)
 
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return nil, false
 	}
 
@@ -136,7 +136,7 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
-			handleServerError(w, err)
+			serverError(w, err)
 			return
 		}
 		writeJSON(w, result, http.StatusBadRequest)
@@ -144,7 +144,7 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := photoMgr.Update(photo); err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	if user, err := getCurrentUser(c, r); err == nil {
@@ -173,7 +173,7 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 	photo.Tags = s.Tags
 
 	if err := photoMgr.UpdateTags(photo); err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	if user, err := getCurrentUser(c, r); err == nil {
@@ -184,7 +184,7 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 
 func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	user, ok := checkAuth(c, w, r)
+	user, ok := getUserOr401(c, w, r)
 	if !ok {
 		return
 	}
@@ -199,7 +199,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "No image was posted", http.StatusBadRequest)
 			return
 		}
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	contentType := hdr.Header["Content-Type"][0]
@@ -214,7 +214,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 	filename, err := imageProcessor.Process(src, contentType)
 
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
@@ -228,7 +228,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
-			handleServerError(w, err)
+			serverError(w, err)
 			return
 		}
 		writeJSON(w, result, http.StatusBadRequest)
@@ -236,7 +236,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := photoMgr.Insert(photo); err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
@@ -247,7 +247,7 @@ func upload(c web.C, w http.ResponseWriter, r *http.Request) {
 func searchPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.Search(getPage(r), r.FormValue("q"))
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	writeJSON(w, photos, http.StatusOK)
@@ -261,7 +261,7 @@ func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 	photos, err := photoMgr.ByOwnerID(getPage(r), ownerID)
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	writeJSON(w, photos, http.StatusOK)
@@ -270,7 +270,7 @@ func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) {
 func getPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.All(getPage(r), r.FormValue("orderBy"))
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	writeJSON(w, photos, http.StatusOK)
@@ -279,7 +279,7 @@ func getPhotos(c web.C, w http.ResponseWriter, r *http.Request) {
 func getTags(c web.C, w http.ResponseWriter, r *http.Request) {
 	tags, err := photoMgr.GetTagCounts()
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	writeJSON(w, tags, http.StatusOK)
@@ -298,14 +298,14 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)
 		photo *Photo
 		err   error
 	)
-	user, ok := checkAuth(c, w, r)
+	user, ok := getUserOr401(c, w, r)
 	if !ok {
 		return
 	}
 
 	photo, exists, err := getPhoto(c)
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	if !exists {
@@ -321,23 +321,15 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)
 	fn(photo)
 
 	if err = photoMgr.Update(photo); err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
 	user.RegisterVote(photo.ID)
 
 	if err = userMgr.Update(user); err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-}
-
-func getPage(r *http.Request) *Page {
-	pageNum, err := strconv.ParseInt(r.FormValue("page"), 10, 64)
-	if err != nil {
-		pageNum = 1
-	}
-	return NewPage(pageNum)
 }

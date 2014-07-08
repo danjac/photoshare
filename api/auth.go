@@ -24,11 +24,11 @@ var getCurrentUser = func(c web.C, r *http.Request) (*User, error) {
 	return user, nil
 }
 
-func checkAuth(c web.C, w http.ResponseWriter, r *http.Request) (*User, bool) {
+func getUserOr401(c web.C, w http.ResponseWriter, r *http.Request) (*User, bool) {
 
 	user, err := getCurrentUser(c, r)
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return nil, false
 	}
 	if !user.IsAuthenticated {
@@ -56,13 +56,13 @@ func newSessionInfo(user *User) *sessionInfo {
 
 func logout(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	user, ok := checkAuth(c, w, r)
+	user, ok := getUserOr401(c, w, r)
 	if !ok {
 		return
 	}
 
 	if _, err := sessionMgr.Logout(w); err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
@@ -75,7 +75,7 @@ func authenticate(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user, err := getCurrentUser(c, r)
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
@@ -102,7 +102,7 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 	user, exists, err := userMgr.Authenticate(s.Identifier, s.Password)
 
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	if !exists {
@@ -111,7 +111,7 @@ func login(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := sessionMgr.Login(w, user); err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
@@ -144,7 +144,7 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	if result, err := validator.Validate(); err != nil || !result.OK {
 		if err != nil {
-			handleServerError(w, err)
+			serverError(w, err)
 			return
 		}
 		writeJSON(w, result, http.StatusBadRequest)
@@ -152,12 +152,12 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := userMgr.Insert(user); err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
 	if _, err := sessionMgr.Login(w, user); err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
@@ -206,12 +206,12 @@ func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if s.RecoveryCode == "" {
-		if user, ok = checkAuth(c, w, r); !ok {
+		if user, ok = getUserOr401(c, w, r); !ok {
 			return
 		}
 	} else {
 		if user, ok, err = userMgr.GetByRecoveryCode(s.RecoveryCode); err != nil {
-			handleServerError(w, err)
+			serverError(w, err)
 			return
 		}
 		if !ok {
@@ -222,12 +222,12 @@ func changePassword(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = user.ChangePassword(s.Password); err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
 	if err = userMgr.Update(user); err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
@@ -251,7 +251,7 @@ func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 	user, exists, err := userMgr.GetByEmail(s.Email)
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	if !exists {
@@ -262,12 +262,12 @@ func recoverPassword(c web.C, w http.ResponseWriter, r *http.Request) {
 	code, err := user.GenerateRecoveryCode()
 
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
 	if err := userMgr.Update(user); err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 

@@ -39,7 +39,7 @@ func photoFeed(c web.C,
 	}
 	atom, err := feed.ToAtom()
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	writeBody(w, []byte(atom), http.StatusOK, "application/atom+xml")
@@ -50,7 +50,7 @@ func latestFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.All(NewPage(1), "")
 
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
@@ -62,7 +62,7 @@ func popularFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.All(NewPage(1), "votes")
 
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 
@@ -77,7 +77,7 @@ func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 	owner, exists, err := userMgr.GetActive(ownerID)
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	if !exists {
@@ -92,7 +92,7 @@ func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.ByOwnerID(NewPage(1), ownerID)
 
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	photoFeed(c, w, r, title, description, link, photos)

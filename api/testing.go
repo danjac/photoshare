@@ -28,7 +28,7 @@ type TestDB struct {
 func (tdb *TestDB) Clean() {
 	var tables = []string{"photo_tags", "tags", "photos", "users"}
 	for _, table := range tables {
-		if _, err := dbMap.Exec("DELETE FROM " + table); err != nil {
+		if _, err := db.Exec("DELETE FROM " + table); err != nil {
 			panic(err)
 		}
 	}

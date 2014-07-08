@@ -18,7 +18,7 @@ func writeBody(w http.ResponseWriter, body []byte, status int, contentType strin
 	w.Write(body)
 }
 
-func handleServerError(w http.ResponseWriter, err error) {
+func serverError(w http.ResponseWriter, err error) {
 	// maybe send email etc in production...
 	log.Println(err)
 	http.Error(w, "Sorry, an error has occurred", http.StatusInternalServerError)
@@ -27,7 +27,7 @@ func handleServerError(w http.ResponseWriter, err error) {
 func writeJSON(w http.ResponseWriter, value interface{}, status int) {
 	body, err := json.Marshal(value)
 	if err != nil {
-		handleServerError(w, err)
+		serverError(w, err)
 		return
 	}
 	writeBody(w, body, status, "application/json")
@@ -73,4 +73,12 @@ func intSliceToPgArr(items []int64) string {
 		s = append(s, strconv.FormatInt(value, 10))
 	}
 	return "{" + strings.Join(s, ",") + "}"
+}
+
+func getPage(r *http.Request) *Page {
+	pageNum, err := strconv.ParseInt(r.FormValue("page"), 10, 64)
+	if err != nil {
+		pageNum = 1
+	}
+	return NewPage(pageNum)
 }

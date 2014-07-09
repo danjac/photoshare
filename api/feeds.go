@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/gorilla/feeds"
+	"github.com/zenazn/goji/web"
 	"net/http"
 	"strconv"
 	"time"
@@ -67,8 +68,8 @@ func popularFeed(w http.ResponseWriter, r *http.Request) {
 	photoFeed(w, r, "Popular photos", "Most upvoted photos", "/popular", photos)
 }
 
-func ownerFeed(w http.ResponseWriter, r *http.Request) {
-	ownerID, err := NewRouteParams(r).Int("ownerID")
+func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
+	ownerID, err := strconv.ParseInt(c.URLParams["ownerID"], 10, 0)
 	if err != nil {
 		http.NotFound(w, r)
 		return

@@ -1,7 +1,9 @@
 package api
 
 import (
+	"github.com/zenazn/goji/web"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -19,30 +21,30 @@ func isAllowedContentType(contentType string) bool {
 	return false
 }
 
-func getPhotoDetail(r *http.Request, user *User) (*PhotoDetail, bool, error) {
-	photoID, err := NewRouteParams(r).Int("id")
+func getPhotoDetail(c web.C, user *User) (*PhotoDetail, bool, error) {
+	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
 	if err != nil {
 		return nil, false, nil
 	}
 	return photoMgr.GetDetail(photoID, user)
 }
 
-func getPhoto(r *http.Request) (*Photo, bool, error) {
-	photoID, err := NewRouteParams(r).Int("id")
+func getPhoto(c web.C) (*Photo, bool, error) {
+	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
 	if err != nil {
 		return nil, false, nil
 	}
 	return photoMgr.Get(photoID)
 }
 
-func deletePhoto(w http.ResponseWriter, r *http.Request) {
+func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user, ok := getUserOr401(w, r)
 	if !ok {
 		return
 	}
 
-	photo, exists, err := getPhoto(r)
+	photo, exists, err := getPhoto(c)
 	if err != nil {
 		serverError(w, err)
 		return
@@ -65,7 +67,7 @@ func deletePhoto(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func photoDetail(w http.ResponseWriter, r *http.Request) {
+func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 
 	user, err := getCurrentUser(r)
 	if err != nil {
@@ -73,7 +75,7 @@ func photoDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	photo, exists, err := getPhotoDetail(r, user)
+	photo, exists, err := getPhotoDetail(c, user)
 	if err != nil {
 		serverError(w, err)
 		return
@@ -86,13 +88,13 @@ func photoDetail(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, photo, http.StatusOK)
 }
 
-func getPhotoToEdit(w http.ResponseWriter, r *http.Request) (*Photo, bool) {
+func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, bool) {
 	user, ok := getUserOr401(w, r)
 	if !ok {
 		return nil, false
 	}
 
-	photo, exists, err := getPhoto(r)
+	photo, exists, err := getPhoto(c)
 
 	if err != nil {
 		serverError(w, err)
@@ -111,9 +113,9 @@ func getPhotoToEdit(w http.ResponseWriter, r *http.Request) (*Photo, bool) {
 	return photo, true
 }
 
-func editPhotoTitle(w http.ResponseWriter, r *http.Request) {
+func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	photo, ok := getPhotoToEdit(w, r)
+	photo, ok := getPhotoToEdit(c, w, r)
 
 	if !ok {
 		return
@@ -151,9 +153,9 @@ func editPhotoTitle(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func editPhotoTags(w http.ResponseWriter, r *http.Request) {
+func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 
-	photo, ok := getPhotoToEdit(w, r)
+	photo, ok := getPhotoToEdit(c, w, r)
 
 	if !ok {
 		return
@@ -251,8 +253,8 @@ func searchPhotos(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, photos, http.StatusOK)
 }
 
-func photosByOwnerID(w http.ResponseWriter, r *http.Request) {
-	ownerID, err := NewRouteParams(r).Int("ownerID")
+func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) {
+	ownerID, err := strconv.ParseInt(c.URLParams["ownerID"], 10, 0)
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -283,15 +285,15 @@ func getTags(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, tags, http.StatusOK)
 }
 
-func voteDown(w http.ResponseWriter, r *http.Request) {
-	vote(w, r, func(photo *Photo) { photo.DownVotes += 1 })
+func voteDown(c web.C, w http.ResponseWriter, r *http.Request) {
+	vote(c, w, r, func(photo *Photo) { photo.DownVotes += 1 })
 }
 
-func voteUp(w http.ResponseWriter, r *http.Request) {
-	vote(w, r, func(photo *Photo) { photo.UpVotes += 1 })
+func voteUp(c web.C, w http.ResponseWriter, r *http.Request) {
+	vote(c, w, r, func(photo *Photo) { photo.UpVotes += 1 })
 }
 
-func vote(w http.ResponseWriter, r *http.Request, fn func(photo *Photo)) {
+func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)) {
 	var (
 		photo *Photo
 		err   error
@@ -301,7 +303,7 @@ func vote(w http.ResponseWriter, r *http.Request, fn func(photo *Photo)) {
 		return
 	}
 
-	photo, exists, err := getPhoto(r)
+	photo, exists, err := getPhoto(c)
 	if err != nil {
 		serverError(w, err)
 		return

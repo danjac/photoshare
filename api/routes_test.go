@@ -1,20 +1,11 @@
 package api
 
 import (
+	"github.com/zenazn/goji/web"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
-
-type FakeRouteParams struct{}
-
-func (p *FakeRouteParams) String(name string) string {
-	return "test"
-}
-
-func (p *FakeRouteParams) Int(name string) (int64, error) {
-	return 1, nil
-}
 
 type mockPhotoManager struct {
 }
@@ -94,6 +85,7 @@ func (m *emptyPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, 
 func TestGetPhotoDetailIfNone(t *testing.T) {
 	req := &http.Request{}
 	res := httptest.NewRecorder()
+	c := web.C{}
 
 	getCurrentUser = func(r *http.Request) (*User, error) {
 		return &User{}, nil
@@ -101,7 +93,7 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 
 	photoMgr = &emptyPhotoManager{}
 
-	photoDetail(res, req)
+	photoDetail(c, res, req)
 	if res.Code != 404 {
 		t.Fail()
 	}
@@ -110,13 +102,17 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 func TestGetPhotoDetailWithBadID(t *testing.T) {
 	req := &http.Request{}
 	res := httptest.NewRecorder()
+	c := web.C{}
+
+	c.URLParams = make(map[string]string)
+	c.URLParams["id"] = "foo"
 
 	getCurrentUser = func(r *http.Request) (*User, error) {
 		return &User{}, nil
 	}
 
 	photoMgr = &mockPhotoManager{}
-	photoDetail(res, req)
+	photoDetail(c, res, req)
 	if res.Code != 404 {
 		t.Fatal("Should be a 404")
 	}
@@ -127,18 +123,17 @@ func TestGetPhotoDetail(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "http://localhost/api/photos/1", nil)
 	res := httptest.NewRecorder()
+	c := web.C{}
+	c.URLParams = make(map[string]string)
+	c.URLParams["id"] = "1"
 
 	getCurrentUser = func(r *http.Request) (*User, error) {
 		return &User{}, nil
 	}
 
-	NewRouteParams = func(r *http.Request) RouteParamsGetter {
-		return &FakeRouteParams{}
-	}
-
 	photoMgr = &mockPhotoManager{}
 
-	photoDetail(res, req)
+	photoDetail(c, res, req)
 	value := &PhotoDetail{}
 	parseJsonBody(res, value)
 	if res.Code != 200 {

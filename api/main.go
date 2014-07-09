@@ -2,9 +2,10 @@ package api
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
+	"github.com/zenazn/goji"
 	"log"
-	"net/http"
 	"runtime"
 )
 
@@ -12,6 +13,7 @@ func init() {
 	initConfig()
 	initEmail()
 	initSession()
+	initRoutes()
 }
 
 func getDbConn() (*sql.DB, error) {
@@ -40,6 +42,8 @@ func RunServer() {
 		log.Fatal(err)
 	}
 
-	http.ListenAndServe(fmt.Sprintf("localhost:%d", config.ServerPort), setupRoutes())
+	flag.Set("bind", fmt.Sprintf(":%d", config.ServerPort))
+
+	goji.Serve()
 
 }

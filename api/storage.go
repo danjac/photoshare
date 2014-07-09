@@ -2,6 +2,7 @@ package api
 
 import (
 	"code.google.com/p/graphics-go/graphics"
+	"errors"
 	"github.com/dchest/uniuri"
 	"image"
 	"image/jpeg"
@@ -12,9 +13,16 @@ import (
 	"path"
 )
 
+const (
+	ThumbnailHeight = 300
+	ThumbnailWidth  = 300
+)
+
 var (
-	photoCleaner   = NewPhotoCleaner()
-	imageProcessor = NewImageProcessor()
+	photoCleaner        = NewPhotoCleaner()
+	imageProcessor      = NewImageProcessor()
+	allowedContentTypes = []string{"image/png", "image/jpeg"}
+	InvalidContentType  = errors.New("Must be PNG or JPG")
 )
 
 type PhotoCleaner interface {
@@ -22,6 +30,16 @@ type PhotoCleaner interface {
 }
 
 type defaultPhotoCleaner struct {
+}
+
+func isAllowedContentType(contentType string) bool {
+	for _, value := range allowedContentTypes {
+		if contentType == value {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (c *defaultPhotoCleaner) Clean(name string) error {
@@ -59,6 +77,9 @@ type LocalImageProcessor struct {
 
 func (processor LocalImageProcessor) Process(src multipart.File, contentType string) (string, error) {
 
+	if !isAllowedContentType(contentType) {
+		return "", InvalidContentType
+	}
 	filename := generateRandomFilename(contentType)
 
 	if err := os.MkdirAll(config.UploadsDir, 0777); err != nil && !os.IsExist(err) {
@@ -85,7 +106,7 @@ func (processor LocalImageProcessor) Process(src multipart.File, contentType str
 		return filename, err
 	}
 
-	thumb := image.NewRGBA(image.Rect(0, 0, 300, 300))
+	thumb := image.NewRGBA(image.Rect(0, 0, ThumbnailWidth, ThumbnailHeight))
 	graphics.Thumbnail(thumb, img)
 
 	dst, err := os.Create(path.Join(config.ThumbnailsDir, filename))

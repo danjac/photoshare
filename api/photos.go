@@ -7,20 +7,6 @@ import (
 	"strings"
 )
 
-var (
-	allowedContentTypes = []string{"image/png", "image/jpeg"}
-)
-
-func isAllowedContentType(contentType string) bool {
-	for _, value := range allowedContentTypes {
-		if contentType == value {
-			return true
-		}
-	}
-
-	return false
-}
-
 func getPhotoOr404(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, bool) {
 	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
 	if err != nil {
@@ -198,18 +184,16 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		serverError(w, err)
 		return
 	}
-	contentType := hdr.Header["Content-Type"][0]
-
-	if !isAllowedContentType(contentType) {
-		http.Error(w, "No image was posted", http.StatusBadRequest)
-		return
-	}
-
 	defer src.Close()
+
+	contentType := hdr.Header["Content-Type"][0]
 
 	filename, err := imageProcessor.Process(src, contentType)
 
 	if err != nil {
+		if err == InvalidContentType {
+			http.Error(w, "No image was posted", http.StatusBadRequest)
+		}
 		serverError(w, err)
 		return
 	}

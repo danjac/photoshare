@@ -21,20 +21,22 @@ func isAllowedContentType(contentType string) bool {
 	return false
 }
 
-func getPhotoDetail(c web.C, user *User) (*PhotoDetail, bool, error) {
+func getPhotoOr404(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, bool) {
 	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
 	if err != nil {
-		return nil, false, nil
+		http.NotFound(w, r)
+		return nil, false
 	}
-	return photoMgr.GetDetail(photoID, user)
-}
-
-func getPhoto(c web.C) (*Photo, bool, error) {
-	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
+	photo, exists, err := photoMgr.Get(photoID)
 	if err != nil {
-		return nil, false, nil
+		serverError(w, err)
+		return photo, false
 	}
-	return photoMgr.Get(photoID)
+	if !exists {
+		http.NotFound(w, r)
+		return photo, false
+	}
+	return photo, true
 }
 
 func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -44,16 +46,11 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	photo, exists, err := getPhoto(c)
-	if err != nil {
-		serverError(w, err)
+	photo, ok := getPhotoOr404(c, w, r)
+	if !ok {
 		return
 	}
 
-	if !exists {
-		http.NotFound(w, r)
-		return
-	}
 	if !photo.CanDelete(user) {
 		http.Error(w, "You can't delete this photo", http.StatusForbidden)
 		return
@@ -75,7 +72,13 @@ func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	photo, exists, err := getPhotoDetail(c, user)
+	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	photo, exists, err := photoMgr.GetDetail(photoID, user)
 	if err != nil {
 		serverError(w, err)
 		return
@@ -94,16 +97,9 @@ func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, bo
 		return nil, false
 	}
 
-	photo, exists, err := getPhoto(c)
-
-	if err != nil {
-		serverError(w, err)
-		return nil, false
-	}
-
-	if !exists {
-		http.NotFound(w, r)
-		return nil, false
+	photo, ok := getPhotoOr404(c, w, r)
+	if !ok {
+		return photo, false
 	}
 
 	if !photo.CanEdit(user) {
@@ -303,13 +299,8 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)
 		return
 	}
 
-	photo, exists, err := getPhoto(c)
-	if err != nil {
-		serverError(w, err)
-		return
-	}
-	if !exists {
-		http.NotFound(w, r)
+	photo, ok = getPhotoOr404(c, w, r)
+	if !ok {
 		return
 	}
 

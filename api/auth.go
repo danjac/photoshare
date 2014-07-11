@@ -136,12 +136,12 @@ func signup(w http.ResponseWriter, r *http.Request) {
 
 	validator := getUserValidator(user)
 
-	if result, err := validator.Validate(); err != nil || !result.OK {
+	if result, err := formHandler.Validate(validator); err != nil || !result.OK {
 		if err != nil {
 			serverError(w, err)
 			return
 		}
-		writeJSON(w, result, http.StatusBadRequest)
+		result.Write(w)
 		return
 	}
 

@@ -1,20 +1,34 @@
 package api
 
 import (
+	"net/http"
 	"regexp"
 )
 
 var (
-	emailRegex = regexp.MustCompile(".+@.+\\..+")
+	emailRegex  = regexp.MustCompile(".+@.+\\..+")
+	formHandler = &FormHandler{}
 )
 
+type FormHandler struct{}
+
+func (h *FormHandler) Validate(validator Validator) (*ValidationResult, error) {
+	result := NewValidationResult()
+	err := validator.Validate(result)
+	return result, err
+}
+
 type Validator interface {
-	Validate() (*ValidationResult, error)
+	Validate(result *ValidationResult) error
 }
 
 type ValidationResult struct {
 	Errors map[string]string `json:"errors"`
 	OK     bool              `json:"ok"`
+}
+
+func (result *ValidationResult) Write(w http.ResponseWriter) {
+	writeJSON(w, result, http.StatusBadRequest)
 }
 
 var getPhotoValidator = func(photo *Photo) Validator {
@@ -45,8 +59,7 @@ type PhotoValidator struct {
 	Photo *Photo
 }
 
-func (v *PhotoValidator) Validate() (*ValidationResult, error) {
-	result := NewValidationResult()
+func (v *PhotoValidator) Validate(result *ValidationResult) error {
 	if v.Photo.OwnerID == 0 {
 		result.Error("ownerID", "Owner ID is missing")
 	}
@@ -59,7 +72,7 @@ func (v *PhotoValidator) Validate() (*ValidationResult, error) {
 	if v.Photo.Filename == "" {
 		result.Error("photo", "Photo filename not set")
 	}
-	return result, nil
+	return nil
 }
 
 func validateEmail(email string) bool {
@@ -74,16 +87,14 @@ type UserValidator struct {
 	User *User
 }
 
-func (v *UserValidator) Validate() (*ValidationResult, error) {
-
-	result := NewValidationResult()
+func (v *UserValidator) Validate(result *ValidationResult) error {
 
 	if v.User.Name == "" {
 		result.Error("name", "Name is missing")
 	} else {
 		ok, err := userMgr.IsNameAvailable(v.User)
 		if err != nil {
-			return result, err
+			return err
 		}
 		if !ok {
 			result.Error("name", "Name already taken")
@@ -97,7 +108,7 @@ func (v *UserValidator) Validate() (*ValidationResult, error) {
 	} else {
 		ok, err := userMgr.IsEmailAvailable(v.User)
 		if err != nil {
-			return result, err
+			return err
 		}
 		if !ok {
 			result.Error("email", "Email already taken")
@@ -109,6 +120,6 @@ func (v *UserValidator) Validate() (*ValidationResult, error) {
 		result.Error("password", "Password is missing")
 	}
 
-	return result, nil
+	return nil
 
 }

@@ -47,7 +47,7 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_deleted"})
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -107,7 +107,7 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 		Title string `json:"title"`
 	}{}
 
-	if err := parseJSON(r, s); err != nil {
+	if err := decodeJSON(r, s); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -132,7 +132,7 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 	if user, err := getCurrentUser(r); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
@@ -147,7 +147,7 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 		Tags []string `json:"tags"`
 	}{}
 
-	if err := parseJSON(r, s); err != nil {
+	if err := decodeJSON(r, s); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -161,7 +161,7 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 	if user, err := getCurrentUser(r); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func upload(w http.ResponseWriter, r *http.Request) {
@@ -221,7 +221,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_uploaded"})
-	writeJSON(w, photo, http.StatusOK)
+	writeJSON(w, photo, http.StatusCreated)
 }
 
 func searchPhotos(w http.ResponseWriter, r *http.Request) {
@@ -306,5 +306,5 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)
 		serverError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }

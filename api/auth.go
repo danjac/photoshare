@@ -83,7 +83,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		Password   string `json:"password"`
 	}{}
 
-	if err := parseJSON(r, s); err != nil {
+	if err := decodeJSON(r, s); err != nil {
 		http.Error(w, "Invalid login details", http.StatusBadRequest)
 		return
 	}
@@ -112,7 +112,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	user.IsAuthenticated = true
 
 	sendMessage(&SocketMessage{user.Name, "", 0, "login"})
-	writeJSON(w, newSessionInfo(user), http.StatusOK)
+	writeJSON(w, newSessionInfo(user), http.StatusCreated)
 }
 
 func signup(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +123,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}{}
 
-	if err := parseJSON(r, s); err != nil {
+	if err := decodeJSON(r, s); err != nil {
 		http.Error(w, "Invalid signup data", http.StatusBadRequest)
 		return
 	}
@@ -163,7 +163,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	writeJSON(w, newSessionInfo(user), http.StatusOK)
+	writeJSON(w, newSessionInfo(user), http.StatusCreated)
 
 }
 
@@ -194,7 +194,7 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 		RecoveryCode string `json:"code"`
 	}{}
 
-	if err = parseJSON(r, s); err != nil {
+	if err = decodeJSON(r, s); err != nil {
 		http.Error(w, "Invalid data", http.StatusBadRequest)
 		return
 	}
@@ -225,7 +225,7 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 
 }
 
@@ -235,7 +235,7 @@ func recoverPassword(w http.ResponseWriter, r *http.Request) {
 		Email string `json:"email"`
 	}{}
 
-	if err := parseJSON(r, s); err != nil {
+	if err := decodeJSON(r, s); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -271,7 +271,7 @@ func recoverPassword(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func sendResetPasswordMail(user *User, recoveryCode string, r *http.Request) error {

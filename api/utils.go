@@ -33,7 +33,7 @@ func writeJSON(w http.ResponseWriter, value interface{}, status int) {
 	writeBody(w, body, status, "application/json")
 }
 
-func parseJSON(r *http.Request, value interface{}) error {
+func decodeJSON(r *http.Request, value interface{}) error {
 	return json.NewDecoder(r.Body).Decode(value)
 }
 

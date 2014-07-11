@@ -26,7 +26,7 @@ func getDbConn() (*sql.DB, error) {
 
 }
 
-func RunServer() {
+func Serve() {
 
 	runtime.GOMAXPROCS((runtime.NumCPU() * 2) + 1)
 

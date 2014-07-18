@@ -119,8 +119,7 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) error {
 	if user, err := getCurrentUser(r, true); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
-	w.WriteHeader(http.StatusNoContent)
-	return nil
+	return renderStatus(w, http.StatusNoContent)
 
 }
 

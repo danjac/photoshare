@@ -1,10 +1,10 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
-    "log"
-    "database/sql"
+	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -38,31 +38,30 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 	}
 	httpError, ok := err.(HttpError)
 	if ok {
-		http.Error(w, http.StatusText(httpError.Status) , httpError.Status)
+		http.Error(w, http.StatusText(httpError.Status), httpError.Status)
 		return
 	}
 
 	result, ok := err.(ValidationResult)
 	if ok {
 		if err = renderJSON(w, result, http.StatusBadRequest); err == nil {
-            return 
-        }
+			return
+		}
 	}
 
-    var status int
+	var status int
 
 	switch err {
 	case sql.ErrNoRows:
 		status = http.StatusNotFound
-    case ErrInvalidLogin:
-        status = http.StatusBadRequest
+	case ErrInvalidLogin:
+		status = http.StatusBadRequest
 	default:
 		status = http.StatusInternalServerError
 	}
 	log.Println(err) // more sophisticated logging needed
 	http.Error(w, http.StatusText(status), status)
 }
-
 
 func decodeJSON(r *http.Request, value interface{}) error {
 	return json.NewDecoder(r.Body).Decode(value)

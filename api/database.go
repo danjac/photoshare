@@ -2,23 +2,22 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/coopernurse/gorp"
 	_ "github.com/lib/pq"
 	"log"
 	"os"
 	"strings"
-    "errors"
 )
 
 var dbMap *gorp.DbMap
 
 var (
-userMgr = NewUserManager()
- photoMgr = NewPhotoManager()
- ErrInvalidLogin = errors.New("Invalid email or password")
+	userMgr         = NewUserManager()
+	photoMgr        = NewPhotoManager()
+	ErrInvalidLogin = errors.New("Invalid email or password")
 )
-
 
 func InitDB(db *sql.DB, logSql bool) (*gorp.DbMap, error) {
 	dbMap = &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
@@ -374,9 +373,9 @@ func (mgr *defaultUserManager) Authenticate(identifier, password string) (*User,
 	user := &User{}
 
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
-        if err == sql.ErrNoRows {
-           return user, ErrInvalidLogin 
-        }
+		if err == sql.ErrNoRows {
+			return user, ErrInvalidLogin
+		}
 		return user, err
 	}
 

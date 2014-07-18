@@ -23,22 +23,35 @@ func newSessionInfo(user *User) *sessionInfo {
 	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
-func (a *AppContext) authenticate(r *http.Request, required bool) (*User, error) {
+func (a *AppContext) authenticate(c web.C, r *http.Request, required bool) (*User, error) {
 
-	user, err := a.sessionMgr.GetCurrentUser(r)
-	if err != nil {
-		return user, err
+	var (
+		user *User
+		err  error
+	)
+
+	obj, ok := c.Env["user"]
+
+	if ok {
+		user = obj.(*User)
+	} else {
+		user, err = a.sessionMgr.GetCurrentUser(r)
+		if err != nil {
+			return user, err
+		}
+		c.Env["user"] = user
 	}
 
 	if (user == nil || !user.IsAuthenticated) && required {
 		return user, httpError(http.StatusUnauthorized, "You must be logged in")
 	}
+
 	return user, nil
 }
 
-func (a *AppContext) logout(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) logout(c web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := a.authenticate(r, true)
+	user, err := a.authenticate(c, r, true)
 	if err != nil {
 		return err
 	}
@@ -52,9 +65,9 @@ func (a *AppContext) logout(_ web.C, w http.ResponseWriter, r *http.Request) err
 
 }
 
-func (a *AppContext) getSessionInfo(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) getSessionInfo(c web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := a.authenticate(r, false)
+	user, err := a.authenticate(c, r, false)
 	if err != nil {
 		return err
 	}
@@ -136,7 +149,7 @@ func (a *AppContext) signup(c web.C, w http.ResponseWriter, r *http.Request) err
 
 }
 
-func (a *AppContext) changePassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) changePassword(c web.C, w http.ResponseWriter, r *http.Request) error {
 
 	var (
 		user *User
@@ -153,7 +166,7 @@ func (a *AppContext) changePassword(_ web.C, w http.ResponseWriter, r *http.Requ
 	}
 
 	if s.RecoveryCode == "" {
-		if user, err = a.authenticate(r, true); err != nil {
+		if user, err = a.authenticate(c, r, true); err != nil {
 			return err
 		}
 	} else {

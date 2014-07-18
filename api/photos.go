@@ -10,7 +10,7 @@ import (
 
 func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := a.authenticate(r, true)
+	user, err := a.authenticate(c, r, true)
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 
 func (a *AppContext) photoDetail(c web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := a.authenticate(r, false)
+	user, err := a.authenticate(c, r, false)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (a *AppContext) photoDetail(c web.C, w http.ResponseWriter, r *http.Request
 }
 
 func (a *AppContext) getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, error) {
-	user, err := a.authenticate(r, true)
+	user, err := a.authenticate(c, r, true)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func (a *AppContext) editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Requ
 	if err := a.photoMgr.Update(photo); err != nil {
 		return err
 	}
-	if user, err := a.authenticate(r, true); err == nil {
+	if user, err := a.authenticate(c, r, true); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
 	return renderStatus(w, http.StatusOK, "Photo updated")
@@ -123,16 +123,16 @@ func (a *AppContext) editPhotoTags(c web.C, w http.ResponseWriter, r *http.Reque
 	if err := a.photoMgr.UpdateTags(photo); err != nil {
 		return err
 	}
-	if user, err := a.authenticate(r, true); err == nil {
+	if user, err := a.authenticate(c, r, true); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
 	return renderStatus(w, http.StatusOK, "Photo updated")
 
 }
 
-func (a *AppContext) upload(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) upload(c web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := a.authenticate(r, true)
+	user, err := a.authenticate(c, r, true)
 	if err != nil {
 		return err
 	}
@@ -230,7 +230,7 @@ func (a *AppContext) vote(c web.C, w http.ResponseWriter, r *http.Request, fn fu
 		photo *Photo
 		err   error
 	)
-	user, err := a.authenticate(r, true)
+	user, err := a.authenticate(c, r, true)
 
 	if err != nil {
 		return err

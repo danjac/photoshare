@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/coopernurse/gorp"
 	"github.com/zenazn/goji/web"
+	"github.com/zenazn/goji/web/middleware"
 	"net/http"
 )
 
@@ -72,6 +73,12 @@ func GetRouter(config *AppConfig, dbMap *gorp.DbMap) (*web.Mux, error) {
 		return nil, err
 	}
 	r := web.New()
+
+	r.Use(middleware.EnvInit)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.AutomaticOptions)
 
 	r.Get("/api/photos/", AppHandler(a.getPhotos))
 	r.Post("/api/photos/", AppHandler(a.upload))

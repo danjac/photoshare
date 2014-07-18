@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -11,17 +10,12 @@ import (
 	"text/template"
 )
 
-func writeBody(w http.ResponseWriter, body []byte, status int, contentType string) {
+func writeBody(w http.ResponseWriter, body []byte, status int, contentType string) error {
 	w.Header().Set("Content-Type", contentType+"; charset=UTF8")
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
 	w.WriteHeader(status)
-	w.Write(body)
-}
-
-func serverError(w http.ResponseWriter, err error) {
-	// maybe send email etc in production...
-	log.Println(err)
-	http.Error(w, "Sorry, an error has occurred", http.StatusInternalServerError)
+	_, err := w.Write(body)
+	return err
 }
 
 func renderJSON(w http.ResponseWriter, value interface{}, status int) error {
@@ -29,17 +23,11 @@ func renderJSON(w http.ResponseWriter, value interface{}, status int) error {
 	if err != nil {
 		return err
 	}
-	writeBody(w, body, status, "application/json")
-	return err
+	return writeBody(w, body, status, "application/json")
 }
 
-func writeJSON(w http.ResponseWriter, value interface{}, status int) {
-	body, err := json.Marshal(value)
-	if err != nil {
-		serverError(w, err)
-		return
-	}
-	writeBody(w, body, status, "application/json")
+func renderStatus(w http.ResponseWriter, status int) error {
+	return writeBody(w, []byte(http.StatusText(status)), status, "text/plain")
 }
 
 func decodeJSON(r *http.Request, value interface{}) error {

@@ -27,8 +27,7 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_deleted"})
-	w.WriteHeader(http.StatusNoContent)
-	return nil
+	return renderStatus(w, http.StatusNoContent)
 }
 
 func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) error {
@@ -94,8 +93,7 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) error {
 	if user, err := getCurrentUser(r, true); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
-	w.WriteHeader(http.StatusNoContent)
-	return nil
+	return renderStatus(w, http.StatusNoContent)
 }
 
 func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) error {
@@ -253,6 +251,5 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)
 	if err = userMgr.Update(user); err != nil {
 		return err
 	}
-	w.WriteHeader(http.StatusNoContent)
-	return nil
+	return renderStatus(w, http.StatusNoContent)
 }

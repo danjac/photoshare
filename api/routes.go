@@ -40,6 +40,11 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 		return
 	}
 
+	result, ok := err.(ValidationResult)
+	if ok {
+		renderJSON(w, result, http.StatusBadRequest)
+	}
+
 	var status int
 
 	switch err {

@@ -185,8 +185,7 @@ func changePassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	w.WriteHeader(http.StatusNoContent)
-	return nil
+	return renderStatus(w, http.StatusNoContent)
 }
 
 func recoverPassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
@@ -221,8 +220,7 @@ func recoverPassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
 		}
 	}()
 
-	w.WriteHeader(http.StatusNoContent)
-	return err
+	return renderStatus(w, http.StatusNoContent)
 }
 
 func sendResetPasswordMail(user *User, recoveryCode string, r *http.Request) error {

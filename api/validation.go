@@ -30,7 +30,7 @@ type ValidationResult struct {
 	Errors map[string]string `json:"errors"`
 }
 
-func (result *ValidationResult) Error() string {
+func (result ValidationResult) Error() string {
 	return "Validation errors"
 }
 

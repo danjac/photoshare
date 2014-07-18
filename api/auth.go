@@ -112,7 +112,7 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) error {
 
 	validator := getUserValidator(user)
 
-	if err := formHandler.Validate(validator); err != nil {
+	if err := validate(validator); err != nil {
 		return err
 	}
 

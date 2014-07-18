@@ -83,7 +83,7 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) error {
 
 	validator := getPhotoValidator(photo)
 
-	if err := formHandler.Validate(validator); err != nil {
+	if err := validate(validator); err != nil {
 		return err
 	}
 
@@ -162,7 +162,7 @@ func upload(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 	validator := getPhotoValidator(photo)
 
-	if err := formHandler.Validate(validator); err != nil {
+	if err := validate(validator); err != nil {
 		return err
 	}
 

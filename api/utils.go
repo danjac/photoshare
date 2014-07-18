@@ -36,17 +36,15 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 	if err == nil {
 		return
 	}
-	httpError, ok := err.(HttpError)
-	if ok {
-		http.Error(w, http.StatusText(httpError.Status), httpError.Status)
+
+	if err, ok := err.(HttpError); ok {
+		http.Error(w, http.StatusText(err.Status), err.Status)
 		return
 	}
 
-	result, ok := err.(ValidationResult)
-	if ok {
-		if err = renderJSON(w, result, http.StatusBadRequest); err == nil {
-			return
-		}
+	if err, ok := err.(ValidationFailure); ok {
+		renderJSON(w, err, http.StatusBadRequest)
+		return
 	}
 
 	var status int

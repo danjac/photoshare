@@ -145,7 +145,7 @@ func upload(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 	contentType := hdr.Header["Content-Type"][0]
 
-	filename, err := imageProcessor.Process(src, contentType)
+	filename, err := fileMgr.Store(src, contentType)
 
 	if err != nil {
 		if err == InvalidContentType {

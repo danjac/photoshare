@@ -19,18 +19,10 @@ const (
 )
 
 var (
-	photoCleaner        = NewPhotoCleaner()
-	imageProcessor      = NewImageProcessor()
+	fileMgr             = NewFileManager()
 	allowedContentTypes = []string{"image/png", "image/jpeg"}
 	InvalidContentType  = errors.New("Must be PNG or JPG")
 )
-
-type PhotoCleaner interface {
-	Clean(string) error
-}
-
-type defaultPhotoCleaner struct {
-}
 
 func isAllowedContentType(contentType string) bool {
 	for _, value := range allowedContentTypes {
@@ -42,7 +34,27 @@ func isAllowedContentType(contentType string) bool {
 	return false
 }
 
-func (c *defaultPhotoCleaner) Clean(name string) error {
+func generateRandomFilename(contentType string) string {
+	filename := uniuri.New()
+	if contentType == "image/png" {
+		return filename + ".png"
+	}
+	return filename + ".jpg"
+}
+
+type FileManager interface {
+	Clean(string) error
+	Store(src multipart.File, contentType string) (string, error)
+}
+
+func NewFileManager() FileManager {
+	return &defaultFileManager{}
+}
+
+type defaultFileManager struct {
+}
+
+func (f *defaultFileManager) Clean(name string) error {
 
 	imagePath := path.Join(config.UploadsDir, name)
 	thumbnailPath := path.Join(config.ThumbnailsDir, name)
@@ -56,26 +68,7 @@ func (c *defaultPhotoCleaner) Clean(name string) error {
 	return nil
 }
 
-func NewPhotoCleaner() PhotoCleaner {
-	return &defaultPhotoCleaner{}
-}
-
-func generateRandomFilename(contentType string) string {
-	filename := uniuri.New()
-	if contentType == "image/png" {
-		return filename + ".png"
-	}
-	return filename + ".jpg"
-}
-
-type ImageProcessor interface {
-	Process(src multipart.File, contentType string) (string, error)
-}
-
-type LocalImageProcessor struct {
-}
-
-func (processor LocalImageProcessor) Process(src multipart.File, contentType string) (string, error) {
+func (f *defaultFileManager) Store(src multipart.File, contentType string) (string, error) {
 
 	if !isAllowedContentType(contentType) {
 		return "", InvalidContentType
@@ -140,8 +133,4 @@ func (processor LocalImageProcessor) Process(src multipart.File, contentType str
 
 	return filename, nil
 
-}
-
-func NewImageProcessor() ImageProcessor {
-	return LocalImageProcessor{}
 }

@@ -63,7 +63,7 @@ func (photo *Photo) PreInsert(s gorp.SqlExecutor) error {
 }
 
 func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
-	go photoCleaner.Clean(photo.Filename)
+	go fileMgr.Clean(photo.Filename)
 	return nil
 }
 

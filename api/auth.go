@@ -171,7 +171,7 @@ func (a *AppContext) changePassword(_ web.C, w http.ResponseWriter, r *http.Requ
 		return err
 	}
 
-	return renderStatus(w, http.StatusNoContent)
+	return renderStatus(w, http.StatusOK, "Password changed")
 }
 
 func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
@@ -206,7 +206,7 @@ func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Req
 		}
 	}()
 
-	return renderStatus(w, http.StatusNoContent)
+	return renderStatus(w, http.StatusOK, "Password reset")
 }
 
 func (a *AppContext) sendResetPasswordMail(user *User, recoveryCode string, r *http.Request) error {

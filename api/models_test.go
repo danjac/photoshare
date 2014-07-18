@@ -11,6 +11,7 @@ func TestGetIfNotNone(t *testing.T) {
 	defer tdb.Clean()
 
 	user := &User{Name: "tester", Email: "tester@gmail.com", Password: "test"}
+	userMgr := NewUserManager(tdb.dbMap)
 	if err := userMgr.Insert(user); err != nil {
 		t.Error(err)
 		return
@@ -33,7 +34,7 @@ func TestGetIfNone(t *testing.T) {
 	tdb := MakeTestDB()
 	defer tdb.Clean()
 
-	_, err := NewPhotoManager().Get(1)
+	_, err := NewPhotoManager(tdb.dbMap).Get(1)
 	if err != sql.ErrNoRows {
 		t.Error(err)
 		return
@@ -45,8 +46,8 @@ func TestSearchPhotos(t *testing.T) {
 	tdb := MakeTestDB()
 	defer tdb.Clean()
 
-	photoMgr := NewPhotoManager()
-	userMgr := NewUserManager()
+	photoMgr := NewPhotoManager(tdb.dbMap)
+	userMgr := NewUserManager(tdb.dbMap)
 
 	user := &User{Name: "tester", Email: "tester@gmail.com", Password: "test"}
 	if err := userMgr.Insert(user); err != nil {

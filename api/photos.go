@@ -27,7 +27,7 @@ func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 	}
 
 	sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_deleted"})
-	return renderStatus(w, http.StatusNoContent)
+	return renderStatus(w, http.StatusOK, "Photo deleted")
 }
 
 func (a *AppContext) photoDetail(c web.C, w http.ResponseWriter, r *http.Request) error {
@@ -93,7 +93,7 @@ func (a *AppContext) editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Requ
 	if user, err := a.getCurrentUser(r, true); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
-	return renderStatus(w, http.StatusNoContent)
+	return renderStatus(w, http.StatusOK, "Photo updated")
 }
 
 func (a *AppContext) editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) error {
@@ -119,7 +119,7 @@ func (a *AppContext) editPhotoTags(c web.C, w http.ResponseWriter, r *http.Reque
 	if user, err := a.getCurrentUser(r, true); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
-	return renderStatus(w, http.StatusNoContent)
+	return renderStatus(w, http.StatusOK, "Photo updated")
 
 }
 
@@ -250,5 +250,5 @@ func (a *AppContext) vote(c web.C, w http.ResponseWriter, r *http.Request, fn fu
 	if err = a.userMgr.Update(user); err != nil {
 		return err
 	}
-	return renderStatus(w, http.StatusNoContent)
+	return renderStatus(w, http.StatusOK, "Voting successful")
 }

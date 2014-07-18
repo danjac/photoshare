@@ -7,11 +7,15 @@ import (
 
 func TestGetIfNotNone(t *testing.T) {
 
-	tdb := MakeTestDB()
+	config, _ := NewAppConfig()
+	tdb := MakeTestDB(config)
 	defer tdb.Clean()
 
-	user := &User{Name: "tester", Email: "tester@gmail.com", Password: "test"}
 	userMgr := NewUserManager(tdb.dbMap)
+	photoMgr := NewPhotoManager(tdb.dbMap)
+
+	user := &User{Name: "tester", Email: "tester@gmail.com", Password: "test"}
+
 	if err := userMgr.Insert(user); err != nil {
 		t.Error(err)
 		return
@@ -22,7 +26,7 @@ func TestGetIfNotNone(t *testing.T) {
 		return
 	}
 
-	photo, err := NewPhotoManager().Get(photo.ID)
+	photo, err := photoMgr.Get(photo.ID)
 	if err != nil {
 		t.Error(err)
 		return
@@ -31,7 +35,8 @@ func TestGetIfNotNone(t *testing.T) {
 
 func TestGetIfNone(t *testing.T) {
 
-	tdb := MakeTestDB()
+	config, _ := NewAppConfig()
+	tdb := MakeTestDB(config)
 	defer tdb.Clean()
 
 	_, err := NewPhotoManager(tdb.dbMap).Get(1)
@@ -43,7 +48,8 @@ func TestGetIfNone(t *testing.T) {
 }
 
 func TestSearchPhotos(t *testing.T) {
-	tdb := MakeTestDB()
+	config, _ := NewAppConfig()
+	tdb := MakeTestDB(config)
 	defer tdb.Clean()
 
 	photoMgr := NewPhotoManager(tdb.dbMap)
@@ -70,11 +76,12 @@ func TestSearchPhotos(t *testing.T) {
 	}
 }
 func TestAllPhotos(t *testing.T) {
-	tdb := MakeTestDB()
+	config, _ := NewAppConfig()
+	tdb := MakeTestDB(config)
 	defer tdb.Clean()
 
-	photoMgr := NewPhotoManager()
-	userMgr := NewUserManager()
+	photoMgr := NewPhotoManager(tdb.dbMap)
+	userMgr := NewUserManager(tdb.dbMap)
 
 	user := &User{Name: "tester", Email: "tester@gmail.com", Password: "test"}
 	if err := userMgr.Insert(user); err != nil {

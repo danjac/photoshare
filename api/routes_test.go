@@ -8,6 +8,21 @@ import (
 	"testing"
 )
 
+type mockSessionManager struct {
+}
+
+func (m *mockSessionManager) GetCurrentUser(r *http.Request) (*User, error) {
+	return &User{}, nil
+}
+
+func (m *mockSessionManager) Login(w http.ResponseWriter, user *User) (string, error) {
+	return "OK", nil
+}
+
+func (m *mockSessionManager) Logout(w http.ResponseWriter) (string, error) {
+	return "OK", nil
+}
+
 type mockPhotoManager struct {
 }
 
@@ -88,13 +103,12 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 	res := httptest.NewRecorder()
 	c := web.C{}
 
-	getCurrentUser = func(r *http.Request, required bool) (*User, error) {
-		return &User{}, nil
+	a := &AppContext{
+		sessionMgr: &mockSessionManager{},
+		photoMgr:   &emptyPhotoManager{},
 	}
 
-	photoMgr = &emptyPhotoManager{}
-
-	err := photoDetail(c, res, req)
+	err := a.photoDetail(c, res, req)
 	if err != sql.ErrNoRows {
 		t.Fail()
 	}
@@ -108,13 +122,12 @@ func TestGetPhotoDetail(t *testing.T) {
 	c.URLParams = make(map[string]string)
 	c.URLParams["id"] = "1"
 
-	getCurrentUser = func(r *http.Request, required bool) (*User, error) {
-		return &User{}, nil
+	a := &AppContext{
+		sessionMgr: &mockSessionManager{},
+		photoMgr:   &mockPhotoManager{},
 	}
 
-	photoMgr = &mockPhotoManager{}
-
-	photoDetail(c, res, req)
+	a.photoDetail(c, res, req)
 	value := &PhotoDetail{}
 	parseJsonBody(res, value)
 	if res.Code != 200 {
@@ -133,8 +146,11 @@ func TestGetPhotos(t *testing.T) {
 	req := &http.Request{}
 	res := httptest.NewRecorder()
 
-	photoMgr = &mockPhotoManager{}
-	getPhotos(web.C{}, res, req)
+	a := &AppContext{
+		photoMgr: &mockPhotoManager{},
+	}
+
+	a.getPhotos(web.C{}, res, req)
 	value := &PhotoList{}
 	parseJsonBody(res, value)
 	if value.Total != 1 {

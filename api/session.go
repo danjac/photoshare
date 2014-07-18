@@ -14,9 +14,9 @@ const (
 )
 
 type SessionManager interface {
-	GetCurrentUser(r *http.Request) (*User, error)
-	Login(w http.ResponseWriter, user *User) (string, error)
-	Logout(w http.ResponseWriter) (string, error)
+	GetCurrentUser(*http.Request) (*User, error)
+	Login(http.ResponseWriter, *User) (string, error)
+	Logout(http.ResponseWriter) (string, error)
 }
 
 func NewSessionManager(config *AppConfig, userMgr UserManager) (SessionManager, error) {

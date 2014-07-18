@@ -23,7 +23,7 @@ func newSessionInfo(user *User) *sessionInfo {
 	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
-func (a *AppContext) getCurrentUser(r *http.Request, required bool) (*User, error) {
+func (a *AppContext) authenticate(r *http.Request, required bool) (*User, error) {
 
 	user, err := a.sessionMgr.GetCurrentUser(r)
 	if err != nil {
@@ -38,7 +38,7 @@ func (a *AppContext) getCurrentUser(r *http.Request, required bool) (*User, erro
 
 func (a *AppContext) logout(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := a.getCurrentUser(r, true)
+	user, err := a.authenticate(r, true)
 	if err != nil {
 		return err
 	}
@@ -52,9 +52,9 @@ func (a *AppContext) logout(_ web.C, w http.ResponseWriter, r *http.Request) err
 
 }
 
-func (a *AppContext) authenticate(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) getSessionInfo(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := a.getCurrentUser(r, false)
+	user, err := a.authenticate(r, false)
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func (a *AppContext) changePassword(_ web.C, w http.ResponseWriter, r *http.Requ
 	}
 
 	if s.RecoveryCode == "" {
-		if user, err = a.getCurrentUser(r, true); err != nil {
+		if user, err = a.authenticate(r, true); err != nil {
 			return err
 		}
 	} else {

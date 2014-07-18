@@ -87,7 +87,7 @@ func GetRouter(config *AppConfig, dbMap *gorp.DbMap) (*web.Mux, error) {
 
 	r.Get("/api/tags/", AppHandler(a.getTags))
 
-	r.Get("/api/auth/", AppHandler(a.authenticate))
+	r.Get("/api/auth/", AppHandler(a.getSessionInfo))
 	r.Post("/api/auth/", AppHandler(a.login))
 	r.Delete("/api/auth/", AppHandler(a.logout))
 	r.Post("/api/auth/signup", AppHandler(a.signup))

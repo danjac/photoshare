@@ -9,7 +9,6 @@ import (
 	"net/http"
 )
 
-// return HttpError{http.StatusForbidden}
 type HttpError struct {
 	Status int
 }
@@ -42,7 +41,9 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 
 	result, ok := err.(ValidationResult)
 	if ok {
-		renderJSON(w, result, http.StatusBadRequest)
+		if err = renderJSON(w, result, http.StatusBadRequest); err == nil {
+            return 
+        }
 	}
 
 	var status int

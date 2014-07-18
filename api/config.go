@@ -1,8 +1,8 @@
 package api
 
 import (
+	"errors"
 	"github.com/danryan/env"
-	"log"
 	"os"
 	"path"
 )
@@ -38,12 +38,12 @@ type AppConfig struct {
 	ServerPort int `env:"key=PORT default=5000"`
 }
 
-var config = &AppConfig{}
+func NewAppConfig() (*AppConfig, error) {
 
-func initConfig() {
+	config := &AppConfig{}
 
 	if err := env.Process(config); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	if config.TestDBName == "" {
@@ -63,7 +63,7 @@ func initConfig() {
 	}
 
 	if config.TestDBName == config.DBName {
-		log.Fatal("Test DB name same as DB name")
+		errors.New("Test DB name same as DB name")
 	}
 
 	if config.BaseDir == "" {
@@ -85,6 +85,8 @@ func initConfig() {
 	if config.TemplatesDir == "" {
 		config.TemplatesDir = path.Join(config.BaseDir, "templates")
 	}
+
+	return config, nil
 }
 
 func getDefaultBaseDir() string {

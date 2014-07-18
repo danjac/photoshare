@@ -7,19 +7,6 @@ import (
 	"strings"
 )
 
-var getCurrentUser = func(r *http.Request, required bool) (*User, error) {
-
-	user, err := sessionMgr.GetCurrentUser(r)
-	if err != nil {
-		return user, err
-	}
-
-	if (user == nil || !user.IsAuthenticated) && required {
-		return user, httpError(http.StatusUnauthorized, "You must be logged in")
-	}
-	return user, nil
-}
-
 // Basic user session info
 type sessionInfo struct {
 	ID       int64  `json:"id"`
@@ -36,14 +23,27 @@ func newSessionInfo(user *User) *sessionInfo {
 	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
-func logout(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) getCurrentUser(r *http.Request, required bool) (*User, error) {
 
-	user, err := getCurrentUser(r, true)
+	user, err := a.sessionMgr.GetCurrentUser(r)
+	if err != nil {
+		return user, err
+	}
+
+	if (user == nil || !user.IsAuthenticated) && required {
+		return user, httpError(http.StatusUnauthorized, "You must be logged in")
+	}
+	return user, nil
+}
+
+func (a *AppContext) logout(_ web.C, w http.ResponseWriter, r *http.Request) error {
+
+	user, err := a.getCurrentUser(r, true)
 	if err != nil {
 		return err
 	}
 
-	if _, err := sessionMgr.Logout(w); err != nil {
+	if _, err := a.sessionMgr.Logout(w); err != nil {
 		return err
 	}
 
@@ -52,9 +52,9 @@ func logout(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 }
 
-func authenticate(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) authenticate(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := getCurrentUser(r, false)
+	user, err := a.getCurrentUser(r, false)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func authenticate(_ web.C, w http.ResponseWriter, r *http.Request) error {
 	return renderJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
-func login(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) login(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 	s := &struct {
 		Identifier string `json:"identifier"`
@@ -77,12 +77,12 @@ func login(_ web.C, w http.ResponseWriter, r *http.Request) error {
 		return httpError(http.StatusBadRequest, "Missing email or password")
 	}
 
-	user, err := userMgr.Authenticate(s.Identifier, s.Password)
+	user, err := a.userMgr.Authenticate(s.Identifier, s.Password)
 	if err != nil {
 		return err
 	}
 
-	if _, err := sessionMgr.Login(w, user); err != nil {
+	if _, err := a.sessionMgr.Login(w, user); err != nil {
 		return err
 	}
 
@@ -92,7 +92,7 @@ func login(_ web.C, w http.ResponseWriter, r *http.Request) error {
 	return renderJSON(w, newSessionInfo(user), http.StatusCreated)
 }
 
-func signup(c web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) signup(c web.C, w http.ResponseWriter, r *http.Request) error {
 
 	s := &struct {
 		Name     string `json:"name"`
@@ -110,24 +110,24 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) error {
 		Password: s.Password,
 	}
 
-	validator := getUserValidator(user)
+	validator := getUserValidator(user, a.userMgr)
 
 	if err := validate(validator); err != nil {
 		return err
 	}
 
-	if err := userMgr.Insert(user); err != nil {
+	if err := a.userMgr.Insert(user); err != nil {
 		return err
 	}
 
-	if _, err := sessionMgr.Login(w, user); err != nil {
+	if _, err := a.sessionMgr.Login(w, user); err != nil {
 		return err
 	}
 
 	user.IsAuthenticated = true
 
 	go func() {
-		if err := sendWelcomeMail(user); err != nil {
+		if err := a.sendWelcomeMail(user); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -136,21 +136,7 @@ func signup(c web.C, w http.ResponseWriter, r *http.Request) error {
 
 }
 
-func sendWelcomeMail(user *User) error {
-	msg, err := MessageFromTemplate(
-		"Welcome to photoshare!",
-		[]string{user.Email},
-		config.SmtpDefaultSender,
-		signupTmpl,
-		user,
-	)
-	if err != nil {
-		return err
-	}
-	return mailer.Mail(msg)
-}
-
-func changePassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) changePassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 	var (
 		user *User
@@ -167,11 +153,11 @@ func changePassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if s.RecoveryCode == "" {
-		if user, err = getCurrentUser(r, true); err != nil {
+		if user, err = a.getCurrentUser(r, true); err != nil {
 			return err
 		}
 	} else {
-		if user, err = userMgr.GetByRecoveryCode(s.RecoveryCode); err != nil {
+		if user, err = a.userMgr.GetByRecoveryCode(s.RecoveryCode); err != nil {
 			return err
 		}
 		user.ResetRecoveryCode()
@@ -181,14 +167,14 @@ func changePassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	if err = userMgr.Update(user); err != nil {
+	if err = a.userMgr.Update(user); err != nil {
 		return err
 	}
 
 	return renderStatus(w, http.StatusNoContent)
 }
 
-func recoverPassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 	s := &struct {
 		Email string `json:"email"`
@@ -200,7 +186,7 @@ func recoverPassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
 	if s.Email == "" {
 		return httpError(http.StatusBadRequest, "Missing email address")
 	}
-	user, err := userMgr.GetByEmail(s.Email)
+	user, err := a.userMgr.GetByEmail(s.Email)
 	if err != nil {
 		return err
 	}
@@ -210,12 +196,12 @@ func recoverPassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	if err := userMgr.Update(user); err != nil {
+	if err := a.userMgr.Update(user); err != nil {
 		return err
 	}
 
 	go func() {
-		if err := sendResetPasswordMail(user, code, r); err != nil {
+		if err := a.sendResetPasswordMail(user, code, r); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -223,11 +209,11 @@ func recoverPassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
 	return renderStatus(w, http.StatusNoContent)
 }
 
-func sendResetPasswordMail(user *User, recoveryCode string, r *http.Request) error {
+func (a *AppContext) sendResetPasswordMail(user *User, recoveryCode string, r *http.Request) error {
 	msg, err := MessageFromTemplate(
 		"Reset your password",
 		[]string{user.Email},
-		config.SmtpDefaultSender,
+		a.config.SmtpDefaultSender,
 		recoverPassTmpl,
 		&struct {
 			Name         string
@@ -242,5 +228,19 @@ func sendResetPasswordMail(user *User, recoveryCode string, r *http.Request) err
 	if err != nil {
 		return err
 	}
-	return mailer.Mail(msg)
+	return a.mailer.Mail(msg)
+}
+
+func (a *AppContext) sendWelcomeMail(user *User) error {
+	msg, err := MessageFromTemplate(
+		"Welcome to photoshare!",
+		[]string{user.Email},
+		a.config.SmtpDefaultSender,
+		signupTmpl,
+		user,
+	)
+	if err != nil {
+		return err
+	}
+	return a.mailer.Mail(msg)
 }

@@ -2,48 +2,50 @@ package api
 
 import (
 	"database/sql"
-	"flag"
 	"fmt"
-	"github.com/zenazn/goji"
+	"github.com/zenazn/goji/graceful"
 	"log"
 	"runtime"
 )
 
-func init() {
-	initConfig()
-	initEmail()
-	initSession()
-	initRoutes()
-}
+func Serve() {
 
-func getDbConn() (*sql.DB, error) {
-	return sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
+	config, err := NewAppConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	runtime.GOMAXPROCS((runtime.NumCPU() * 2) + 1)
+
+	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
 		config.DBUser,
 		config.DBName,
 		config.DBPassword,
 		config.DBHost,
 	))
 
-}
-
-func Serve() {
-
-	runtime.GOMAXPROCS((runtime.NumCPU() * 2) + 1)
-
-	db, err := getDbConn()
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer db.Close()
+	defer func() {
+		log.Fatal("Closing DB connection")
+		db.Close()
+	}()
 
-	if _, err := InitDB(db, config.LogSql); err != nil {
+	dbMap, err := InitDB(db, config.LogSql)
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	flag.Set("bind", fmt.Sprintf(":%d", config.ServerPort))
+	router, err := GetRouter(config, dbMap)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	goji.Serve()
+	if err := graceful.ListenAndServe(fmt.Sprintf(":%d", config.ServerPort), router); err != nil {
+		log.Fatal(err)
+	}
 
+	graceful.Wait()
 }

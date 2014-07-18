@@ -13,40 +13,38 @@ const (
 	expiry      = 60 // minutes
 )
 
-var (
-	verifyKey, signKey []byte
-)
-
-var sessionMgr = NewSessionManager()
-
 type SessionManager interface {
 	GetCurrentUser(r *http.Request) (*User, error)
 	Login(w http.ResponseWriter, user *User) (string, error)
 	Logout(w http.ResponseWriter) (string, error)
 }
 
-func NewSessionManager() SessionManager {
-	return &defaultSessionManager{}
+func NewSessionManager(config *AppConfig, userMgr UserManager) (SessionManager, error) {
+	mgr := &defaultSessionManager{
+		config:  config,
+		userMgr: userMgr,
+	}
+	var err error
+	mgr.signKey, err = ioutil.ReadFile(config.PrivateKey)
+	if err != nil {
+		return mgr, err
+	}
+	mgr.verifyKey, err = ioutil.ReadFile(config.PublicKey)
+	if err != nil {
+		return mgr, err
+	}
+	return mgr, nil
 }
 
-type defaultSessionManager struct{}
-
-func initSession() {
-	var err error
-	signKey, err = ioutil.ReadFile(config.PrivateKey)
-	if err != nil {
-		panic(err)
-	}
-	verifyKey, err = ioutil.ReadFile(config.PublicKey)
-	if err != nil {
-		panic(err)
-	}
-
+type defaultSessionManager struct {
+	config             *AppConfig
+	userMgr            UserManager
+	verifyKey, signKey []byte
 }
 
 func (mgr *defaultSessionManager) GetCurrentUser(r *http.Request) (*User, error) {
 
-	userID, err := readToken(r)
+	userID, err := readToken(mgr.verifyKey, r)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +55,7 @@ func (mgr *defaultSessionManager) GetCurrentUser(r *http.Request) (*User, error)
 		return &User{}, nil
 	}
 
-	user, err := userMgr.GetActive(userID)
+	user, err := mgr.userMgr.GetActive(userID)
 	if err != nil {
 		return user, err
 	}
@@ -67,14 +65,14 @@ func (mgr *defaultSessionManager) GetCurrentUser(r *http.Request) (*User, error)
 }
 
 func (mgr *defaultSessionManager) Login(w http.ResponseWriter, user *User) (string, error) {
-	return writeToken(w, user.ID)
+	return writeToken(mgr.signKey, w, user.ID)
 }
 
 func (mgr *defaultSessionManager) Logout(w http.ResponseWriter) (string, error) {
-	return writeToken(w, 0)
+	return writeToken(mgr.signKey, w, 0)
 }
 
-func readToken(r *http.Request) (int64, error) {
+func readToken(verifyKey []byte, r *http.Request) (int64, error) {
 	tokenString := r.Header.Get(tokenHeader)
 	if tokenString == "" {
 		return 0, nil
@@ -100,7 +98,7 @@ func readToken(r *http.Request) (int64, error) {
 	}
 }
 
-func writeToken(w http.ResponseWriter, userID int64) (string, error) {
+func writeToken(signKey []byte, w http.ResponseWriter, userID int64) (string, error) {
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 	token.Claims["uid"] = strconv.FormatInt(userID, 10)
 	token.Claims["exp"] = time.Now().Add(time.Minute * expiry).Unix()

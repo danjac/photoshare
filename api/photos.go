@@ -7,14 +7,14 @@ import (
 	"strings"
 )
 
-func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := getCurrentUser(r, true)
+	user, err := a.getCurrentUser(r, true)
 	if err != nil {
 		return err
 	}
 	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err := photoMgr.Get(photoID)
+	photo, err := a.photoMgr.Get(photoID)
 	if err != nil {
 		return err
 	}
@@ -22,7 +22,7 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) error {
 	if !photo.CanDelete(user) {
 		return httpError(http.StatusForbidden, "You're not allowed to delete this photo")
 	}
-	if err := photoMgr.Delete(photo); err != nil {
+	if err := a.photoMgr.Delete(photo); err != nil {
 		return err
 	}
 
@@ -30,29 +30,29 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) error {
 	return renderStatus(w, http.StatusNoContent)
 }
 
-func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) photoDetail(c web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := getCurrentUser(r, false)
+	user, err := a.getCurrentUser(r, false)
 	if err != nil {
 		return err
 	}
 
 	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err := photoMgr.GetDetail(photoID, user)
+	photo, err := a.photoMgr.GetDetail(photoID, user)
 	if err != nil {
 		return err
 	}
 	return renderJSON(w, photo, http.StatusOK)
 }
 
-func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, error) {
-	user, err := getCurrentUser(r, true)
+func (a *AppContext) getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, error) {
+	user, err := a.getCurrentUser(r, true)
 	if err != nil {
 		return nil, err
 	}
 
 	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err := photoMgr.Get(photoID)
+	photo, err := a.photoMgr.Get(photoID)
 	if err != nil {
 		return photo, err
 	}
@@ -63,9 +63,9 @@ func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, er
 	return photo, nil
 }
 
-func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) error {
 
-	photo, err := getPhotoToEdit(c, w, r)
+	photo, err := a.getPhotoToEdit(c, w, r)
 
 	if err != nil {
 		return err
@@ -87,18 +87,18 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	if err := photoMgr.Update(photo); err != nil {
+	if err := a.photoMgr.Update(photo); err != nil {
 		return err
 	}
-	if user, err := getCurrentUser(r, true); err == nil {
+	if user, err := a.getCurrentUser(r, true); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
 	return renderStatus(w, http.StatusNoContent)
 }
 
-func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) error {
 
-	photo, err := getPhotoToEdit(c, w, r)
+	photo, err := a.getPhotoToEdit(c, w, r)
 	if err != nil {
 		return err
 	}
@@ -113,19 +113,19 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) error {
 
 	photo.Tags = s.Tags
 
-	if err := photoMgr.UpdateTags(photo); err != nil {
+	if err := a.photoMgr.UpdateTags(photo); err != nil {
 		return err
 	}
-	if user, err := getCurrentUser(r, true); err == nil {
+	if user, err := a.getCurrentUser(r, true); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
 	return renderStatus(w, http.StatusNoContent)
 
 }
 
-func upload(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) upload(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := getCurrentUser(r, true)
+	user, err := a.getCurrentUser(r, true)
 	if err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func upload(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 	contentType := hdr.Header["Content-Type"][0]
 
-	filename, err := fileMgr.Store(src, contentType)
+	filename, err := a.fileMgr.Store(src, contentType)
 
 	if err != nil {
 		if err == InvalidContentType {
@@ -166,7 +166,7 @@ func upload(_ web.C, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	if err := photoMgr.Insert(photo); err != nil {
+	if err := a.photoMgr.Insert(photo); err != nil {
 		return err
 	}
 
@@ -174,63 +174,63 @@ func upload(_ web.C, w http.ResponseWriter, r *http.Request) error {
 	return renderJSON(w, photo, http.StatusCreated)
 }
 
-func searchPhotos(_ web.C, w http.ResponseWriter, r *http.Request) error {
-	photos, err := photoMgr.Search(getPage(r), r.FormValue("q"))
+func (a *AppContext) searchPhotos(_ web.C, w http.ResponseWriter, r *http.Request) error {
+	photos, err := a.photoMgr.Search(getPage(r), r.FormValue("q"))
 	if err != nil {
 		return err
 	}
 	return renderJSON(w, photos, http.StatusOK)
 }
 
-func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *AppContext) photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) error {
 	ownerID, err := strconv.ParseInt(c.URLParams["ownerID"], 10, 0)
 	if err != nil {
 		return err
 	}
-	photos, err := photoMgr.ByOwnerID(getPage(r), ownerID)
+	photos, err := a.photoMgr.ByOwnerID(getPage(r), ownerID)
 	if err != nil {
 		return err
 	}
 	return renderJSON(w, photos, http.StatusOK)
 }
 
-func getPhotos(_ web.C, w http.ResponseWriter, r *http.Request) error {
-	photos, err := photoMgr.All(getPage(r), r.FormValue("orderBy"))
+func (a *AppContext) getPhotos(_ web.C, w http.ResponseWriter, r *http.Request) error {
+	photos, err := a.photoMgr.All(getPage(r), r.FormValue("orderBy"))
 	if err != nil {
 		return err
 	}
 	return renderJSON(w, photos, http.StatusOK)
 }
 
-func getTags(_ web.C, w http.ResponseWriter, r *http.Request) error {
-	tags, err := photoMgr.GetTagCounts()
+func (a *AppContext) getTags(_ web.C, w http.ResponseWriter, r *http.Request) error {
+	tags, err := a.photoMgr.GetTagCounts()
 	if err != nil {
 		return err
 	}
 	return renderJSON(w, tags, http.StatusOK)
 }
 
-func voteDown(c web.C, w http.ResponseWriter, r *http.Request) error {
-	return vote(c, w, r, func(photo *Photo) { photo.DownVotes += 1 })
+func (a *AppContext) voteDown(c web.C, w http.ResponseWriter, r *http.Request) error {
+	return a.vote(c, w, r, func(photo *Photo) { photo.DownVotes += 1 })
 }
 
-func voteUp(c web.C, w http.ResponseWriter, r *http.Request) error {
-	return vote(c, w, r, func(photo *Photo) { photo.UpVotes += 1 })
+func (a *AppContext) voteUp(c web.C, w http.ResponseWriter, r *http.Request) error {
+	return a.vote(c, w, r, func(photo *Photo) { photo.UpVotes += 1 })
 }
 
-func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)) error {
+func (a *AppContext) vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)) error {
 	var (
 		photo *Photo
 		err   error
 	)
-	user, err := getCurrentUser(r, true)
+	user, err := a.getCurrentUser(r, true)
 
 	if err != nil {
 		return err
 	}
 
 	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err = photoMgr.Get(photoID)
+	photo, err = a.photoMgr.Get(photoID)
 	if err != nil {
 		return err
 	}
@@ -241,13 +241,13 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)
 
 	fn(photo)
 
-	if err = photoMgr.Update(photo); err != nil {
+	if err = a.photoMgr.Update(photo); err != nil {
 		return err
 	}
 
 	user.RegisterVote(photo.ID)
 
-	if err = userMgr.Update(user); err != nil {
+	if err = a.userMgr.Update(user); err != nil {
 		return err
 	}
 	return renderStatus(w, http.StatusNoContent)

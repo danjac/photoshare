@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/zenazn/goji"
+	"github.com/coopernurse/gorp"
 	"github.com/zenazn/goji/web"
 	"net/http"
 )
@@ -34,34 +34,71 @@ func (h AppHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request) 
 	handleError(w, r, err)
 }
 
-func initRoutes() {
+type AppContext struct {
+	config     *AppConfig
+	photoMgr   PhotoManager
+	userMgr    UserManager
+	fileMgr    FileManager
+	sessionMgr SessionManager
+	mailer     Mailer
+}
 
-	goji.Get("/api/photos/", AppHandler(getPhotos))
-	goji.Post("/api/photos/", AppHandler(upload))
-	goji.Get("/api/photos/search", AppHandler(searchPhotos))
-	goji.Get("/api/photos/owner/:ownerID", AppHandler(photosByOwnerID))
+func NewAppContext(config *AppConfig, dbMap *gorp.DbMap) (*AppContext, error) {
+	photoMgr := NewPhotoManager(dbMap)
+	userMgr := NewUserManager(dbMap)
+	fileMgr := NewFileManager(config)
+	mailer := NewMailer(config)
 
-	goji.Get("/api/photos/:id", AppHandler(photoDetail))
-	goji.Delete("/api/photos/:id", AppHandler(deletePhoto))
-	goji.Patch("/api/photos/:id/title", AppHandler(editPhotoTitle))
-	goji.Patch("/api/photos/:id/tags", AppHandler(editPhotoTags))
-	goji.Patch("/api/photos/:id/upvote", AppHandler(voteUp))
-	goji.Patch("/api/photos/:id/downvote", AppHandler(voteDown))
+	sessionMgr, err := NewSessionManager(config, userMgr)
+	if err != nil {
+		return nil, err
+	}
 
-	goji.Get("/api/tags/", AppHandler(getTags))
+	a := &AppContext{
+		config:     config,
+		photoMgr:   photoMgr,
+		userMgr:    userMgr,
+		fileMgr:    fileMgr,
+		sessionMgr: sessionMgr,
+		mailer:     mailer,
+	}
+	return a, nil
+}
 
-	goji.Get("/api/auth/", AppHandler(authenticate))
-	goji.Post("/api/auth/", AppHandler(login))
-	goji.Delete("/api/auth/", AppHandler(logout))
-	goji.Post("/api/auth/signup", AppHandler(signup))
-	goji.Put("/api/auth/recoverpass", AppHandler(recoverPassword))
-	goji.Put("/api/auth/changepass", AppHandler(changePassword))
+func GetRouter(config *AppConfig, dbMap *gorp.DbMap) (*web.Mux, error) {
 
-	goji.Get("/feeds/", AppHandler(latestFeed))
-	goji.Get("/feeds/popular/", AppHandler(popularFeed))
-	goji.Get("/feeds/owner/:ownerID", AppHandler(ownerFeed))
+	a, err := NewAppContext(config, dbMap)
+	if err != nil {
+		return nil, err
+	}
+	r := web.New()
 
-	goji.Handle("/api/messages/*", messageHandler)
-	goji.Handle("/*", http.FileServer(http.Dir(config.PublicDir)))
+	r.Get("/api/photos/", AppHandler(a.getPhotos))
+	r.Post("/api/photos/", AppHandler(a.upload))
+	r.Get("/api/photos/search", AppHandler(a.searchPhotos))
+	r.Get("/api/photos/owner/:ownerID", AppHandler(a.photosByOwnerID))
 
+	r.Get("/api/photos/:id", AppHandler(a.photoDetail))
+	r.Delete("/api/photos/:id", AppHandler(a.deletePhoto))
+	r.Patch("/api/photos/:id/title", AppHandler(a.editPhotoTitle))
+	r.Patch("/api/photos/:id/tags", AppHandler(a.editPhotoTags))
+	r.Patch("/api/photos/:id/upvote", AppHandler(a.voteUp))
+	r.Patch("/api/photos/:id/downvote", AppHandler(a.voteDown))
+
+	r.Get("/api/tags/", AppHandler(a.getTags))
+
+	r.Get("/api/auth/", AppHandler(a.authenticate))
+	r.Post("/api/auth/", AppHandler(a.login))
+	r.Delete("/api/auth/", AppHandler(a.logout))
+	r.Post("/api/auth/signup", AppHandler(a.signup))
+	r.Put("/api/auth/recoverpass", AppHandler(a.recoverPassword))
+	r.Put("/api/auth/changepass", AppHandler(a.changePassword))
+
+	r.Get("/feeds/", AppHandler(a.latestFeed))
+	r.Get("/feeds/popular/", AppHandler(a.popularFeed))
+	r.Get("/feeds/owner/:ownerID", AppHandler(a.ownerFeed))
+
+	r.Handle("/api/messages/*", messageHandler)
+	r.Handle("/*", http.FileServer(http.Dir(config.PublicDir)))
+	return r, nil
 }

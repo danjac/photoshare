@@ -75,7 +75,7 @@ func baseURL(r *http.Request) string {
 	return fmt.Sprintf("%s://%s", scheme(r), r.Host)
 }
 
-func parseTemplate(name string) *template.Template {
+func parseTemplate(config *AppConfig, name string) *template.Template {
 	return template.Must(template.ParseFiles(path.Join(config.TemplatesDir, name)))
 }
 

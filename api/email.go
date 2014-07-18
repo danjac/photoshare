@@ -9,8 +9,6 @@ import (
 	"text/template"
 )
 
-var mailer Mailer
-
 var (
 	signupTmpl,
 	recoverPassTmpl *template.Template
@@ -58,10 +56,11 @@ type Mailer interface {
 
 type smtpMailer struct {
 	smtp.Auth
+	config *AppConfig
 }
 
 func (m *smtpMailer) Mail(msg *Message) error {
-	return smtp.SendMail(config.SmtpHost+":25", m.Auth, msg.From, msg.To, msg.Body)
+	return smtp.SendMail(m.config.SmtpHost+":25", m.Auth, msg.From, msg.To, msg.Body)
 }
 
 type fakeMailer struct{}
@@ -71,20 +70,22 @@ func (m *fakeMailer) Mail(msg *Message) error {
 	return nil
 }
 
-func newSmtpMailer() Mailer {
-	m := &smtpMailer{}
+func newSmtpMailer(config *AppConfig) Mailer {
+	m := &smtpMailer{config: config}
 	m.Auth = smtp.PlainAuth("", config.SmtpName, config.SmtpPassword, config.SmtpHost)
 	return m
 }
 
-func initEmail() {
+func NewMailer(config *AppConfig) Mailer {
+	var mailer Mailer
 	if config.SmtpName == "" {
 		log.Println("WARNING: using fake mailer, messages will not be sent by SMTP. " +
 			"Set SMTP_NAME and SMTP_PASSWORD in environment to enable.")
 		mailer = &fakeMailer{}
 	} else {
-		mailer = newSmtpMailer()
+		mailer = newSmtpMailer(config)
 	}
-	signupTmpl = parseTemplate("signup.tmpl")
-	recoverPassTmpl = parseTemplate("recover_pass.tmpl")
+	signupTmpl = parseTemplate(config, "signup.tmpl")
+	recoverPassTmpl = parseTemplate(config, "recover_pass.tmpl")
+	return mailer
 }

@@ -19,7 +19,6 @@ const (
 )
 
 var (
-	fileMgr             = NewFileManager()
 	allowedContentTypes = []string{"image/png", "image/jpeg"}
 	InvalidContentType  = errors.New("Must be PNG or JPG")
 )
@@ -47,17 +46,18 @@ type FileManager interface {
 	Store(src multipart.File, contentType string) (string, error)
 }
 
-func NewFileManager() FileManager {
-	return &defaultFileManager{}
+func NewFileManager(config *AppConfig) FileManager {
+	return &defaultFileManager{config}
 }
 
 type defaultFileManager struct {
+	config *AppConfig
 }
 
 func (f *defaultFileManager) Clean(name string) error {
 
-	imagePath := path.Join(config.UploadsDir, name)
-	thumbnailPath := path.Join(config.ThumbnailsDir, name)
+	imagePath := path.Join(f.config.UploadsDir, name)
+	thumbnailPath := path.Join(f.config.ThumbnailsDir, name)
 
 	if err := os.Remove(imagePath); err != nil {
 		return err
@@ -75,11 +75,11 @@ func (f *defaultFileManager) Store(src multipart.File, contentType string) (stri
 	}
 	filename := generateRandomFilename(contentType)
 
-	if err := os.MkdirAll(config.UploadsDir, 0777); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(f.config.UploadsDir, 0777); err != nil && !os.IsExist(err) {
 		return filename, err
 	}
 
-	if err := os.MkdirAll(config.ThumbnailsDir, 0777); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(f.config.ThumbnailsDir, 0777); err != nil && !os.IsExist(err) {
 		return filename, err
 	}
 
@@ -102,7 +102,7 @@ func (f *defaultFileManager) Store(src multipart.File, contentType string) (stri
 	thumb := image.NewRGBA(image.Rect(0, 0, ThumbnailWidth, ThumbnailHeight))
 	graphics.Thumbnail(thumb, img)
 
-	dst, err := os.Create(path.Join(config.ThumbnailsDir, filename))
+	dst, err := os.Create(path.Join(f.config.ThumbnailsDir, filename))
 
 	if err != nil {
 		return filename, err
@@ -118,7 +118,7 @@ func (f *defaultFileManager) Store(src multipart.File, contentType string) (stri
 
 	src.Seek(0, 0)
 
-	dst, err = os.Create(path.Join(config.UploadsDir, filename))
+	dst, err = os.Create(path.Join(f.config.UploadsDir, filename))
 
 	if err != nil {
 		return filename, err

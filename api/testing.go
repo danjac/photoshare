@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/coopernurse/gorp"
 	"github.com/zenazn/goji/web"
 	"net/http/httptest"
 )
@@ -22,20 +23,23 @@ func newContext() web.C {
 }
 
 type TestDB struct {
-	DB *sql.DB
+	DB    *sql.DB
+	dbMap *gorp.DbMap
 }
 
 func (tdb *TestDB) Clean() {
 	var tables = []string{"photo_tags", "tags", "photos", "users"}
 	for _, table := range tables {
-		if _, err := dbMap.Exec("DELETE FROM " + table); err != nil {
+		if _, err := tdb.dbMap.Exec("DELETE FROM " + table); err != nil {
 			panic(err)
 		}
 	}
 	defer tdb.DB.Close()
 }
 
-func MakeTestDB() (tdb *TestDB) {
+func MakeTestDB(config *AppConfig) (tdb *TestDB) {
+	var err error
+
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
 		config.TestDBUser,
 		config.TestDBName,
@@ -46,9 +50,11 @@ func MakeTestDB() (tdb *TestDB) {
 	if err != nil {
 		panic(err)
 	}
-	if _, err := InitDB(db, false); err != nil {
+
+	dbMap, err := InitDB(db, false)
+	if err != nil {
 		panic(err)
 	}
 
-	return &TestDB{db}
+	return &TestDB{db, dbMap}
 }

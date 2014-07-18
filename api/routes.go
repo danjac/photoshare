@@ -1,11 +1,9 @@
 package api
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/web"
-	"log"
 	"net/http"
 )
 
@@ -27,35 +25,6 @@ func (h AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h AppHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request) {
 	err := h(c, w, r)
 	handleError(w, r, err)
-}
-
-func handleError(w http.ResponseWriter, r *http.Request, err error) {
-	if err == nil {
-		return
-	}
-	httpError, ok := err.(HttpError)
-	if ok {
-		http.Error(w, http.StatusText(httpError.Status), httpError.Status)
-		return
-	}
-
-	result, ok := err.(ValidationResult)
-	if ok {
-		if err = renderJSON(w, result, http.StatusBadRequest); err == nil {
-            return 
-        }
-	}
-
-	var status int
-
-	switch err {
-	case sql.ErrNoRows:
-		status = http.StatusNotFound
-	default:
-		status = http.StatusInternalServerError
-	}
-	log.Println(err) // more sophisticated logging needed
-	http.Error(w, http.StatusText(status), status)
 }
 
 func initRoutes() {

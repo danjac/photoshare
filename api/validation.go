@@ -29,14 +29,6 @@ type Validator interface {
 	Validate(map[string]string) error
 }
 
-var getPhotoValidator = func(photo *Photo) Validator {
-	return NewPhotoValidator(photo)
-}
-
-var getUserValidator = func(user *User, mgr UserManager) Validator {
-	return NewUserValidator(user, mgr)
-}
-
 func NewPhotoValidator(photo *Photo) *PhotoValidator {
 	return &PhotoValidator{photo}
 }

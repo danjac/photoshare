@@ -110,7 +110,7 @@ func (a *AppContext) signup(c web.C, w http.ResponseWriter, r *http.Request) err
 		Password: s.Password,
 	}
 
-	validator := getUserValidator(user, a.userMgr)
+	validator := NewUserValidator(user, a.userMgr)
 
 	if err := validate(validator); err != nil {
 		return err

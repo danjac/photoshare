@@ -88,7 +88,7 @@ func (a *AppContext) editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Requ
 
 	photo.Title = s.Title
 
-	validator := getPhotoValidator(photo)
+	validator := NewPhotoValidator(photo)
 
 	if err := validate(validator); err != nil {
 		return err
@@ -167,7 +167,7 @@ func (a *AppContext) upload(_ web.C, w http.ResponseWriter, r *http.Request) err
 		Tags:     tags,
 	}
 
-	validator := getPhotoValidator(photo)
+	validator := NewPhotoValidator(photo)
 
 	if err := validate(validator); err != nil {
 		return err

@@ -149,7 +149,7 @@ func upload(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 	if err != nil {
 		if err == InvalidContentType {
-			return httpError(http.StatusBadRequest, "Must be a JPEG or PNG")
+			return httpError(http.StatusBadRequest, err.Error())
 		}
 		return err
 	}

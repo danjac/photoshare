@@ -1,18 +1,25 @@
 package api
 
 import (
-	"fmt"
 	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/web"
 	"net/http"
 )
 
 type HttpError struct {
-	Status int
+	Status      int
+	Description string
 }
 
 func (h HttpError) Error() string {
-	return fmt.Sprintf("HTTP %d:%s", h.Status, http.StatusText(h.Status))
+	if h.Description == "" {
+		return http.StatusText(h.Status)
+	}
+	return h.Description
+}
+
+func httpError(status int, description string) HttpError {
+	return HttpError{status, description}
 }
 
 type AppHandler func(c web.C, w http.ResponseWriter, r *http.Request) error

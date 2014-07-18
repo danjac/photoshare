@@ -38,7 +38,7 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 	}
 
 	if err, ok := err.(HttpError); ok {
-		http.Error(w, http.StatusText(err.Status), err.Status)
+		http.Error(w, err.Error(), err.Status)
 		return
 	}
 
@@ -47,18 +47,17 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 		return
 	}
 
-	var status int
+	if err == sql.ErrNoRows {
+		http.NotFound(w, r)
+		return
+	}
 
-	switch err {
-	case sql.ErrNoRows:
-		status = http.StatusNotFound
-	case ErrInvalidLogin:
-		status = http.StatusBadRequest
-	default:
-		status = http.StatusInternalServerError
+	if err == ErrInvalidLogin {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	log.Println(err) // more sophisticated logging needed
-	http.Error(w, http.StatusText(status), status)
+	http.Error(w, "Sorry, an error occurred", http.StatusInternalServerError)
 }
 
 func decodeJSON(r *http.Request, value interface{}) error {

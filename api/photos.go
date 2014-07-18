@@ -20,7 +20,7 @@ func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if !photo.CanDelete(user) {
-		return HttpError{http.StatusForbidden}
+		return httpError(http.StatusForbidden, "You're not allowed to delete this photo")
 	}
 	if err := photoMgr.Delete(photo); err != nil {
 		return err
@@ -58,7 +58,7 @@ func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, er
 	}
 
 	if !photo.CanEdit(user) {
-		return photo, HttpError{http.StatusForbidden}
+		return photo, httpError(http.StatusForbidden, "You're not allowed to edit this photo")
 	}
 	return photo, nil
 }
@@ -137,7 +137,7 @@ func upload(_ web.C, w http.ResponseWriter, r *http.Request) error {
 	src, hdr, err := r.FormFile("photo")
 	if err != nil {
 		if err == http.ErrMissingFile || err == http.ErrNotMultipart {
-			return HttpError{http.StatusBadRequest}
+			return httpError(http.StatusBadRequest, "Invalid photo")
 		}
 		return err
 	}
@@ -149,7 +149,7 @@ func upload(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 	if err != nil {
 		if err == InvalidContentType {
-			return HttpError{http.StatusBadRequest}
+			return httpError(http.StatusBadRequest, "Must be a JPEG or PNG")
 		}
 		return err
 	}
@@ -236,7 +236,7 @@ func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)
 	}
 
 	if !photo.CanVote(user) {
-		return HttpError{http.StatusForbidden}
+		return httpError(http.StatusForbidden, "You're not allowed to vote on this photo")
 	}
 
 	fn(photo)

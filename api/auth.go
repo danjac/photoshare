@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"github.com/zenazn/goji/web"
 	"log"
 	"net/http"
@@ -15,7 +16,7 @@ var getCurrentUser = func(r *http.Request, required bool) (*User, error) {
 	}
 
 	if (user == nil || !user.IsAuthenticated) && required {
-		return user, HttpError{http.StatusUnauthorized}
+		return user, httpError(http.StatusUnauthorized, "You must be logged in")
 	}
 	return user, nil
 }
@@ -70,11 +71,11 @@ func login(_ web.C, w http.ResponseWriter, r *http.Request) error {
 	}{}
 
 	if err := decodeJSON(r, s); err != nil {
-		return HttpError{http.StatusBadRequest}
+		return err
 	}
 
 	if s.Identifier == "" || s.Password == "" {
-		return HttpError{http.StatusBadRequest}
+		return httpError(http.StatusBadRequest, "Missing email or password")
 	}
 
 	user, err := userMgr.Authenticate(s.Identifier, s.Password)
@@ -198,10 +199,13 @@ func recoverPassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	if s.Email == "" {
-		return HttpError{http.StatusBadRequest}
+		return httpError(http.StatusBadRequest, "Missing email address")
 	}
 	user, err := userMgr.GetByEmail(s.Email)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return httpError(http.StatusBadRequest, "No user found for this email address")
+		}
 		return err
 	}
 	code, err := user.GenerateRecoveryCode()

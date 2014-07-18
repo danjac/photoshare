@@ -7,100 +7,69 @@ import (
 	"strings"
 )
 
-func getPhotoOr404(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, bool) {
-	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
+func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) error {
+
+	user, err := getCurrentUser(r, true)
 	if err != nil {
-		http.NotFound(w, r)
-		return nil, false
+		return err
 	}
-	photo, exists, err := photoMgr.Get(photoID)
+	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
+	photo, err := photoMgr.Get(photoID)
 	if err != nil {
-		serverError(w, err)
-		return photo, false
-	}
-	if !exists {
-		http.NotFound(w, r)
-		return photo, false
-	}
-	return photo, true
-}
-
-func deletePhoto(c web.C, w http.ResponseWriter, r *http.Request) {
-
-	user, ok := getUserOr401(w, r)
-	if !ok {
-		return
-	}
-
-	photo, ok := getPhotoOr404(c, w, r)
-	if !ok {
-		return
+		return err
 	}
 
 	if !photo.CanDelete(user) {
-		http.Error(w, "You can't delete this photo", http.StatusForbidden)
-		return
+		return HttpError{http.StatusForbidden}
 	}
 	if err := photoMgr.Delete(photo); err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
 	sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_deleted"})
 	w.WriteHeader(http.StatusNoContent)
+	return nil
 }
 
-func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) {
+func photoDetail(c web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := getCurrentUser(r)
+	user, err := getCurrentUser(r, false)
 	if err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
-	photoID, err := strconv.ParseInt(c.URLParams["id"], 10, 0)
+	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
+	photo, err := photoMgr.GetDetail(photoID, user)
 	if err != nil {
-		http.NotFound(w, r)
-		return
+		return err
 	}
-
-	photo, exists, err := photoMgr.GetDetail(photoID, user)
-	if err != nil {
-		serverError(w, err)
-		return
-	}
-	if !exists {
-		http.NotFound(w, r)
-		return
-	}
-
-	writeJSON(w, photo, http.StatusOK)
+	return renderJSON(w, photo, http.StatusOK)
 }
 
-func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, bool) {
-	user, ok := getUserOr401(w, r)
-	if !ok {
-		return nil, false
+func getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, error) {
+	user, err := getCurrentUser(r, true)
+	if err != nil {
+		return nil, err
 	}
 
-	photo, ok := getPhotoOr404(c, w, r)
-	if !ok {
-		return photo, false
+	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
+	photo, err := photoMgr.Get(photoID)
+	if err != nil {
+		return photo, err
 	}
 
 	if !photo.CanEdit(user) {
-		http.Error(w, "You can't edit this photo", http.StatusForbidden)
-		return photo, false
+		return photo, HttpError{http.StatusForbidden}
 	}
-	return photo, true
+	return photo, nil
 }
 
-func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
+func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) error {
 
-	photo, ok := getPhotoToEdit(c, w, r)
+	photo, err := getPhotoToEdit(c, w, r)
 
-	if !ok {
-		return
+	if err != nil {
+		return err
 	}
 
 	s := &struct {
@@ -108,39 +77,32 @@ func editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := decodeJSON(r, s); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return err
 	}
 
 	photo.Title = s.Title
 
 	validator := getPhotoValidator(photo)
 
-	if result, err := formHandler.Validate(validator); err != nil || !result.OK {
-		if err != nil {
-			serverError(w, err)
-			return
-		}
-		result.Write(w)
-		return
+	if err := formHandler.Validate(validator); err != nil {
+		return err
 	}
 
 	if err := photoMgr.Update(photo); err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
-	if user, err := getCurrentUser(r); err == nil {
+	if user, err := getCurrentUser(r, true); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
 	w.WriteHeader(http.StatusNoContent)
+	return nil
 }
 
-func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
+func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) error {
 
-	photo, ok := getPhotoToEdit(c, w, r)
-
-	if !ok {
-		return
+	photo, err := getPhotoToEdit(c, w, r)
+	if err != nil {
+		return err
 	}
 
 	s := &struct {
@@ -148,27 +110,27 @@ func editPhotoTags(c web.C, w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := decodeJSON(r, s); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return err
 	}
 
 	photo.Tags = s.Tags
 
 	if err := photoMgr.UpdateTags(photo); err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
-	if user, err := getCurrentUser(r); err == nil {
+	if user, err := getCurrentUser(r, true); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
 	w.WriteHeader(http.StatusNoContent)
+	return nil
+
 }
 
-func upload(w http.ResponseWriter, r *http.Request) {
+func upload(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, ok := getUserOr401(w, r)
-	if !ok {
-		return
+	user, err := getCurrentUser(r, true)
+	if err != nil {
+		return err
 	}
 
 	title := r.FormValue("title")
@@ -178,11 +140,9 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	src, hdr, err := r.FormFile("photo")
 	if err != nil {
 		if err == http.ErrMissingFile || err == http.ErrNotMultipart {
-			http.Error(w, "No image was posted", http.StatusBadRequest)
-			return
+			return HttpError{http.StatusBadRequest}
 		}
-		serverError(w, err)
-		return
+		return err
 	}
 	defer src.Close()
 
@@ -192,10 +152,9 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if err == InvalidContentType {
-			http.Error(w, "No image was posted", http.StatusBadRequest)
+			return HttpError{http.StatusBadRequest}
 		}
-		serverError(w, err)
-		return
+		return err
 	}
 
 	photo := &Photo{Title: title,
@@ -206,105 +165,94 @@ func upload(w http.ResponseWriter, r *http.Request) {
 
 	validator := getPhotoValidator(photo)
 
-	if result, err := formHandler.Validate(validator); err != nil || !result.OK {
-		if err != nil {
-			serverError(w, err)
-			return
-		}
-		result.Write(w)
-		return
+	if err := formHandler.Validate(validator); err != nil {
+		return err
 	}
 
 	if err := photoMgr.Insert(photo); err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
 	sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_uploaded"})
-	writeJSON(w, photo, http.StatusCreated)
+	return renderJSON(w, photo, http.StatusCreated)
 }
 
-func searchPhotos(w http.ResponseWriter, r *http.Request) {
+func searchPhotos(_ web.C, w http.ResponseWriter, r *http.Request) error {
 	photos, err := photoMgr.Search(getPage(r), r.FormValue("q"))
 	if err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
-	writeJSON(w, photos, http.StatusOK)
+	return renderJSON(w, photos, http.StatusOK)
 }
 
-func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) {
+func photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) error {
 	ownerID, err := strconv.ParseInt(c.URLParams["ownerID"], 10, 0)
 	if err != nil {
-		http.NotFound(w, r)
-		return
+		return err
 	}
 	photos, err := photoMgr.ByOwnerID(getPage(r), ownerID)
 	if err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
-	writeJSON(w, photos, http.StatusOK)
+	return renderJSON(w, photos, http.StatusOK)
 }
 
-func getPhotos(w http.ResponseWriter, r *http.Request) {
+func getPhotos(_ web.C, w http.ResponseWriter, r *http.Request) error {
 	photos, err := photoMgr.All(getPage(r), r.FormValue("orderBy"))
 	if err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
-	writeJSON(w, photos, http.StatusOK)
+	return renderJSON(w, photos, http.StatusOK)
 }
 
-func getTags(w http.ResponseWriter, r *http.Request) {
+func getTags(_ web.C, w http.ResponseWriter, r *http.Request) error {
 	tags, err := photoMgr.GetTagCounts()
 	if err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
-	writeJSON(w, tags, http.StatusOK)
+	return renderJSON(w, tags, http.StatusOK)
 }
 
-func voteDown(c web.C, w http.ResponseWriter, r *http.Request) {
-	vote(c, w, r, func(photo *Photo) { photo.DownVotes += 1 })
+func voteDown(c web.C, w http.ResponseWriter, r *http.Request) error {
+	return vote(c, w, r, func(photo *Photo) { photo.DownVotes += 1 })
 }
 
-func voteUp(c web.C, w http.ResponseWriter, r *http.Request) {
-	vote(c, w, r, func(photo *Photo) { photo.UpVotes += 1 })
+func voteUp(c web.C, w http.ResponseWriter, r *http.Request) error {
+	return vote(c, w, r, func(photo *Photo) { photo.UpVotes += 1 })
 }
 
-func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)) {
+func vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)) error {
 	var (
 		photo *Photo
 		err   error
 	)
-	user, ok := getUserOr401(w, r)
-	if !ok {
-		return
+	user, err := getCurrentUser(r, true)
+
+	if err != nil {
+		return err
 	}
 
-	photo, ok = getPhotoOr404(c, w, r)
-	if !ok {
-		return
+	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
+	photo, err = photoMgr.Get(photoID)
+	if err != nil {
+		return err
 	}
 
 	if !photo.CanVote(user) {
-		http.Error(w, "You can't vote on this photo", http.StatusForbidden)
-		return
+		return HttpError{http.StatusForbidden}
 	}
 
 	fn(photo)
 
 	if err = photoMgr.Update(photo); err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
 	user.RegisterVote(photo.ID)
 
 	if err = userMgr.Update(user); err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 	w.WriteHeader(http.StatusNoContent)
+	return nil
 }

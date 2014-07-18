@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"github.com/zenazn/goji/web"
 	"net/http"
 	"net/http/httptest"
@@ -10,11 +11,11 @@ import (
 type mockPhotoManager struct {
 }
 
-func (m *mockPhotoManager) Get(photoID int64) (*Photo, bool, error) {
-	return nil, false, nil
+func (m *mockPhotoManager) Get(photoID int64) (*Photo, error) {
+	return nil, sql.ErrNoRows
 }
 
-func (m *mockPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, bool, error) {
+func (m *mockPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, error) {
 	canEdit := user.ID == 1
 	photo := &PhotoDetail{
 		Photo: Photo{
@@ -27,7 +28,7 @@ func (m *mockPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, b
 			Edit: canEdit,
 		},
 	}
-	return photo, true, nil
+	return photo, nil
 }
 
 func (m *mockPhotoManager) All(page *Page, orderBy string) (*PhotoList, error) {
@@ -77,8 +78,8 @@ func (m *emptyPhotoManager) All(page *Page, orderBy string) (*PhotoList, error) 
 	return &PhotoList{photos, 0, 1, 0}, nil
 }
 
-func (m *emptyPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, bool, error) {
-	return nil, false, nil
+func (m *emptyPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, error) {
+	return nil, sql.ErrNoRows
 }
 
 // should return a 404
@@ -87,36 +88,16 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 	res := httptest.NewRecorder()
 	c := web.C{}
 
-	getCurrentUser = func(r *http.Request) (*User, error) {
+	getCurrentUser = func(r *http.Request, required bool) (*User, error) {
 		return &User{}, nil
 	}
 
 	photoMgr = &emptyPhotoManager{}
 
-	photoDetail(c, res, req)
-	if res.Code != 404 {
+	err := photoDetail(c, res, req)
+	if err != sql.ErrNoRows {
 		t.Fail()
 	}
-}
-
-func TestGetPhotoDetailWithBadID(t *testing.T) {
-	req := &http.Request{}
-	res := httptest.NewRecorder()
-	c := web.C{}
-
-	c.URLParams = make(map[string]string)
-	c.URLParams["id"] = "foo"
-
-	getCurrentUser = func(r *http.Request) (*User, error) {
-		return &User{}, nil
-	}
-
-	photoMgr = &mockPhotoManager{}
-	photoDetail(c, res, req)
-	if res.Code != 404 {
-		t.Fatal("Should be a 404")
-	}
-
 }
 
 func TestGetPhotoDetail(t *testing.T) {
@@ -127,7 +108,7 @@ func TestGetPhotoDetail(t *testing.T) {
 	c.URLParams = make(map[string]string)
 	c.URLParams["id"] = "1"
 
-	getCurrentUser = func(r *http.Request) (*User, error) {
+	getCurrentUser = func(r *http.Request, required bool) (*User, error) {
 		return &User{}, nil
 	}
 
@@ -153,7 +134,7 @@ func TestGetPhotos(t *testing.T) {
 	res := httptest.NewRecorder()
 
 	photoMgr = &mockPhotoManager{}
-	getPhotos(res, req)
+	getPhotos(web.C{}, res, req)
 	value := &PhotoList{}
 	parseJsonBody(res, value)
 	if value.Total != 1 {

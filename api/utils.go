@@ -24,6 +24,15 @@ func serverError(w http.ResponseWriter, err error) {
 	http.Error(w, "Sorry, an error has occurred", http.StatusInternalServerError)
 }
 
+func renderJSON(w http.ResponseWriter, value interface{}, status int) error {
+	body, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	writeBody(w, body, status, "application/json")
+	return err
+}
+
 func writeJSON(w http.ResponseWriter, value interface{}, status int) {
 	body, err := json.Marshal(value)
 	if err != nil {

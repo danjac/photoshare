@@ -14,7 +14,7 @@ func photoFeed(w http.ResponseWriter,
 	title string,
 	description string,
 	link string,
-	photos *PhotoList) {
+	photos *PhotoList) error {
 
 	baseURL := baseURL(r)
 
@@ -38,54 +38,39 @@ func photoFeed(w http.ResponseWriter,
 	}
 	atom, err := feed.ToAtom()
 	if err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 	writeBody(w, []byte(atom), http.StatusOK, "application/atom+xml")
+	return nil
 }
 
-func latestFeed(w http.ResponseWriter, r *http.Request) {
+func latestFeed(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 	photos, err := photoMgr.All(NewPage(1), "")
 
 	if err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
-	photoFeed(w, r, "Latest photos", "Most recent photos", "/latest", photos)
+	return photoFeed(w, r, "Latest photos", "Most recent photos", "/latest", photos)
 }
 
-func popularFeed(w http.ResponseWriter, r *http.Request) {
+func popularFeed(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 	photos, err := photoMgr.All(NewPage(1), "votes")
 
 	if err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
-	photoFeed(w, r, "Popular photos", "Most upvoted photos", "/popular", photos)
+	return photoFeed(w, r, "Popular photos", "Most upvoted photos", "/popular", photos)
 }
 
-func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
-	ownerID, err := strconv.ParseInt(c.URLParams["ownerID"], 10, 0)
+func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) error {
+	ownerID, _ := strconv.ParseInt(c.URLParams["ownerID"], 10, 0)
+	owner, err := userMgr.GetActive(ownerID)
 	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	owner, exists, err := userMgr.GetActive(ownerID)
-	if err != nil {
-		serverError(w, err)
-		return
-	}
-	if !exists {
-		http.NotFound(w, r)
-		return
+		return err
 	}
 
 	title := "Feeds for " + owner.Name
@@ -95,8 +80,7 @@ func ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) {
 	photos, err := photoMgr.ByOwnerID(NewPage(1), ownerID)
 
 	if err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
-	photoFeed(w, r, title, description, link, photos)
+	return photoFeed(w, r, title, description, link, photos)
 }

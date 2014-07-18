@@ -1,7 +1,6 @@
 package api
 
 import (
-	"net/http"
 	"regexp"
 )
 
@@ -12,10 +11,15 @@ var (
 
 type FormHandler struct{}
 
-func (h *FormHandler) Validate(validator Validator) (*ValidationResult, error) {
+func (h *FormHandler) Validate(validator Validator) error {
 	result := NewValidationResult()
-	err := validator.Validate(result)
-	return result, err
+	if err := validator.Validate(result); err != nil {
+		return err
+	}
+	if len(result.Errors) > 0 {
+		return result
+	}
+	return nil
 }
 
 type Validator interface {
@@ -24,11 +28,10 @@ type Validator interface {
 
 type ValidationResult struct {
 	Errors map[string]string `json:"errors"`
-	OK     bool              `json:"ok"`
 }
 
-func (result *ValidationResult) Write(w http.ResponseWriter) {
-	writeJSON(w, result, http.StatusBadRequest)
+func (result *ValidationResult) Error() string {
+	return "Validation errors"
 }
 
 var getPhotoValidator = func(photo *Photo) Validator {
@@ -39,15 +42,9 @@ var getUserValidator = func(user *User) Validator {
 	return NewUserValidator(user)
 }
 
-func (result *ValidationResult) Error(name, msg string) {
-	result.Errors[name] = msg
-	result.OK = false
-}
-
 func NewValidationResult() *ValidationResult {
 	return &ValidationResult{
 		make(map[string]string),
-		true,
 	}
 }
 
@@ -61,16 +58,16 @@ type PhotoValidator struct {
 
 func (v *PhotoValidator) Validate(result *ValidationResult) error {
 	if v.Photo.OwnerID == 0 {
-		result.Error("ownerID", "Owner ID is missing")
+		result.Errors["ownerID"] = "Owner ID is missing"
 	}
 	if v.Photo.Title == "" {
-		result.Error("title", "Title is missing")
+		result.Errors["title"] = "Title is missing"
 	}
 	if len(v.Photo.Title) > 200 {
-		result.Error("title", "Title is too long")
+		result.Errors["title"] = "Title is too long"
 	}
 	if v.Photo.Filename == "" {
-		result.Error("photo", "Photo filename not set")
+		result.Errors["photo"] = "Photo filename not set"
 	}
 	return nil
 }
@@ -90,34 +87,34 @@ type UserValidator struct {
 func (v *UserValidator) Validate(result *ValidationResult) error {
 
 	if v.User.Name == "" {
-		result.Error("name", "Name is missing")
+		result.Errors["name"] = "Name is missing"
 	} else {
 		ok, err := userMgr.IsNameAvailable(v.User)
 		if err != nil {
 			return err
 		}
 		if !ok {
-			result.Error("name", "Name already taken")
+			result.Errors["name"] = "Name already taken"
 		}
 	}
 
 	if v.User.Email == "" {
-		result.Error("email", "Email is missing")
+		result.Errors["email"] = "Email is missing"
 	} else if !validateEmail(v.User.Email) {
-		result.Error("email", "Invalid email address")
+		result.Errors["email"] = "Invalid email address"
 	} else {
 		ok, err := userMgr.IsEmailAvailable(v.User)
 		if err != nil {
 			return err
 		}
 		if !ok {
-			result.Error("email", "Email already taken")
+			result.Errors["email"] = "Email already taken"
 		}
 
 	}
 
 	if v.User.Password == "" {
-		result.Error("password", "Password is missing")
+		result.Errors["password"] = "Password is missing"
 	}
 
 	return nil

@@ -1,35 +1,23 @@
 package api
 
 import (
+	"github.com/zenazn/goji/web"
 	"log"
 	"net/http"
 	"strings"
 )
 
-var getCurrentUser = func(r *http.Request) (*User, error) {
+var getCurrentUser = func(r *http.Request, required bool) (*User, error) {
 
 	user, err := sessionMgr.GetCurrentUser(r)
 	if err != nil {
-		return nil, err
+		return user, err
 	}
 
+	if (user == nil || !user.IsAuthenticated) && required {
+		return user, HttpError{http.StatusUnauthorized}
+	}
 	return user, nil
-}
-
-// gets current user. If user not authenticated, writes a 401 error. Returns true
-// if no error/user authenticated.
-func getUserOr401(w http.ResponseWriter, r *http.Request) (*User, bool) {
-
-	user, err := getCurrentUser(r)
-	if err != nil {
-		serverError(w, err)
-		return nil, false
-	}
-	if !user.IsAuthenticated {
-		http.Error(w, "You must be logged in", http.StatusUnauthorized)
-		return user, false
-	}
-	return user, true
 }
 
 // Basic user session info
@@ -48,35 +36,33 @@ func newSessionInfo(user *User) *sessionInfo {
 	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
-func logout(w http.ResponseWriter, r *http.Request) {
+func logout(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, ok := getUserOr401(w, r)
-	if !ok {
-		return
+	user, err := getCurrentUser(r, true)
+	if err != nil {
+		return err
 	}
 
 	if _, err := sessionMgr.Logout(w); err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
 	sendMessage(&SocketMessage{user.Name, "", 0, "logout"})
-	writeJSON(w, newSessionInfo(&User{}), http.StatusOK)
+	return renderJSON(w, newSessionInfo(&User{}), http.StatusOK)
 
 }
 
-func authenticate(w http.ResponseWriter, r *http.Request) {
+func authenticate(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := getCurrentUser(r)
+	user, err := getCurrentUser(r, false)
 	if err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
-	writeJSON(w, newSessionInfo(user), http.StatusOK)
+	return renderJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
-func login(w http.ResponseWriter, r *http.Request) {
+func login(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 	s := &struct {
 		Identifier string `json:"identifier"`
@@ -84,38 +70,29 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := decodeJSON(r, s); err != nil {
-		http.Error(w, "Invalid login details", http.StatusBadRequest)
-		return
+		return HttpError{http.StatusBadRequest}
 	}
 
 	if s.Identifier == "" || s.Password == "" {
-		http.Error(w, "Missing login details", http.StatusBadRequest)
-		return
+		return HttpError{http.StatusBadRequest}
 	}
 
-	user, exists, err := userMgr.Authenticate(s.Identifier, s.Password)
-
+	user, err := userMgr.Authenticate(s.Identifier, s.Password)
 	if err != nil {
-		serverError(w, err)
-		return
-	}
-	if !exists {
-		http.Error(w, "Invalid email or password", http.StatusBadRequest)
-		return
+		return err
 	}
 
 	if _, err := sessionMgr.Login(w, user); err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
 	user.IsAuthenticated = true
 
 	sendMessage(&SocketMessage{user.Name, "", 0, "login"})
-	writeJSON(w, newSessionInfo(user), http.StatusCreated)
+	return renderJSON(w, newSessionInfo(user), http.StatusCreated)
 }
 
-func signup(w http.ResponseWriter, r *http.Request) {
+func signup(c web.C, w http.ResponseWriter, r *http.Request) error {
 
 	s := &struct {
 		Name     string `json:"name"`
@@ -124,8 +101,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err := decodeJSON(r, s); err != nil {
-		http.Error(w, "Invalid signup data", http.StatusBadRequest)
-		return
+		return err
 	}
 
 	user := &User{
@@ -136,23 +112,16 @@ func signup(w http.ResponseWriter, r *http.Request) {
 
 	validator := getUserValidator(user)
 
-	if result, err := formHandler.Validate(validator); err != nil || !result.OK {
-		if err != nil {
-			serverError(w, err)
-			return
-		}
-		result.Write(w)
-		return
+	if err := formHandler.Validate(validator); err != nil {
+		return err
 	}
 
 	if err := userMgr.Insert(user); err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
 	if _, err := sessionMgr.Login(w, user); err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
 	user.IsAuthenticated = true
@@ -163,7 +132,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	writeJSON(w, newSessionInfo(user), http.StatusCreated)
+	return renderJSON(w, newSessionInfo(user), http.StatusCreated)
 
 }
 
@@ -181,12 +150,11 @@ func sendWelcomeMail(user *User) error {
 	return mailer.Mail(msg)
 }
 
-func changePassword(w http.ResponseWriter, r *http.Request) {
+func changePassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 	var (
 		user *User
 		err  error
-		ok   bool
 	)
 
 	s := &struct {
@@ -195,74 +163,56 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 	}{}
 
 	if err = decodeJSON(r, s); err != nil {
-		http.Error(w, "Invalid data", http.StatusBadRequest)
-		return
+		return err
 	}
 
 	if s.RecoveryCode == "" {
-		if user, ok = getUserOr401(w, r); !ok {
-			return
+		if user, err = getCurrentUser(r, true); err != nil {
+			return err
 		}
 	} else {
-		if user, ok, err = userMgr.GetByRecoveryCode(s.RecoveryCode); err != nil {
-			serverError(w, err)
-			return
-		}
-		if !ok {
-			http.Error(w, "Invalid code, no user found", http.StatusBadRequest)
-			return
+		if user, err = userMgr.GetByRecoveryCode(s.RecoveryCode); err != nil {
+			return err
 		}
 		user.ResetRecoveryCode()
 	}
 
 	if err = user.ChangePassword(s.Password); err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
 	if err = userMgr.Update(user); err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-
+	return nil
 }
 
-func recoverPassword(w http.ResponseWriter, r *http.Request) {
+func recoverPassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
 	s := &struct {
 		Email string `json:"email"`
 	}{}
 
 	if err := decodeJSON(r, s); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return err
 	}
 	if s.Email == "" {
-		http.Error(w, "No email address provided", http.StatusBadRequest)
-		return
+		return HttpError{http.StatusBadRequest}
 	}
-	user, exists, err := userMgr.GetByEmail(s.Email)
+	user, err := userMgr.GetByEmail(s.Email)
 	if err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
-	if !exists {
-		http.Error(w, "No user found for this email address", http.StatusBadRequest)
-		return
-	}
-
 	code, err := user.GenerateRecoveryCode()
 
 	if err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
 	if err := userMgr.Update(user); err != nil {
-		serverError(w, err)
-		return
+		return err
 	}
 
 	go func() {
@@ -272,6 +222,7 @@ func recoverPassword(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	w.WriteHeader(http.StatusNoContent)
+	return err
 }
 
 func sendResetPasswordMail(user *User, recoveryCode string, r *http.Request) error {

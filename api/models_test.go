@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"testing"
 )
 
@@ -20,15 +21,11 @@ func TestGetIfNotNone(t *testing.T) {
 		return
 	}
 
-	photo, exists, err := NewPhotoManager().Get(photo.ID)
+	photo, err := NewPhotoManager().Get(photo.ID)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	if !exists {
-		t.Error("Photo should exist")
-	}
-
 }
 
 func TestGetIfNone(t *testing.T) {
@@ -36,13 +33,10 @@ func TestGetIfNone(t *testing.T) {
 	tdb := MakeTestDB()
 	defer tdb.Clean()
 
-	_, exists, err := NewPhotoManager().Get(1)
-	if err != nil {
+	_, err := NewPhotoManager().Get(1)
+	if err != sql.ErrNoRows {
 		t.Error(err)
 		return
-	}
-	if exists {
-		t.Error("Photo should not exist")
 	}
 
 }

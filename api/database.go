@@ -33,8 +33,8 @@ type PhotoManager interface {
 	Insert(*Photo) error
 	Update(*Photo) error
 	Delete(*Photo) error
-	Get(int64) (*Photo, bool, error)
-	GetDetail(int64, *User) (*PhotoDetail, bool, error)
+	Get(int64) (*Photo, error)
+	GetDetail(int64, *User) (*PhotoDetail, error)
 	GetTagCounts() ([]TagCount, error)
 	All(*Page, string) (*PhotoList, error)
 	ByOwnerID(*Page, int64) (*PhotoList, error)
@@ -96,30 +96,30 @@ func (mgr *defaultPhotoManager) UpdateTags(photo *Photo) error {
 
 }
 
-func (mgr *defaultPhotoManager) Get(photoID int64) (*Photo, bool, error) {
+func (mgr *defaultPhotoManager) Get(photoID int64) (*Photo, error) {
 
 	photo := &Photo{}
 
 	if photoID == 0 {
-		return photo, false, nil
+		return photo, sql.ErrNoRows
 	}
 
 	obj, err := dbMap.Get(photo, photoID)
 	if err != nil {
-		return photo, false, err
+		return photo, err
 	}
 	if obj == nil {
-		return photo, false, nil
+		return photo, sql.ErrNoRows
 	}
-	return obj.(*Photo), true, nil
+	return obj.(*Photo), nil
 }
 
-func (mgr *defaultPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, bool, error) {
+func (mgr *defaultPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, error) {
 
 	photo := &PhotoDetail{}
 
 	if photoID == 0 {
-		return photo, false, nil
+		return photo, sql.ErrNoRows
 	}
 
 	q := "SELECT p.*, u.name AS owner_name " +
@@ -127,10 +127,7 @@ func (mgr *defaultPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDeta
 		"WHERE p.id=$1"
 
 	if err := dbMap.SelectOne(photo, q, photoID); err != nil {
-		if err == sql.ErrNoRows {
-			return photo, false, nil
-		}
-		return photo, false, err
+		return photo, err
 	}
 
 	var tags []Tag
@@ -138,7 +135,7 @@ func (mgr *defaultPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDeta
 	if _, err := dbMap.Select(&tags,
 		"SELECT t.* FROM tags t JOIN photo_tags pt ON pt.tag_id=t.id "+
 			"WHERE pt.photo_id=$1", photo.ID); err != nil {
-		return photo, false, err
+		return photo, err
 	}
 	for _, tag := range tags {
 		photo.Tags = append(photo.Tags, tag.Name)
@@ -149,7 +146,7 @@ func (mgr *defaultPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDeta
 		photo.CanDelete(user),
 		photo.CanVote(user),
 	}
-	return photo, true, nil
+	return photo, nil
 
 }
 
@@ -286,10 +283,10 @@ type UserManager interface {
 	Update(user *User) error
 	IsNameAvailable(user *User) (bool, error)
 	IsEmailAvailable(user *User) (bool, error)
-	GetActive(userID int64) (*User, bool, error)
-	GetByRecoveryCode(string) (*User, bool, error)
-	GetByEmail(string) (*User, bool, error)
-	Authenticate(identifier string, password string) (*User, bool, error)
+	GetActive(userID int64) (*User, error)
+	GetByRecoveryCode(string) (*User, error)
+	GetByEmail(string) (*User, error)
+	Authenticate(identifier string, password string) (*User, error)
 }
 
 type defaultUserManager struct{}
@@ -338,60 +335,48 @@ func (mgr *defaultUserManager) IsEmailAvailable(user *User) (bool, error) {
 	}
 	return num == 0, nil
 }
-func (mgr *defaultUserManager) GetActive(userID int64) (*User, bool, error) {
+func (mgr *defaultUserManager) GetActive(userID int64) (*User, error) {
 
 	user := &User{}
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return user, false, nil
-		}
-		return user, false, err
+		return user, err
 	}
-	return user, true, nil
+	return user, nil
 
 }
 
-func (mgr *defaultUserManager) GetByRecoveryCode(code string) (*User, bool, error) {
+func (mgr *defaultUserManager) GetByRecoveryCode(code string) (*User, error) {
 
 	user := &User{}
 	if code == "" {
-		return user, false, nil
+		return user, sql.ErrNoRows
 	}
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND recovery_code=$2", true, code); err != nil {
-		if err == sql.ErrNoRows {
-			return user, false, nil
-		}
-		return user, false, err
+		return user, err
 	}
-	return user, true, nil
+	return user, nil
 
 }
-func (mgr *defaultUserManager) GetByEmail(email string) (*User, bool, error) {
+func (mgr *defaultUserManager) GetByEmail(email string) (*User, error) {
 	user := &User{}
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
-		if err == sql.ErrNoRows {
-			return user, false, nil
-		}
-		return user, false, err
+		return user, err
 	}
-	return user, true, nil
+	return user, nil
 }
 
-func (mgr *defaultUserManager) Authenticate(identifier, password string) (*User, bool, error) {
+func (mgr *defaultUserManager) Authenticate(identifier, password string) (*User, error) {
 	user := &User{}
 
 	if err := dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
-		if err == sql.ErrNoRows {
-			return user, false, nil
-		}
-		return user, false, err
+		return user, err
 	}
 
 	if !user.CheckPassword(password) {
-		return user, false, nil
+		return user, sql.ErrNoRows
 	}
 
-	return user, true, nil
+	return user, nil
 }
 
 func NewUserManager() UserManager {

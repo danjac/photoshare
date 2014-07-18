@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/zenazn/goji/web"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -25,6 +26,12 @@ func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 	if err := a.photoMgr.Delete(photo); err != nil {
 		return err
 	}
+
+	go func() {
+		if err := a.fileMgr.Clean(photo.Filename); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_deleted"})
 	return renderStatus(w, http.StatusOK, "Photo deleted")

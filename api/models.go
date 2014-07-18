@@ -62,13 +62,6 @@ func (photo *Photo) PreInsert(s gorp.SqlExecutor) error {
 	return nil
 }
 
-/*
-func (photo *Photo) PreDelete(s gorp.SqlExecutor) error {
-	go fileMgr.Clean(photo.Filename)
-	return nil
-}
-*/
-
 func (photo *Photo) CanEdit(user *User) bool {
 	if user == nil || !user.IsAuthenticated {
 		return false

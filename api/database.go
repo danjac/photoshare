@@ -2,17 +2,12 @@ package api
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/coopernurse/gorp"
 	_ "github.com/lib/pq"
 	"log"
 	"os"
 	"strings"
-)
-
-var (
-	ErrInvalidLogin = errors.New("Invalid email or password")
 )
 
 func InitDB(db *sql.DB, logSql bool) (*gorp.DbMap, error) {

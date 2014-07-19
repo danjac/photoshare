@@ -52,10 +52,6 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 		return
 	}
 
-	if err == ErrInvalidLogin {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 	log.Println(err) // more sophisticated logging needed
 	http.Error(w, "Sorry, an error occurred", http.StatusInternalServerError)
 }

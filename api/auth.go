@@ -88,17 +88,25 @@ func (a *AppContext) login(_ web.C, w http.ResponseWriter, r *http.Request) erro
 		Password   string `json:"password"`
 	}{}
 
+	var invalidLogin = httpError(http.StatusBadRequest, "Invalid email or password")
+
 	if err := decodeJSON(r, s); err != nil {
-		return httpError(http.StatusBadRequest, "Invalid data")
+		return err
 	}
 
 	if s.Identifier == "" || s.Password == "" {
-		return httpError(http.StatusBadRequest, "Missing email or password")
+		return invalidLogin
 	}
 
-	user, err := a.userDS.Authenticate(s.Identifier, s.Password)
+	user, err := a.userDS.GetByNameOrEmail(s.Identifier)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return invalidLogin
+		}
 		return err
+	}
+	if !user.CheckPassword(s.Password) {
+		return invalidLogin
 	}
 
 	if err := a.sessionMgr.WriteToken(w, user.ID); err != nil {

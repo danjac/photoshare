@@ -288,7 +288,7 @@ type UserDataStore interface {
 	GetActive(userID int64) (*User, error)
 	GetByRecoveryCode(string) (*User, error)
 	GetByEmail(string) (*User, error)
-	Authenticate(identifier string, password string) (*User, error)
+	GetByNameOrEmail(identifier string) (*User, error)
 }
 
 func NewUserDataStore(dbMap *gorp.DbMap) UserDataStore {
@@ -374,18 +374,11 @@ func (ds *defaultUserDataStore) GetByEmail(email string) (*User, error) {
 	return user, nil
 }
 
-func (ds *defaultUserDataStore) Authenticate(identifier, password string) (*User, error) {
+func (ds *defaultUserDataStore) GetByNameOrEmail(identifier string) (*User, error) {
 	user := &User{}
 
 	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
-		if err == sql.ErrNoRows {
-			return user, ErrInvalidLogin
-		}
 		return user, err
-	}
-
-	if !user.CheckPassword(password) {
-		return user, ErrInvalidLogin
 	}
 
 	return user, nil

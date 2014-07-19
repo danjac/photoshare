@@ -57,13 +57,13 @@ func validateEmail(email string) bool {
 	return emailRegex.Match([]byte(email))
 }
 
-func NewUserValidator(user *User, mgr UserDataStore) *UserValidator {
-	return &UserValidator{user, mgr}
+func NewUserValidator(user *User, ds DataStore) *UserValidator {
+	return &UserValidator{user, ds}
 }
 
 type UserValidator struct {
-	user   *User
-	userDS UserDataStore
+	user *User
+	ds   DataStore
 }
 
 func (v *UserValidator) Validate(errors map[string]string) error {
@@ -71,7 +71,7 @@ func (v *UserValidator) Validate(errors map[string]string) error {
 	if v.user.Name == "" {
 		errors["name"] = "Name is missing"
 	} else {
-		ok, err := v.userDS.IsNameAvailable(v.user)
+		ok, err := v.ds.IsUserNameAvailable(v.user)
 		if err != nil {
 			return err
 		}
@@ -85,7 +85,7 @@ func (v *UserValidator) Validate(errors map[string]string) error {
 	} else if !validateEmail(v.user.Email) {
 		errors["email"] = "Invalid email address"
 	} else {
-		ok, err := v.userDS.IsEmailAvailable(v.user)
+		ok, err := v.ds.IsUserEmailAvailable(v.user)
 		if err != nil {
 			return err
 		}

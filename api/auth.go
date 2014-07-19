@@ -27,7 +27,13 @@ func newSessionInfo(user *User) *sessionInfo {
 func (a *AppContext) authenticate(c web.C, r *http.Request, required bool) (*User, error) {
 
 	var user *User
-	var invalidLogin = httpError(http.StatusUnauthorized, "You must be logged in")
+
+	var invalidLogin = func() (*User, error) {
+		if required {
+			return user, httpError(http.StatusUnauthorized, "You must be logged in")
+		}
+		return user, nil
+	}
 
 	obj, ok := c.Env["user"]
 
@@ -39,12 +45,12 @@ func (a *AppContext) authenticate(c web.C, r *http.Request, required bool) (*Use
 			return user, err
 		}
 		if userID == 0 {
-			return user, invalidLogin
+			return invalidLogin()
 		}
-		user, err = a.userDS.GetActive(userID)
+		user, err = a.ds.GetActiveUser(userID)
 		if err != nil {
 			if err == sql.ErrNoRows {
-				return user, invalidLogin
+				return invalidLogin()
 			}
 			return user, err
 		}
@@ -98,7 +104,7 @@ func (a *AppContext) login(_ web.C, w http.ResponseWriter, r *http.Request) erro
 		return invalidLogin
 	}
 
-	user, err := a.userDS.GetByNameOrEmail(s.Identifier)
+	user, err := a.ds.GetUserByNameOrEmail(s.Identifier)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return invalidLogin
@@ -137,13 +143,21 @@ func (a *AppContext) signup(c web.C, w http.ResponseWriter, r *http.Request) err
 		Password: s.Password,
 	}
 
-	validator := NewUserValidator(user, a.userDS)
+	validator := NewUserValidator(user, a.ds)
 
 	if err := validate(validator); err != nil {
 		return err
 	}
 
-	if err := a.userDS.Insert(user); err != nil {
+	tx, err := a.ds.Begin()
+	if err != nil {
+		return err
+	}
+
+	if err := tx.InsertUser(user); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 
@@ -184,7 +198,7 @@ func (a *AppContext) changePassword(c web.C, w http.ResponseWriter, r *http.Requ
 			return err
 		}
 	} else {
-		if user, err = a.userDS.GetByRecoveryCode(s.RecoveryCode); err != nil {
+		if user, err = a.ds.GetUserByRecoveryCode(s.RecoveryCode); err != nil {
 			return err
 		}
 		user.ResetRecoveryCode()
@@ -194,7 +208,14 @@ func (a *AppContext) changePassword(c web.C, w http.ResponseWriter, r *http.Requ
 		return err
 	}
 
-	if err = a.userDS.Update(user); err != nil {
+	tx, err := a.ds.Begin()
+	if err != nil {
+		return err
+	}
+	if err = tx.UpdateUser(user); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 
@@ -213,7 +234,7 @@ func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Req
 	if s.Email == "" {
 		return httpError(http.StatusBadRequest, "Missing email address")
 	}
-	user, err := a.userDS.GetByEmail(s.Email)
+	user, err := a.ds.GetUserByEmail(s.Email)
 	if err != nil {
 		return err
 	}
@@ -223,7 +244,15 @@ func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Req
 		return err
 	}
 
-	if err := a.userDS.Update(user); err != nil {
+	tx, err := a.ds.Begin()
+
+	if err != nil {
+		return err
+	}
+	if err = tx.UpdateUser(user); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 

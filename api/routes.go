@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/coopernurse/gorp"
+	"github.com/jmoiron/sqlx"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
 	"net/http"
@@ -37,16 +37,15 @@ func (h AppHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request) 
 
 type AppContext struct {
 	config     *AppConfig
-	photoDS    PhotoDataStore
-	userDS     UserDataStore
+	ds         DataStore
 	fileMgr    FileManager
 	sessionMgr SessionManager
 	mailer     Mailer
 }
 
-func NewAppContext(config *AppConfig, dbMap *gorp.DbMap) (*AppContext, error) {
-	photoDS := NewPhotoDataStore(dbMap)
-	userDS := NewUserDataStore(dbMap)
+func NewAppContext(config *AppConfig, db *sqlx.DB) (*AppContext, error) {
+
+	ds := NewDataStore(db)
 	fileMgr := NewFileManager(config)
 	mailer := NewMailer(config)
 
@@ -57,8 +56,7 @@ func NewAppContext(config *AppConfig, dbMap *gorp.DbMap) (*AppContext, error) {
 
 	a := &AppContext{
 		config:     config,
-		photoDS:    photoDS,
-		userDS:     userDS,
+		ds:         ds,
 		fileMgr:    fileMgr,
 		sessionMgr: sessionMgr,
 		mailer:     mailer,
@@ -66,9 +64,9 @@ func NewAppContext(config *AppConfig, dbMap *gorp.DbMap) (*AppContext, error) {
 	return a, nil
 }
 
-func GetRouter(config *AppConfig, dbMap *gorp.DbMap) (*web.Mux, error) {
+func GetRouter(config *AppConfig, db *sqlx.DB) (*web.Mux, error) {
 
-	a, err := NewAppContext(config, dbMap)
+	a, err := NewAppContext(config, db)
 	if err != nil {
 		return nil, err
 	}

@@ -46,7 +46,7 @@ func photoFeed(w http.ResponseWriter,
 
 func (a *AppContext) latestFeed(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
-	photos, err := a.photoDS.All(NewPage(1), "")
+	photos, err := a.ds.GetPhotos(NewPage(1), "")
 
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func (a *AppContext) latestFeed(_ web.C, w http.ResponseWriter, r *http.Request)
 
 func (a *AppContext) popularFeed(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
-	photos, err := a.photoDS.All(NewPage(1), "votes")
+	photos, err := a.ds.GetPhotos(NewPage(1), "votes")
 
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func (a *AppContext) popularFeed(_ web.C, w http.ResponseWriter, r *http.Request
 
 func (a *AppContext) ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) error {
 	ownerID, _ := strconv.ParseInt(c.URLParams["ownerID"], 10, 0)
-	owner, err := a.userDS.GetActive(ownerID)
+	owner, err := a.ds.GetActiveUser(ownerID)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (a *AppContext) ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) 
 	description := "List of feeds for " + owner.Name
 	link := fmt.Sprintf("/owner/%d/%s", ownerID, owner.Name)
 
-	photos, err := a.photoDS.ByOwnerID(NewPage(1), ownerID)
+	photos, err := a.ds.GetPhotosByOwnerID(NewPage(1), ownerID)
 
 	if err != nil {
 		return err

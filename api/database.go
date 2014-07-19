@@ -3,73 +3,90 @@ package api
 import (
 	"database/sql"
 	"fmt"
-	"github.com/coopernurse/gorp"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"log"
-	"os"
 	"strings"
 )
 
-func InitDB(db *sql.DB, logSql bool) (*gorp.DbMap, error) {
-	dbMap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
-
-	if logSql {
-		dbMap.TraceOn("[sql]", log.New(os.Stdout, "", log.Ldate|log.Lmicroseconds))
-	}
-
-	dbMap.AddTableWithName(User{}, "users").SetKeys(true, "ID")
-	dbMap.AddTableWithName(Photo{}, "photos").SetKeys(true, "ID")
-	dbMap.AddTableWithName(Tag{}, "tags").SetKeys(true, "ID")
-
-	return dbMap, nil
+func InitDB(config *AppConfig) (*sqlx.DB, error) {
+	return sqlx.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
+		config.DBUser,
+		config.DBName,
+		config.DBPassword,
+		config.DBHost,
+	))
 }
 
-type PhotoDataStore interface {
-	Insert(*Photo) error
-	Update(*Photo) error
-	Delete(*Photo) error
-	Get(int64) (*Photo, error)
-	GetDetail(int64, *User) (*PhotoDetail, error)
+type DataStore interface {
+	Begin() (Transaction, error)
+
+	GetPhoto(int64) (*Photo, error)
+	GetPhotoDetail(int64, *User) (*PhotoDetail, error)
 	GetTagCounts() ([]TagCount, error)
-	All(*Page, string) (*PhotoList, error)
-	ByOwnerID(*Page, int64) (*PhotoList, error)
-	Search(*Page, string) (*PhotoList, error)
+	GetPhotos(*Page, string) (*PhotoList, error)
+	GetPhotosByOwnerID(*Page, int64) (*PhotoList, error)
+	SearchPhotos(*Page, string) (*PhotoList, error)
+
+	IsUserNameAvailable(user *User) (bool, error)
+	IsUserEmailAvailable(user *User) (bool, error)
+
+	GetActiveUser(userID int64) (*User, error)
+	GetUserByRecoveryCode(string) (*User, error)
+	GetUserByEmail(string) (*User, error)
+	GetUserByNameOrEmail(identifier string) (*User, error)
+}
+
+type Transaction interface {
+	InsertPhoto(*Photo) error
+	UpdatePhoto(*Photo) error
+	DeletePhoto(*Photo) error
 	UpdateTags(*Photo) error
+	InsertUser(user *User) error
+	UpdateUser(user *User) error
+	Commit() error
+	Rollback() error
 }
 
-type defaultPhotoDataStore struct {
-	dbMap *gorp.DbMap
+type defaultDataStore struct {
+	*sqlx.DB
 }
 
-func NewPhotoDataStore(dbMap *gorp.DbMap) PhotoDataStore {
-	return &defaultPhotoDataStore{dbMap}
+type defaultTransaction struct {
+	*sqlx.Tx
 }
 
-func (ds *defaultPhotoDataStore) Delete(photo *Photo) error {
-	_, err := ds.dbMap.Delete(photo)
+func NewDataStore(db *sqlx.DB) DataStore {
+	return &defaultDataStore{db}
+}
+
+func (tx *defaultTransaction) DeletePhoto(photo *Photo) error {
+	_, err := tx.Exec("DELETE FROM photos WHERE id=$1", photo.ID)
 	return err
 }
 
-func (ds *defaultPhotoDataStore) Update(photo *Photo) error {
-	_, err := ds.dbMap.Update(photo)
+func (tx *defaultTransaction) UpdatePhoto(photo *Photo) error {
+	_, err := tx.Exec(
+		"UPDATE photos SET title=$1, up_votes=$2, down_votes=$3 WHERE id=$4",
+		photo.Title,
+		photo.UpVotes,
+		photo.DownVotes,
+		photo.ID,
+	)
 	return err
 }
 
-func (ds *defaultPhotoDataStore) Insert(photo *Photo) error {
-	t, err := ds.dbMap.Begin()
+func (tx *defaultTransaction) InsertPhoto(photo *Photo) error {
+	stmt, err := tx.PrepareNamed(
+		"INSERT INTO photos (owner_id, title, photo) " +
+			"VALUES(:owner_id, :title, :photo) RETURNING id, created_at",
+	)
 	if err != nil {
 		return err
 	}
-	if err := ds.dbMap.Insert(photo); err != nil {
-		return err
-	}
-	if err := ds.UpdateTags(photo); err != nil {
-		return err
-	}
-	return t.Commit()
+	return stmt.QueryRowx(photo).Scan(&photo.ID, &photo.CreatedAt)
 }
 
-func (ds *defaultPhotoDataStore) UpdateTags(photo *Photo) error {
+func (tx *defaultTransaction) UpdateTags(photo *Photo) error {
 
 	var (
 		args    = []string{"$1"}
@@ -85,33 +102,36 @@ func (ds *defaultPhotoDataStore) UpdateTags(photo *Photo) error {
 		}
 	}
 	if isEmpty && photo.ID != 0 {
-		_, err := ds.dbMap.Exec("DELETE FROM photo_tags WHERE photo_id=$1", photo.ID)
+		_, err := tx.Exec("DELETE FROM photo_tags WHERE photo_id=$1", photo.ID)
 		return err
 	}
-	_, err := ds.dbMap.Exec(fmt.Sprintf("SELECT add_tags(%s)", strings.Join(args, ",")), params...)
+	_, err := tx.Exec(fmt.Sprintf("SELECT add_tags(%s)", strings.Join(args, ",")), params...)
 	return err
 
 }
 
-func (ds *defaultPhotoDataStore) Get(photoID int64) (*Photo, error) {
+func (ds *defaultDataStore) Begin() (Transaction, error) {
+	tx, err := ds.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	return &defaultTransaction{tx}, nil
+}
+
+func (ds *defaultDataStore) GetPhoto(photoID int64) (*Photo, error) {
 
 	photo := &Photo{}
 
 	if photoID == 0 {
 		return photo, sql.ErrNoRows
 	}
-
-	obj, err := ds.dbMap.Get(photo, photoID)
-	if err != nil {
+	if err := ds.Get(photo, "SELECT * FROM photos WHERE id=$1", photoID); err != nil {
 		return photo, err
 	}
-	if obj == nil {
-		return photo, sql.ErrNoRows
-	}
-	return obj.(*Photo), nil
+	return photo, nil
 }
 
-func (ds *defaultPhotoDataStore) GetDetail(photoID int64, user *User) (*PhotoDetail, error) {
+func (ds *defaultDataStore) GetPhotoDetail(photoID int64, user *User) (*PhotoDetail, error) {
 
 	photo := &PhotoDetail{}
 
@@ -123,13 +143,13 @@ func (ds *defaultPhotoDataStore) GetDetail(photoID int64, user *User) (*PhotoDet
 		"FROM photos p JOIN users u ON u.id = p.owner_id " +
 		"WHERE p.id=$1"
 
-	if err := ds.dbMap.SelectOne(photo, q, photoID); err != nil {
+	if err := ds.Get(photo, q, photoID); err != nil {
 		return photo, err
 	}
 
 	var tags []Tag
 
-	if _, err := ds.dbMap.Select(&tags,
+	if err := ds.Select(&tags,
 		"SELECT t.* FROM tags t JOIN photo_tags pt ON pt.tag_id=t.id "+
 			"WHERE pt.photo_id=$1", photo.ID); err != nil {
 		return photo, err
@@ -147,7 +167,7 @@ func (ds *defaultPhotoDataStore) GetDetail(photoID int64, user *User) (*PhotoDet
 
 }
 
-func (ds *defaultPhotoDataStore) ByOwnerID(page *Page, ownerID int64) (*PhotoList, error) {
+func (ds *defaultDataStore) GetPhotosByOwnerID(page *Page, ownerID int64) (*PhotoList, error) {
 
 	var (
 		photos []Photo
@@ -157,11 +177,13 @@ func (ds *defaultPhotoDataStore) ByOwnerID(page *Page, ownerID int64) (*PhotoLis
 	if ownerID == 0 {
 		return nil, nil
 	}
-	if total, err = ds.dbMap.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {
+
+	row := ds.QueryRow("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID)
+	if err := row.Scan(&total); err != nil {
 		return nil, err
 	}
 
-	if _, err = ds.dbMap.Select(&photos,
+	if err = ds.Select(&photos,
 		"SELECT * FROM photos WHERE owner_id = $1"+
 			"ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $2 OFFSET $3",
 		ownerID, page.Size, page.Offset); err != nil {
@@ -170,7 +192,7 @@ func (ds *defaultPhotoDataStore) ByOwnerID(page *Page, ownerID int64) (*PhotoLis
 	return NewPhotoList(photos, total, page.Index), nil
 }
 
-func (ds *defaultPhotoDataStore) Search(page *Page, q string) (*PhotoList, error) {
+func (ds *defaultDataStore) SearchPhotos(page *Page, q string) (*PhotoList, error) {
 
 	var (
 		clauses []string
@@ -224,25 +246,27 @@ func (ds *defaultPhotoDataStore) Search(page *Page, q string) (*PhotoList, error
 
 	countSql := fmt.Sprintf("SELECT COUNT(id) FROM (%s) q", clausesSql)
 
-	if total, err = ds.dbMap.SelectInt(countSql, params...); err != nil {
+	row := ds.QueryRow(countSql, params...)
+	if err := row.Scan(&total); err != nil {
 		return nil, err
 	}
 
 	numParams := len(params)
 
-	sql := fmt.Sprintf("SELECT * FROM (%s) q ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $%d OFFSET $%d",
+	sql := fmt.Sprintf(
+		"SELECT * FROM (%s) q ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $%d OFFSET $%d",
 		clausesSql, numParams+1, numParams+2)
 
 	params = append(params, interface{}(page.Size))
 	params = append(params, interface{}(page.Offset))
 
-	if _, err = ds.dbMap.Select(&photos, sql, params...); err != nil {
+	if err = ds.Select(&photos, sql, params...); err != nil {
 		return nil, err
 	}
 	return NewPhotoList(photos, total, page.Index), nil
 }
 
-func (ds *defaultPhotoDataStore) All(page *Page, orderBy string) (*PhotoList, error) {
+func (ds *defaultDataStore) GetPhotos(page *Page, orderBy string) (*PhotoList, error) {
 
 	var (
 		total  int64
@@ -255,11 +279,12 @@ func (ds *defaultPhotoDataStore) All(page *Page, orderBy string) (*PhotoList, er
 		orderBy = "created_at"
 	}
 
-	if total, err = ds.dbMap.SelectInt("SELECT COUNT(id) FROM photos"); err != nil {
+	row := ds.QueryRow("SELECT COUNT(id) FROM photos")
+	if err := row.Scan(&total); err != nil {
 		return nil, err
 	}
 
-	if _, err = ds.dbMap.Select(&photos,
+	if err = ds.Select(&photos,
 		"SELECT * FROM photos "+
 			"ORDER BY "+orderBy+" DESC LIMIT $1 OFFSET $2", page.Size, page.Offset); err != nil {
 		return nil, err
@@ -267,53 +292,51 @@ func (ds *defaultPhotoDataStore) All(page *Page, orderBy string) (*PhotoList, er
 	return NewPhotoList(photos, total, page.Index), nil
 }
 
-func (ds *defaultPhotoDataStore) GetTagCounts() ([]TagCount, error) {
+func (ds *defaultDataStore) GetTagCounts() ([]TagCount, error) {
 	var tags []TagCount
-	if _, err := ds.dbMap.Select(&tags, "SELECT name, photo, num_photos FROM tag_counts"); err != nil {
+	if err := ds.Select(&tags, "SELECT name, photo, num_photos FROM tag_counts"); err != nil {
 		return tags, err
 	}
 	return tags, nil
 }
 
-type UserDataStore interface {
-	Insert(user *User) error
-	Update(user *User) error
-	IsNameAvailable(user *User) (bool, error)
-	IsEmailAvailable(user *User) (bool, error)
-	GetActive(userID int64) (*User, error)
-	GetByRecoveryCode(string) (*User, error)
-	GetByEmail(string) (*User, error)
-	GetByNameOrEmail(identifier string) (*User, error)
+func (tx *defaultTransaction) InsertUser(user *User) error {
+	stmt, err := tx.PrepareNamed(
+		"INSERT INTO users (name, email, password, admin) " +
+			"VALUES(:name, :email, :password, :admin) RETURNING id, created_at",
+	)
+	if err != nil {
+		return err
+	}
+	return stmt.QueryRowx(user).Scan(&user.ID, &user.CreatedAt)
 }
 
-func NewUserDataStore(dbMap *gorp.DbMap) UserDataStore {
-	return &defaultUserDataStore{dbMap}
-}
-
-type defaultUserDataStore struct {
-	dbMap *gorp.DbMap
-}
-
-func (ds *defaultUserDataStore) Insert(user *User) error {
-	return ds.dbMap.Insert(user)
-}
-
-func (ds *defaultUserDataStore) Update(user *User) error {
-	_, err := ds.dbMap.Update(user)
+func (tx *defaultTransaction) UpdateUser(user *User) error {
+	_, err := tx.Exec(
+		"UPDATE users SET name=$1, email=$2, password=$3, is_admin=$4, "+
+			"is_active=$5 recovery_code=$5 WHERE id=$6",
+		user.Name,
+		user.Email,
+		user.Password,
+		user.IsAdmin,
+		user.IsActive,
+		user.RecoveryCode,
+		user.ID,
+	)
 	return err
 }
 
-func (ds *defaultUserDataStore) IsNameAvailable(user *User) (bool, error) {
+func (ds *defaultDataStore) IsUserNameAvailable(user *User) (bool, error) {
 	var (
 		num int64
 		err error
 	)
 	q := "SELECT COUNT(id) FROM users WHERE name=$1"
 	if user.ID == 0 {
-		num, err = ds.dbMap.SelectInt(q, user.Name)
+		err = ds.Get(&num, q, user.Name)
 	} else {
 		q += " AND id != $2"
-		num, err = ds.dbMap.SelectInt(q, user.Name, user.ID)
+		err = ds.Get(&num, q, user.Name, user.ID)
 	}
 	if err != nil {
 		return false, err
@@ -321,17 +344,17 @@ func (ds *defaultUserDataStore) IsNameAvailable(user *User) (bool, error) {
 	return num == 0, nil
 }
 
-func (ds *defaultUserDataStore) IsEmailAvailable(user *User) (bool, error) {
+func (ds *defaultDataStore) IsUserEmailAvailable(user *User) (bool, error) {
 	var (
 		num int64
 		err error
 	)
 	q := "SELECT COUNT(id) FROM users WHERE email=$1"
 	if user.ID == 0 {
-		num, err = ds.dbMap.SelectInt(q, user.Email)
+		err = ds.Get(&num, q, user.Email)
 	} else {
 		q += " AND id != $2"
-		num, err = ds.dbMap.SelectInt(q, user.Email, user.ID)
+		err = ds.Get(&num, q, user.Email, user.ID)
 	}
 	if err != nil {
 		return false, err
@@ -339,40 +362,40 @@ func (ds *defaultUserDataStore) IsEmailAvailable(user *User) (bool, error) {
 	return num == 0, nil
 }
 
-func (ds *defaultUserDataStore) GetActive(userID int64) (*User, error) {
+func (ds *defaultDataStore) GetActiveUser(userID int64) (*User, error) {
 
 	user := &User{}
-	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
+	if err := ds.Get(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
 		return user, err
 	}
 	return user, nil
 
 }
 
-func (ds *defaultUserDataStore) GetByRecoveryCode(code string) (*User, error) {
+func (ds *defaultDataStore) GetUserByRecoveryCode(code string) (*User, error) {
 
 	user := &User{}
 	if code == "" {
 		return user, sql.ErrNoRows
 	}
-	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND recovery_code=$2", true, code); err != nil {
+	if err := ds.Get(user, "SELECT * FROM users WHERE active=$1 AND recovery_code=$2", true, code); err != nil {
 		return user, err
 	}
 	return user, nil
 
 }
-func (ds *defaultUserDataStore) GetByEmail(email string) (*User, error) {
+func (ds *defaultDataStore) GetUserByEmail(email string) (*User, error) {
 	user := &User{}
-	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
+	if err := ds.Get(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
 		return user, err
 	}
 	return user, nil
 }
 
-func (ds *defaultUserDataStore) GetByNameOrEmail(identifier string) (*User, error) {
+func (ds *defaultDataStore) GetUserByNameOrEmail(identifier string) (*User, error) {
 	user := &User{}
 
-	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
+	if err := ds.Get(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
 		return user, err
 	}
 

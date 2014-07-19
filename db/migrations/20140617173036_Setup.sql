@@ -11,13 +11,13 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 
 --
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
 --
 
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 --
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:
 --
 
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
@@ -36,15 +36,15 @@ CREATE FUNCTION add_tag(name character varying) RETURNS bigint
     FROM tags
     WHERE name=$1
  ), i AS (
-INSERT INTO tags (name) 
+INSERT INTO tags (name)
 SELECT $1
 WHERE NOT EXISTS (
     (SELECT 1 FROM s)
     )
     RETURNING id
     )
-    SELECT id 
-    FROM i 
+    SELECT id
+    FROM i
     UNION ALL
     SELECT id
     FROM s;
@@ -59,7 +59,7 @@ ALTER FUNCTION public.add_tag(name character varying) OWNER TO postgres;
 
 CREATE FUNCTION add_tags(pid bigint, VARIADIC names character varying[]) RETURNS void
     LANGUAGE plpgsql
-    AS $$DECLARE 
+    AS $$DECLARE
 tag VARCHAR(200);
 tid BIGINT;
 BEGIN
@@ -67,9 +67,9 @@ DELETE FROM photo_tags WHERE photo_id=pid;
 FOREACH tag IN ARRAY names
 LOOP
      tid := add_tag(tag);
-        
+
         IF (SELECT 1 FROM photo_tags WHERE photo_id=pid AND tag_id=tid) IS NULL THEN
-      
+
 		INSERT INTO photo_tags(photo_id, tag_id) VALUES(pid, tid);
         END IF;
 END LOOP;
@@ -84,7 +84,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: photo_tags; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: photo_tags; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE TABLE photo_tags (
@@ -96,13 +96,13 @@ CREATE TABLE photo_tags (
 ALTER TABLE public.photo_tags OWNER TO postgres;
 
 --
--- Name: photos; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: photos; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE TABLE photos (
     id integer NOT NULL,
     owner_id integer,
-    created_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now(),
     title text,
     photo text
 );
@@ -132,7 +132,7 @@ ALTER SEQUENCE photos_id_seq OWNED BY photos.id;
 
 
 --
--- Name: tag_counts; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: tag_counts; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE TABLE tag_counts (
@@ -146,7 +146,7 @@ CREATE TABLE tag_counts (
 ALTER TABLE public.tag_counts OWNER TO postgres;
 
 --
--- Name: tags; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: tags; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE TABLE tags (
@@ -179,12 +179,12 @@ ALTER SEQUENCE tags_id_seq OWNED BY tags.id;
 
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE TABLE users (
     id integer NOT NULL,
-    created_at timestamp with time zone,
+    created_at timestamp with time zone DEFAULT now(),
     name text,
     password text,
     email text,
@@ -238,7 +238,7 @@ ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regcl
 
 
 --
--- Name: photo_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: photo_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
 ALTER TABLE ONLY photo_tags
@@ -246,7 +246,7 @@ ALTER TABLE ONLY photo_tags
 
 
 --
--- Name: photos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: photos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
 ALTER TABLE ONLY photos
@@ -254,7 +254,7 @@ ALTER TABLE ONLY photos
 
 
 --
--- Name: tags_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: tags_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
 ALTER TABLE ONLY tags
@@ -262,7 +262,7 @@ ALTER TABLE ONLY tags
 
 
 --
--- Name: tags_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: tags_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
 ALTER TABLE ONLY tags
@@ -270,7 +270,7 @@ ALTER TABLE ONLY tags
 
 
 --
--- Name: users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
 ALTER TABLE ONLY users
@@ -278,7 +278,7 @@ ALTER TABLE ONLY users
 
 
 --
--- Name: fki_photo_id_fkey; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+-- Name: fki_photo_id_fkey; Type: INDEX; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE INDEX fki_photo_id_fkey ON photo_tags USING btree (photo_id);

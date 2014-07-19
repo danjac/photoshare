@@ -91,7 +91,7 @@ type Permissions struct {
 }
 
 type PhotoDetail struct {
-	Photo       `db:"-"`
+	Photo
 	OwnerName   string       `db:"owner_name" json:"ownerName"`
 	Permissions *Permissions `db:"-" json:"perms"`
 }

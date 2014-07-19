@@ -15,7 +15,7 @@ func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 		return err
 	}
 	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err := a.photoDS.Get(photoID)
+	photo, err := a.ds.GetPhoto(photoID)
 	if err != nil {
 		return err
 	}
@@ -23,7 +23,14 @@ func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 	if !photo.CanDelete(user) {
 		return httpError(http.StatusForbidden, "You're not allowed to delete this photo")
 	}
-	if err := a.photoDS.Delete(photo); err != nil {
+	tx, err := a.ds.Begin()
+	if err != nil {
+		return err
+	}
+	if err := tx.DeletePhoto(photo); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 
@@ -45,7 +52,7 @@ func (a *AppContext) photoDetail(c web.C, w http.ResponseWriter, r *http.Request
 	}
 
 	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err := a.photoDS.GetDetail(photoID, user)
+	photo, err := a.ds.GetPhotoDetail(photoID, user)
 	if err != nil {
 		return err
 	}
@@ -59,7 +66,7 @@ func (a *AppContext) getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Requ
 	}
 
 	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err := a.photoDS.Get(photoID)
+	photo, err := a.ds.GetPhoto(photoID)
 	if err != nil {
 		return photo, err
 	}
@@ -94,9 +101,15 @@ func (a *AppContext) editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Requ
 		return err
 	}
 
-	if err := a.photoDS.Update(photo); err != nil {
+	tx, err := a.ds.Begin()
+	if err != nil {
 		return err
 	}
+	if err := tx.UpdatePhoto(photo); err != nil {
+		return err
+	}
+	tx.Commit()
+
 	if user, err := a.authenticate(c, r, true); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
@@ -120,9 +133,17 @@ func (a *AppContext) editPhotoTags(c web.C, w http.ResponseWriter, r *http.Reque
 
 	photo.Tags = s.Tags
 
-	if err := a.photoDS.UpdateTags(photo); err != nil {
+	tx, err := a.ds.Begin()
+	if err != nil {
 		return err
 	}
+	if err := tx.UpdateTags(photo); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
 	if user, err := a.authenticate(c, r, true); err == nil {
 		sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
@@ -173,7 +194,20 @@ func (a *AppContext) upload(c web.C, w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	if err := a.photoDS.Insert(photo); err != nil {
+	tx, err := a.ds.Begin()
+	if err != nil {
+		return err
+	}
+
+	if err := tx.InsertPhoto(photo); err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.UpdateTags(photo); err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 
@@ -182,7 +216,7 @@ func (a *AppContext) upload(c web.C, w http.ResponseWriter, r *http.Request) err
 }
 
 func (a *AppContext) searchPhotos(_ web.C, w http.ResponseWriter, r *http.Request) error {
-	photos, err := a.photoDS.Search(getPage(r), r.FormValue("q"))
+	photos, err := a.ds.SearchPhotos(getPage(r), r.FormValue("q"))
 	if err != nil {
 		return err
 	}
@@ -194,7 +228,7 @@ func (a *AppContext) photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Req
 	if err != nil {
 		return err
 	}
-	photos, err := a.photoDS.ByOwnerID(getPage(r), ownerID)
+	photos, err := a.ds.GetPhotosByOwnerID(getPage(r), ownerID)
 	if err != nil {
 		return err
 	}
@@ -202,7 +236,7 @@ func (a *AppContext) photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Req
 }
 
 func (a *AppContext) getPhotos(_ web.C, w http.ResponseWriter, r *http.Request) error {
-	photos, err := a.photoDS.All(getPage(r), r.FormValue("orderBy"))
+	photos, err := a.ds.GetPhotos(getPage(r), r.FormValue("orderBy"))
 	if err != nil {
 		return err
 	}
@@ -210,7 +244,7 @@ func (a *AppContext) getPhotos(_ web.C, w http.ResponseWriter, r *http.Request) 
 }
 
 func (a *AppContext) getTags(_ web.C, w http.ResponseWriter, r *http.Request) error {
-	tags, err := a.photoDS.GetTagCounts()
+	tags, err := a.ds.GetTagCounts()
 	if err != nil {
 		return err
 	}
@@ -237,7 +271,7 @@ func (a *AppContext) vote(c web.C, w http.ResponseWriter, r *http.Request, fn fu
 	}
 
 	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err = a.photoDS.Get(photoID)
+	photo, err = a.ds.GetPhoto(photoID)
 	if err != nil {
 		return err
 	}
@@ -248,13 +282,23 @@ func (a *AppContext) vote(c web.C, w http.ResponseWriter, r *http.Request, fn fu
 
 	fn(photo)
 
-	if err = a.photoDS.Update(photo); err != nil {
+	tx, err := a.ds.Begin()
+	if err != nil {
+		return err
+	}
+
+	if err = tx.UpdatePhoto(photo); err != nil {
+		tx.Rollback()
 		return err
 	}
 
 	user.RegisterVote(photo.ID)
 
-	if err = a.userDS.Update(user); err != nil {
+	if err = tx.UpdateUser(user); err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 	return renderString(w, http.StatusOK, "Voting successful")

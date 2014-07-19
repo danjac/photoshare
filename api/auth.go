@@ -25,19 +25,22 @@ func newSessionInfo(user *User) *sessionInfo {
 
 func (a *AppContext) authenticate(c web.C, r *http.Request, required bool) (*User, error) {
 
-	var (
-		user *User
-		err  error
-	)
+	var user *User
 
 	obj, ok := c.Env["user"]
 
 	if ok {
 		user = obj.(*User)
 	} else {
-		user, err = a.sessionMgr.GetCurrentUser(r)
+		userID, err := a.sessionMgr.ReadToken(r)
 		if err != nil {
 			return user, err
+		}
+		if userID != 0 {
+			user, err = a.userDS.GetActive(userID)
+			if err != nil {
+				return user, err
+			}
 		}
 		c.Env["user"] = user
 	}
@@ -56,7 +59,7 @@ func (a *AppContext) logout(c web.C, w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	if _, err := a.sessionMgr.Logout(w); err != nil {
+	if err := a.sessionMgr.WriteToken(w, 0); err != nil {
 		return err
 	}
 
@@ -90,12 +93,12 @@ func (a *AppContext) login(_ web.C, w http.ResponseWriter, r *http.Request) erro
 		return httpError(http.StatusBadRequest, "Missing email or password")
 	}
 
-	user, err := a.userMgr.Authenticate(s.Identifier, s.Password)
+	user, err := a.userDS.Authenticate(s.Identifier, s.Password)
 	if err != nil {
 		return err
 	}
 
-	if _, err := a.sessionMgr.Login(w, user); err != nil {
+	if err := a.sessionMgr.WriteToken(w, user.ID); err != nil {
 		return err
 	}
 
@@ -123,17 +126,17 @@ func (a *AppContext) signup(c web.C, w http.ResponseWriter, r *http.Request) err
 		Password: s.Password,
 	}
 
-	validator := NewUserValidator(user, a.userMgr)
+	validator := NewUserValidator(user, a.userDS)
 
 	if err := validate(validator); err != nil {
 		return err
 	}
 
-	if err := a.userMgr.Insert(user); err != nil {
+	if err := a.userDS.Insert(user); err != nil {
 		return err
 	}
 
-	if _, err := a.sessionMgr.Login(w, user); err != nil {
+	if err := a.sessionMgr.WriteToken(w, user.ID); err != nil {
 		return err
 	}
 
@@ -170,7 +173,7 @@ func (a *AppContext) changePassword(c web.C, w http.ResponseWriter, r *http.Requ
 			return err
 		}
 	} else {
-		if user, err = a.userMgr.GetByRecoveryCode(s.RecoveryCode); err != nil {
+		if user, err = a.userDS.GetByRecoveryCode(s.RecoveryCode); err != nil {
 			return err
 		}
 		user.ResetRecoveryCode()
@@ -180,7 +183,7 @@ func (a *AppContext) changePassword(c web.C, w http.ResponseWriter, r *http.Requ
 		return err
 	}
 
-	if err = a.userMgr.Update(user); err != nil {
+	if err = a.userDS.Update(user); err != nil {
 		return err
 	}
 
@@ -199,7 +202,7 @@ func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Req
 	if s.Email == "" {
 		return httpError(http.StatusBadRequest, "Missing email address")
 	}
-	user, err := a.userMgr.GetByEmail(s.Email)
+	user, err := a.userDS.GetByEmail(s.Email)
 	if err != nil {
 		return err
 	}
@@ -209,7 +212,7 @@ func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Req
 		return err
 	}
 
-	if err := a.userMgr.Update(user); err != nil {
+	if err := a.userDS.Update(user); err != nil {
 		return err
 	}
 

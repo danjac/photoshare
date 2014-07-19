@@ -11,22 +11,22 @@ func TestGetIfNotNone(t *testing.T) {
 	tdb := MakeTestDB(config)
 	defer tdb.Clean()
 
-	userMgr := NewUserManager(tdb.dbMap)
-	photoMgr := NewPhotoManager(tdb.dbMap)
+	userDS := NewUserDataStore(tdb.dbMap)
+	photoDS := NewPhotoDataStore(tdb.dbMap)
 
 	user := &User{Name: "tester", Email: "tester@gmail.com", Password: "test"}
 
-	if err := userMgr.Insert(user); err != nil {
+	if err := userDS.Insert(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &Photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := photoMgr.Insert(photo); err != nil {
+	if err := photoDS.Insert(photo); err != nil {
 		t.Error(err)
 		return
 	}
 
-	photo, err := photoMgr.Get(photo.ID)
+	photo, err := photoDS.Get(photo.ID)
 	if err != nil {
 		t.Error(err)
 		return
@@ -39,7 +39,7 @@ func TestGetIfNone(t *testing.T) {
 	tdb := MakeTestDB(config)
 	defer tdb.Clean()
 
-	_, err := NewPhotoManager(tdb.dbMap).Get(1)
+	_, err := NewPhotoDataStore(tdb.dbMap).Get(1)
 	if err != sql.ErrNoRows {
 		t.Error(err)
 		return
@@ -52,20 +52,20 @@ func TestSearchPhotos(t *testing.T) {
 	tdb := MakeTestDB(config)
 	defer tdb.Clean()
 
-	photoMgr := NewPhotoManager(tdb.dbMap)
-	userMgr := NewUserManager(tdb.dbMap)
+	photoDS := NewPhotoDataStore(tdb.dbMap)
+	userDS := NewUserDataStore(tdb.dbMap)
 
 	user := &User{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	if err := userMgr.Insert(user); err != nil {
+	if err := userDS.Insert(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &Photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := photoMgr.Insert(photo); err != nil {
+	if err := photoDS.Insert(photo); err != nil {
 		t.Error(err)
 		return
 	}
-	result, err := photoMgr.Search(NewPage(1), "test")
+	result, err := photoDS.Search(NewPage(1), "test")
 	if err != nil {
 		t.Error(err)
 		return
@@ -80,20 +80,20 @@ func TestAllPhotos(t *testing.T) {
 	tdb := MakeTestDB(config)
 	defer tdb.Clean()
 
-	photoMgr := NewPhotoManager(tdb.dbMap)
-	userMgr := NewUserManager(tdb.dbMap)
+	photoDS := NewPhotoDataStore(tdb.dbMap)
+	userDS := NewUserDataStore(tdb.dbMap)
 
 	user := &User{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	if err := userMgr.Insert(user); err != nil {
+	if err := userDS.Insert(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &Photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := photoMgr.Insert(photo); err != nil {
+	if err := photoDS.Insert(photo); err != nil {
 		t.Error(err)
 		return
 	}
-	result, err := photoMgr.All(NewPage(1), "")
+	result, err := photoDS.All(NewPage(1), "")
 	if err != nil {
 		t.Error(err)
 		return

@@ -11,26 +11,22 @@ import (
 type mockSessionManager struct {
 }
 
-func (m *mockSessionManager) GetCurrentUser(r *http.Request) (*User, error) {
-	return &User{}, nil
+func (m *mockSessionManager) ReadToken(r *http.Request) (int64, error) {
+	return 0, nil
 }
 
-func (m *mockSessionManager) Login(w http.ResponseWriter, user *User) (string, error) {
-	return "OK", nil
+func (m *mockSessionManager) WriteToken(w http.ResponseWriter, userID int64) error {
+	return nil
 }
 
-func (m *mockSessionManager) Logout(w http.ResponseWriter) (string, error) {
-	return "OK", nil
+type mockPhotoDataStore struct {
 }
 
-type mockPhotoManager struct {
-}
-
-func (m *mockPhotoManager) Get(photoID int64) (*Photo, error) {
+func (m *mockPhotoDataStore) Get(photoID int64) (*Photo, error) {
 	return nil, sql.ErrNoRows
 }
 
-func (m *mockPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, error) {
+func (m *mockPhotoDataStore) GetDetail(photoID int64, user *User) (*PhotoDetail, error) {
 	canEdit := user.ID == 1
 	photo := &PhotoDetail{
 		Photo: Photo{
@@ -46,7 +42,7 @@ func (m *mockPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, e
 	return photo, nil
 }
 
-func (m *mockPhotoManager) All(page *Page, orderBy string) (*PhotoList, error) {
+func (m *mockPhotoDataStore) All(page *Page, orderBy string) (*PhotoList, error) {
 	item := &Photo{
 		ID:      1,
 		Title:   "test",
@@ -56,44 +52,44 @@ func (m *mockPhotoManager) All(page *Page, orderBy string) (*PhotoList, error) {
 	return NewPhotoList(photos, 1, 1), nil
 }
 
-func (m *mockPhotoManager) ByOwnerID(page *Page, ownerID int64) (*PhotoList, error) {
+func (m *mockPhotoDataStore) ByOwnerID(page *Page, ownerID int64) (*PhotoList, error) {
 	return &PhotoList{}, nil
 }
 
-func (m *mockPhotoManager) Search(page *Page, q string) (*PhotoList, error) {
+func (m *mockPhotoDataStore) Search(page *Page, q string) (*PhotoList, error) {
 	return &PhotoList{}, nil
 }
 
-func (m *mockPhotoManager) UpdateTags(photo *Photo) error {
+func (m *mockPhotoDataStore) UpdateTags(photo *Photo) error {
 	return nil
 }
 
-func (m *mockPhotoManager) GetTagCounts() ([]TagCount, error) {
+func (m *mockPhotoDataStore) GetTagCounts() ([]TagCount, error) {
 	return []TagCount{}, nil
 }
 
-func (m *mockPhotoManager) Delete(photo *Photo) error {
+func (m *mockPhotoDataStore) Delete(photo *Photo) error {
 	return nil
 }
 
-func (m *mockPhotoManager) Insert(photo *Photo) error {
+func (m *mockPhotoDataStore) Insert(photo *Photo) error {
 	return nil
 }
 
-func (m *mockPhotoManager) Update(photo *Photo) error {
+func (m *mockPhotoDataStore) Update(photo *Photo) error {
 	return nil
 }
 
-type emptyPhotoManager struct {
-	mockPhotoManager
+type emptyPhotoDataStore struct {
+	mockPhotoDataStore
 }
 
-func (m *emptyPhotoManager) All(page *Page, orderBy string) (*PhotoList, error) {
+func (m *emptyPhotoDataStore) All(page *Page, orderBy string) (*PhotoList, error) {
 	var photos []Photo
 	return &PhotoList{photos, 0, 1, 0}, nil
 }
 
-func (m *emptyPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, error) {
+func (m *emptyPhotoDataStore) GetDetail(photoID int64, user *User) (*PhotoDetail, error) {
 	return nil, sql.ErrNoRows
 }
 
@@ -102,10 +98,11 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 	req := &http.Request{}
 	res := httptest.NewRecorder()
 	c := web.C{}
+	c.Env = make(map[string]interface{})
 
 	a := &AppContext{
 		sessionMgr: &mockSessionManager{},
-		photoMgr:   &emptyPhotoManager{},
+		photoDS:    &emptyPhotoDataStore{},
 	}
 
 	err := a.photoDetail(c, res, req)
@@ -119,13 +116,16 @@ func TestGetPhotoDetail(t *testing.T) {
 	req, _ := http.NewRequest("GET", "http://localhost/api/photos/1", nil)
 	res := httptest.NewRecorder()
 	c := web.C{}
+	c.Env = make(map[string]interface{})
 	c.URLParams = make(map[string]string)
 	c.URLParams["id"] = "1"
 
 	a := &AppContext{
 		sessionMgr: &mockSessionManager{},
-		photoMgr:   &mockPhotoManager{},
+		photoDS:    &mockPhotoDataStore{},
 	}
+
+	c.Env["user"] = &User{}
 
 	a.photoDetail(c, res, req)
 	value := &PhotoDetail{}
@@ -147,7 +147,7 @@ func TestGetPhotos(t *testing.T) {
 	res := httptest.NewRecorder()
 
 	a := &AppContext{
-		photoMgr: &mockPhotoManager{},
+		photoDS: &mockPhotoDataStore{},
 	}
 
 	a.getPhotos(web.C{}, res, req)

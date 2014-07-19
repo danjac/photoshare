@@ -29,7 +29,7 @@ func InitDB(db *sql.DB, logSql bool) (*gorp.DbMap, error) {
 	return dbMap, nil
 }
 
-type PhotoManager interface {
+type PhotoDataStore interface {
 	Insert(*Photo) error
 	Update(*Photo) error
 	Delete(*Photo) error
@@ -42,39 +42,39 @@ type PhotoManager interface {
 	UpdateTags(*Photo) error
 }
 
-type defaultPhotoManager struct {
+type defaultPhotoDataStore struct {
 	dbMap *gorp.DbMap
 }
 
-func NewPhotoManager(dbMap *gorp.DbMap) PhotoManager {
-	return &defaultPhotoManager{dbMap}
+func NewPhotoDataStore(dbMap *gorp.DbMap) PhotoDataStore {
+	return &defaultPhotoDataStore{dbMap}
 }
 
-func (mgr *defaultPhotoManager) Delete(photo *Photo) error {
-	_, err := mgr.dbMap.Delete(photo)
+func (ds *defaultPhotoDataStore) Delete(photo *Photo) error {
+	_, err := ds.dbMap.Delete(photo)
 	return err
 }
 
-func (mgr *defaultPhotoManager) Update(photo *Photo) error {
-	_, err := mgr.dbMap.Update(photo)
+func (ds *defaultPhotoDataStore) Update(photo *Photo) error {
+	_, err := ds.dbMap.Update(photo)
 	return err
 }
 
-func (mgr *defaultPhotoManager) Insert(photo *Photo) error {
-	t, err := mgr.dbMap.Begin()
+func (ds *defaultPhotoDataStore) Insert(photo *Photo) error {
+	t, err := ds.dbMap.Begin()
 	if err != nil {
 		return err
 	}
-	if err := mgr.dbMap.Insert(photo); err != nil {
+	if err := ds.dbMap.Insert(photo); err != nil {
 		return err
 	}
-	if err := mgr.UpdateTags(photo); err != nil {
+	if err := ds.UpdateTags(photo); err != nil {
 		return err
 	}
 	return t.Commit()
 }
 
-func (mgr *defaultPhotoManager) UpdateTags(photo *Photo) error {
+func (ds *defaultPhotoDataStore) UpdateTags(photo *Photo) error {
 
 	var (
 		args    = []string{"$1"}
@@ -90,15 +90,15 @@ func (mgr *defaultPhotoManager) UpdateTags(photo *Photo) error {
 		}
 	}
 	if isEmpty && photo.ID != 0 {
-		_, err := mgr.dbMap.Exec("DELETE FROM photo_tags WHERE photo_id=$1", photo.ID)
+		_, err := ds.dbMap.Exec("DELETE FROM photo_tags WHERE photo_id=$1", photo.ID)
 		return err
 	}
-	_, err := mgr.dbMap.Exec(fmt.Sprintf("SELECT add_tags(%s)", strings.Join(args, ",")), params...)
+	_, err := ds.dbMap.Exec(fmt.Sprintf("SELECT add_tags(%s)", strings.Join(args, ",")), params...)
 	return err
 
 }
 
-func (mgr *defaultPhotoManager) Get(photoID int64) (*Photo, error) {
+func (ds *defaultPhotoDataStore) Get(photoID int64) (*Photo, error) {
 
 	photo := &Photo{}
 
@@ -106,7 +106,7 @@ func (mgr *defaultPhotoManager) Get(photoID int64) (*Photo, error) {
 		return photo, sql.ErrNoRows
 	}
 
-	obj, err := mgr.dbMap.Get(photo, photoID)
+	obj, err := ds.dbMap.Get(photo, photoID)
 	if err != nil {
 		return photo, err
 	}
@@ -116,7 +116,7 @@ func (mgr *defaultPhotoManager) Get(photoID int64) (*Photo, error) {
 	return obj.(*Photo), nil
 }
 
-func (mgr *defaultPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDetail, error) {
+func (ds *defaultPhotoDataStore) GetDetail(photoID int64, user *User) (*PhotoDetail, error) {
 
 	photo := &PhotoDetail{}
 
@@ -128,13 +128,13 @@ func (mgr *defaultPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDeta
 		"FROM photos p JOIN users u ON u.id = p.owner_id " +
 		"WHERE p.id=$1"
 
-	if err := mgr.dbMap.SelectOne(photo, q, photoID); err != nil {
+	if err := ds.dbMap.SelectOne(photo, q, photoID); err != nil {
 		return photo, err
 	}
 
 	var tags []Tag
 
-	if _, err := mgr.dbMap.Select(&tags,
+	if _, err := ds.dbMap.Select(&tags,
 		"SELECT t.* FROM tags t JOIN photo_tags pt ON pt.tag_id=t.id "+
 			"WHERE pt.photo_id=$1", photo.ID); err != nil {
 		return photo, err
@@ -152,7 +152,7 @@ func (mgr *defaultPhotoManager) GetDetail(photoID int64, user *User) (*PhotoDeta
 
 }
 
-func (mgr *defaultPhotoManager) ByOwnerID(page *Page, ownerID int64) (*PhotoList, error) {
+func (ds *defaultPhotoDataStore) ByOwnerID(page *Page, ownerID int64) (*PhotoList, error) {
 
 	var (
 		photos []Photo
@@ -162,11 +162,11 @@ func (mgr *defaultPhotoManager) ByOwnerID(page *Page, ownerID int64) (*PhotoList
 	if ownerID == 0 {
 		return nil, nil
 	}
-	if total, err = mgr.dbMap.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {
+	if total, err = ds.dbMap.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {
 		return nil, err
 	}
 
-	if _, err = mgr.dbMap.Select(&photos,
+	if _, err = ds.dbMap.Select(&photos,
 		"SELECT * FROM photos WHERE owner_id = $1"+
 			"ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $2 OFFSET $3",
 		ownerID, page.Size, page.Offset); err != nil {
@@ -175,7 +175,7 @@ func (mgr *defaultPhotoManager) ByOwnerID(page *Page, ownerID int64) (*PhotoList
 	return NewPhotoList(photos, total, page.Index), nil
 }
 
-func (mgr *defaultPhotoManager) Search(page *Page, q string) (*PhotoList, error) {
+func (ds *defaultPhotoDataStore) Search(page *Page, q string) (*PhotoList, error) {
 
 	var (
 		clauses []string
@@ -229,7 +229,7 @@ func (mgr *defaultPhotoManager) Search(page *Page, q string) (*PhotoList, error)
 
 	countSql := fmt.Sprintf("SELECT COUNT(id) FROM (%s) q", clausesSql)
 
-	if total, err = mgr.dbMap.SelectInt(countSql, params...); err != nil {
+	if total, err = ds.dbMap.SelectInt(countSql, params...); err != nil {
 		return nil, err
 	}
 
@@ -241,13 +241,13 @@ func (mgr *defaultPhotoManager) Search(page *Page, q string) (*PhotoList, error)
 	params = append(params, interface{}(page.Size))
 	params = append(params, interface{}(page.Offset))
 
-	if _, err = mgr.dbMap.Select(&photos, sql, params...); err != nil {
+	if _, err = ds.dbMap.Select(&photos, sql, params...); err != nil {
 		return nil, err
 	}
 	return NewPhotoList(photos, total, page.Index), nil
 }
 
-func (mgr *defaultPhotoManager) All(page *Page, orderBy string) (*PhotoList, error) {
+func (ds *defaultPhotoDataStore) All(page *Page, orderBy string) (*PhotoList, error) {
 
 	var (
 		total  int64
@@ -260,11 +260,11 @@ func (mgr *defaultPhotoManager) All(page *Page, orderBy string) (*PhotoList, err
 		orderBy = "created_at"
 	}
 
-	if total, err = mgr.dbMap.SelectInt("SELECT COUNT(id) FROM photos"); err != nil {
+	if total, err = ds.dbMap.SelectInt("SELECT COUNT(id) FROM photos"); err != nil {
 		return nil, err
 	}
 
-	if _, err = mgr.dbMap.Select(&photos,
+	if _, err = ds.dbMap.Select(&photos,
 		"SELECT * FROM photos "+
 			"ORDER BY "+orderBy+" DESC LIMIT $1 OFFSET $2", page.Size, page.Offset); err != nil {
 		return nil, err
@@ -272,15 +272,15 @@ func (mgr *defaultPhotoManager) All(page *Page, orderBy string) (*PhotoList, err
 	return NewPhotoList(photos, total, page.Index), nil
 }
 
-func (mgr *defaultPhotoManager) GetTagCounts() ([]TagCount, error) {
+func (ds *defaultPhotoDataStore) GetTagCounts() ([]TagCount, error) {
 	var tags []TagCount
-	if _, err := mgr.dbMap.Select(&tags, "SELECT name, photo, num_photos FROM tag_counts"); err != nil {
+	if _, err := ds.dbMap.Select(&tags, "SELECT name, photo, num_photos FROM tag_counts"); err != nil {
 		return tags, err
 	}
 	return tags, nil
 }
 
-type UserManager interface {
+type UserDataStore interface {
 	Insert(user *User) error
 	Update(user *User) error
 	IsNameAvailable(user *User) (bool, error)
@@ -291,30 +291,34 @@ type UserManager interface {
 	Authenticate(identifier string, password string) (*User, error)
 }
 
-type defaultUserManager struct {
+func NewUserDataStore(dbMap *gorp.DbMap) UserDataStore {
+	return &defaultUserDataStore{dbMap}
+}
+
+type defaultUserDataStore struct {
 	dbMap *gorp.DbMap
 }
 
-func (mgr *defaultUserManager) Insert(user *User) error {
-	return mgr.dbMap.Insert(user)
+func (ds *defaultUserDataStore) Insert(user *User) error {
+	return ds.dbMap.Insert(user)
 }
 
-func (mgr *defaultUserManager) Update(user *User) error {
-	_, err := mgr.dbMap.Update(user)
+func (ds *defaultUserDataStore) Update(user *User) error {
+	_, err := ds.dbMap.Update(user)
 	return err
 }
 
-func (mgr *defaultUserManager) IsNameAvailable(user *User) (bool, error) {
+func (ds *defaultUserDataStore) IsNameAvailable(user *User) (bool, error) {
 	var (
 		num int64
 		err error
 	)
 	q := "SELECT COUNT(id) FROM users WHERE name=$1"
 	if user.ID == 0 {
-		num, err = mgr.dbMap.SelectInt(q, user.Name)
+		num, err = ds.dbMap.SelectInt(q, user.Name)
 	} else {
 		q += " AND id != $2"
-		num, err = mgr.dbMap.SelectInt(q, user.Name, user.ID)
+		num, err = ds.dbMap.SelectInt(q, user.Name, user.ID)
 	}
 	if err != nil {
 		return false, err
@@ -322,57 +326,58 @@ func (mgr *defaultUserManager) IsNameAvailable(user *User) (bool, error) {
 	return num == 0, nil
 }
 
-func (mgr *defaultUserManager) IsEmailAvailable(user *User) (bool, error) {
+func (ds *defaultUserDataStore) IsEmailAvailable(user *User) (bool, error) {
 	var (
 		num int64
 		err error
 	)
 	q := "SELECT COUNT(id) FROM users WHERE email=$1"
 	if user.ID == 0 {
-		num, err = mgr.dbMap.SelectInt(q, user.Email)
+		num, err = ds.dbMap.SelectInt(q, user.Email)
 	} else {
 		q += " AND id != $2"
-		num, err = mgr.dbMap.SelectInt(q, user.Email, user.ID)
+		num, err = ds.dbMap.SelectInt(q, user.Email, user.ID)
 	}
 	if err != nil {
 		return false, err
 	}
 	return num == 0, nil
 }
-func (mgr *defaultUserManager) GetActive(userID int64) (*User, error) {
+
+func (ds *defaultUserDataStore) GetActive(userID int64) (*User, error) {
 
 	user := &User{}
-	if err := mgr.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
+	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
 		return user, err
 	}
 	return user, nil
 
 }
 
-func (mgr *defaultUserManager) GetByRecoveryCode(code string) (*User, error) {
+func (ds *defaultUserDataStore) GetByRecoveryCode(code string) (*User, error) {
 
 	user := &User{}
 	if code == "" {
 		return user, sql.ErrNoRows
 	}
-	if err := mgr.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND recovery_code=$2", true, code); err != nil {
+	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND recovery_code=$2", true, code); err != nil {
 		return user, err
 	}
 	return user, nil
 
 }
-func (mgr *defaultUserManager) GetByEmail(email string) (*User, error) {
+func (ds *defaultUserDataStore) GetByEmail(email string) (*User, error) {
 	user := &User{}
-	if err := mgr.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
+	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
 		return user, err
 	}
 	return user, nil
 }
 
-func (mgr *defaultUserManager) Authenticate(identifier, password string) (*User, error) {
+func (ds *defaultUserDataStore) Authenticate(identifier, password string) (*User, error) {
 	user := &User{}
 
-	if err := mgr.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
+	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
 		if err == sql.ErrNoRows {
 			return user, ErrInvalidLogin
 		}
@@ -384,8 +389,4 @@ func (mgr *defaultUserManager) Authenticate(identifier, password string) (*User,
 	}
 
 	return user, nil
-}
-
-func NewUserManager(dbMap *gorp.DbMap) UserManager {
-	return &defaultUserManager{dbMap}
 }

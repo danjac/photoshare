@@ -15,7 +15,7 @@ func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 		return err
 	}
 	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err := a.photoMgr.Get(photoID)
+	photo, err := a.photoDS.Get(photoID)
 	if err != nil {
 		return err
 	}
@@ -23,7 +23,7 @@ func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 	if !photo.CanDelete(user) {
 		return httpError(http.StatusForbidden, "You're not allowed to delete this photo")
 	}
-	if err := a.photoMgr.Delete(photo); err != nil {
+	if err := a.photoDS.Delete(photo); err != nil {
 		return err
 	}
 
@@ -45,7 +45,7 @@ func (a *AppContext) photoDetail(c web.C, w http.ResponseWriter, r *http.Request
 	}
 
 	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err := a.photoMgr.GetDetail(photoID, user)
+	photo, err := a.photoDS.GetDetail(photoID, user)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func (a *AppContext) getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Requ
 	}
 
 	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err := a.photoMgr.Get(photoID)
+	photo, err := a.photoDS.Get(photoID)
 	if err != nil {
 		return photo, err
 	}
@@ -94,7 +94,7 @@ func (a *AppContext) editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Requ
 		return err
 	}
 
-	if err := a.photoMgr.Update(photo); err != nil {
+	if err := a.photoDS.Update(photo); err != nil {
 		return err
 	}
 	if user, err := a.authenticate(c, r, true); err == nil {
@@ -120,7 +120,7 @@ func (a *AppContext) editPhotoTags(c web.C, w http.ResponseWriter, r *http.Reque
 
 	photo.Tags = s.Tags
 
-	if err := a.photoMgr.UpdateTags(photo); err != nil {
+	if err := a.photoDS.UpdateTags(photo); err != nil {
 		return err
 	}
 	if user, err := a.authenticate(c, r, true); err == nil {
@@ -173,7 +173,7 @@ func (a *AppContext) upload(c web.C, w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	if err := a.photoMgr.Insert(photo); err != nil {
+	if err := a.photoDS.Insert(photo); err != nil {
 		return err
 	}
 
@@ -182,7 +182,7 @@ func (a *AppContext) upload(c web.C, w http.ResponseWriter, r *http.Request) err
 }
 
 func (a *AppContext) searchPhotos(_ web.C, w http.ResponseWriter, r *http.Request) error {
-	photos, err := a.photoMgr.Search(getPage(r), r.FormValue("q"))
+	photos, err := a.photoDS.Search(getPage(r), r.FormValue("q"))
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func (a *AppContext) photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Req
 	if err != nil {
 		return err
 	}
-	photos, err := a.photoMgr.ByOwnerID(getPage(r), ownerID)
+	photos, err := a.photoDS.ByOwnerID(getPage(r), ownerID)
 	if err != nil {
 		return err
 	}
@@ -202,7 +202,7 @@ func (a *AppContext) photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Req
 }
 
 func (a *AppContext) getPhotos(_ web.C, w http.ResponseWriter, r *http.Request) error {
-	photos, err := a.photoMgr.All(getPage(r), r.FormValue("orderBy"))
+	photos, err := a.photoDS.All(getPage(r), r.FormValue("orderBy"))
 	if err != nil {
 		return err
 	}
@@ -210,7 +210,7 @@ func (a *AppContext) getPhotos(_ web.C, w http.ResponseWriter, r *http.Request) 
 }
 
 func (a *AppContext) getTags(_ web.C, w http.ResponseWriter, r *http.Request) error {
-	tags, err := a.photoMgr.GetTagCounts()
+	tags, err := a.photoDS.GetTagCounts()
 	if err != nil {
 		return err
 	}
@@ -237,7 +237,7 @@ func (a *AppContext) vote(c web.C, w http.ResponseWriter, r *http.Request, fn fu
 	}
 
 	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err = a.photoMgr.Get(photoID)
+	photo, err = a.photoDS.Get(photoID)
 	if err != nil {
 		return err
 	}
@@ -248,13 +248,13 @@ func (a *AppContext) vote(c web.C, w http.ResponseWriter, r *http.Request, fn fu
 
 	fn(photo)
 
-	if err = a.photoMgr.Update(photo); err != nil {
+	if err = a.photoDS.Update(photo); err != nil {
 		return err
 	}
 
 	user.RegisterVote(photo.ID)
 
-	if err = a.userMgr.Update(user); err != nil {
+	if err = a.userDS.Update(user); err != nil {
 		return err
 	}
 	return renderStatus(w, http.StatusOK, "Voting successful")

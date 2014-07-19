@@ -30,9 +30,9 @@
 <hr>
 <h3 ng-show="pageLoaded">
             <div ng-show="!editTags">
-                <span ng-repeat="tag in photo.tags"><a ng-href="#/tag/{{tag}}"><span class="label label-default">#{{tag}}</span></a>&nbsp;</span>
+                <span ng-repeat="tag in photo.tags"><a ng-href="#/tag/{{tag}}"><span class="label label-md label-default">#{{tag}}</span></a>&nbsp;</span>
                 <span ng-show="!photo.tags.length && photo.perms.edit" ng-click="showEditTagsForm()">Untagged</span>
-                  <button type="button" class="btn btn-default"  ng-show="photo.perms.edit" ng-click="showEditTagsForm()"> <span class="glyphicon glyphicon-pencil"></span></button>
+                  <button type="button" class="btn btn-default btn-md"  ng-show="photo.perms.edit" ng-click="showEditTagsForm()"> <span class="glyphicon glyphicon-pencil"></span></button>
             </div>
                 <form role="form"
                       action=""

@@ -28,7 +28,7 @@ func renderJSON(w http.ResponseWriter, value interface{}, status int) error {
 	return writeBody(w, body, status, "application/json")
 }
 
-func renderStatus(w http.ResponseWriter, status int, msg string) error {
+func renderString(w http.ResponseWriter, status int, msg string) error {
 	return writeBody(w, []byte(msg), status, "text/plain")
 }
 

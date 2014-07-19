@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"github.com/zenazn/goji/web"
 	"log"
 	"net/http"
@@ -26,6 +27,7 @@ func newSessionInfo(user *User) *sessionInfo {
 func (a *AppContext) authenticate(c web.C, r *http.Request, required bool) (*User, error) {
 
 	var user *User
+	var invalidLogin = httpError(http.StatusUnauthorized, "You must be logged in")
 
 	obj, ok := c.Env["user"]
 
@@ -36,18 +38,19 @@ func (a *AppContext) authenticate(c web.C, r *http.Request, required bool) (*Use
 		if err != nil {
 			return user, err
 		}
-		if userID != 0 {
-			user, err = a.userDS.GetActive(userID)
-			if err != nil {
-				return user, err
+		if userID == 0 {
+			return user, invalidLogin
+		}
+		user, err = a.userDS.GetActive(userID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return user, invalidLogin
 			}
+			return user, err
 		}
 		c.Env["user"] = user
 	}
-
-	if (user == nil || !user.IsAuthenticated) && required {
-		return user, httpError(http.StatusUnauthorized, "You must be logged in")
-	}
+	user.IsAuthenticated = true
 
 	return user, nil
 }
@@ -187,7 +190,7 @@ func (a *AppContext) changePassword(c web.C, w http.ResponseWriter, r *http.Requ
 		return err
 	}
 
-	return renderStatus(w, http.StatusOK, "Password changed")
+	return renderString(w, http.StatusOK, "Password changed")
 }
 
 func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
@@ -222,7 +225,7 @@ func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Req
 		}
 	}()
 
-	return renderStatus(w, http.StatusOK, "Password reset")
+	return renderString(w, http.StatusOK, "Password reset")
 }
 
 func (a *AppContext) sendResetPasswordMail(user *User, recoveryCode string, r *http.Request) error {

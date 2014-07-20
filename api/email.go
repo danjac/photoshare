@@ -38,7 +38,21 @@ func (m *Mailer) Send(msg *Message) error {
 }
 
 func (m *Mailer) ParseTemplate(name string) (*template.Template, error) {
-	return template.ParseFiles(path.Join(m.Config.TemplatesDir, name))
+	var (
+		t   *template.Template
+		ok  bool
+		err error
+	)
+	t, ok = m.Templates[name]
+	if !ok {
+		t, err = template.ParseFiles(path.Join(m.Config.TemplatesDir, name+".tmpl"))
+		if err != nil {
+			return nil, err
+		}
+		m.Templates[name] = t
+
+	}
+	return t, nil
 }
 
 // Creates a new message from a template; message body set to rendered template
@@ -54,19 +68,11 @@ func (m *Mailer) MessageFromTemplate(subject string,
 		From:    from,
 	}
 	b := &bytes.Buffer{}
-	var (
-		t   *template.Template
-		ok  bool
-		err error
-	)
-	t, ok = m.Templates[templateName]
-	if !ok {
-		t, err = m.ParseTemplate(templateName + ".tmpl")
-		if err != nil {
-			return nil, err
-		}
-		m.Templates[templateName] = t
+	t, err := m.ParseTemplate(templateName)
+	if err != nil {
+		return nil, err
 	}
+
 	if err := t.Execute(b, data); err != nil {
 		return nil, err
 	}

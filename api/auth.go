@@ -158,7 +158,7 @@ func (a *AppContext) signup(c web.C, w http.ResponseWriter, r *http.Request) err
 	user.IsAuthenticated = true
 
 	go func() {
-		if err := a.mailer.sendWelcomeMail(user); err != nil {
+		if err := a.mailer.SendWelcomeMail(user); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -232,7 +232,7 @@ func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Req
 	}
 
 	go func() {
-		if err := a.mailer.sendResetPasswordMail(user, code, r); err != nil {
+		if err := a.mailer.SendResetPasswordMail(user, code, r); err != nil {
 			log.Println(err)
 		}
 	}()

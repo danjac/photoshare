@@ -48,17 +48,20 @@ type FileManager interface {
 }
 
 func NewFileManager(config *AppConfig) FileManager {
-	return &defaultFileManager{config}
+	return &defaultFileManager{
+		config.UploadsDir,
+		config.ThumbnailsDir,
+	}
 }
 
 type defaultFileManager struct {
-	config *AppConfig
+	uploadsDir, thumbnailsDir string
 }
 
 func (f *defaultFileManager) Clean(name string) error {
 
-	imagePath := path.Join(f.config.UploadsDir, name)
-	thumbnailPath := path.Join(f.config.ThumbnailsDir, name)
+	imagePath := path.Join(f.uploadsDir, name)
+	thumbnailPath := path.Join(f.thumbnailsDir, name)
 
 	if err := os.Remove(imagePath); err != nil {
 		return errgo.Mask(err)
@@ -76,11 +79,11 @@ func (f *defaultFileManager) Store(src multipart.File, contentType string) (stri
 	}
 	filename := generateRandomFilename(contentType)
 
-	if err := os.MkdirAll(f.config.UploadsDir, 0777); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(f.uploadsDir, 0777); err != nil && !os.IsExist(err) {
 		return filename, errgo.Mask(err)
 	}
 
-	if err := os.MkdirAll(f.config.ThumbnailsDir, 0777); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(f.thumbnailsDir, 0777); err != nil && !os.IsExist(err) {
 		return filename, errgo.Mask(err)
 	}
 
@@ -103,7 +106,7 @@ func (f *defaultFileManager) Store(src multipart.File, contentType string) (stri
 	thumb := image.NewRGBA(image.Rect(0, 0, ThumbnailWidth, ThumbnailHeight))
 	graphics.Thumbnail(thumb, img)
 
-	dst, err := os.Create(path.Join(f.config.ThumbnailsDir, filename))
+	dst, err := os.Create(path.Join(f.thumbnailsDir, filename))
 
 	if err != nil {
 		return filename, errgo.Mask(err)
@@ -119,7 +122,7 @@ func (f *defaultFileManager) Store(src multipart.File, contentType string) (stri
 
 	src.Seek(0, 0)
 
-	dst, err = os.Create(path.Join(f.config.UploadsDir, filename))
+	dst, err = os.Create(path.Join(f.uploadsDir, filename))
 
 	if err != nil {
 		return filename, errgo.Mask(err)

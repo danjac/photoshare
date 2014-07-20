@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"github.com/zenazn/goji/web"
 	"net/http"
 	"strings"
@@ -46,7 +45,7 @@ func (a *AppContext) authenticate(c web.C, r *http.Request, required bool) (*Use
 		}
 		user, err = a.userDS.GetActive(userID)
 		if err != nil {
-			if err == sql.ErrNoRows {
+			if isErrSqlNoRows(err) {
 				return user, invalidLogin
 			}
 			return user, err
@@ -103,7 +102,7 @@ func (a *AppContext) login(_ web.C, w http.ResponseWriter, r *http.Request) erro
 
 	user, err := a.userDS.GetByNameOrEmail(s.Identifier)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if isErrSqlNoRows(err) {
 			return invalidLogin
 		}
 		return err
@@ -218,6 +217,9 @@ func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Req
 	}
 	user, err := a.userDS.GetByEmail(s.Email)
 	if err != nil {
+		if isErrSqlNoRows(err) {
+			return httpError(http.StatusBadRequest, "Email address not found")
+		}
 		return err
 	}
 	code, err := user.GenerateRecoveryCode()

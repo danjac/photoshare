@@ -11,6 +11,10 @@ import (
 	"strings"
 )
 
+func isErrSqlNoRows(err error) bool {
+	return err == sql.ErrNoRows || err.(*errgo.Err).Underlying() == sql.ErrNoRows
+}
+
 func writeBody(w http.ResponseWriter, body []byte, status int, contentType string) error {
 	w.Header().Set("Content-Type", contentType+"; charset=UTF8")
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
@@ -54,7 +58,7 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 		return
 	}
 
-	if err == sql.ErrNoRows || err.(*errgo.Err).Underlying() == sql.ErrNoRows {
+	if isErrSqlNoRows(err) {
 		http.NotFound(w, r)
 		return
 	}

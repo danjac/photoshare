@@ -41,7 +41,7 @@ type AppContext struct {
 	userDS     UserDataStore
 	fileMgr    FileManager
 	sessionMgr SessionManager
-	mailer     Mailer
+	mailer     *Mailer
 }
 
 func NewAppContext(config *AppConfig, dbMap *gorp.DbMap) (*AppContext, error) {

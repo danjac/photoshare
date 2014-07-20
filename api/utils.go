@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"path"
 	"strconv"
 	"strings"
-	"text/template"
 )
 
 func writeBody(w http.ResponseWriter, body []byte, status int, contentType string) error {
@@ -69,10 +67,6 @@ func scheme(r *http.Request) string {
 
 func baseURL(r *http.Request) string {
 	return fmt.Sprintf("%s://%s", scheme(r), r.Host)
-}
-
-func parseTemplate(config *AppConfig, name string) *template.Template {
-	return template.Must(template.ParseFiles(path.Join(config.TemplatesDir, name)))
 }
 
 // Converts a Pg Array (returned as string) to an int slice

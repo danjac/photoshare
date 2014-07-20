@@ -27,11 +27,10 @@ func newSessionInfo(user *User) *sessionInfo {
 func (a *AppContext) authenticate(c web.C, r *http.Request, required bool) (*User, error) {
 
 	var user *User
-	var invalidLogin = func() error {
-		if required {
-			return httpError(http.StatusUnauthorized, "You must be logged in")
-		}
-		return nil
+	var invalidLogin error
+
+	if required {
+		invalidLogin = httpError(http.StatusUnauthorized, "You must be logged in")
 	}
 
 	obj, ok := c.Env["user"]
@@ -44,12 +43,12 @@ func (a *AppContext) authenticate(c web.C, r *http.Request, required bool) (*Use
 			return user, err
 		}
 		if userID == 0 {
-			return user, invalidLogin()
+			return user, invalidLogin
 		}
 		user, err = a.userDS.GetActive(userID)
 		if err != nil {
 			if err == sql.ErrNoRows {
-				return user, invalidLogin()
+				return user, invalidLogin
 			}
 			return user, err
 		}
@@ -159,7 +158,7 @@ func (a *AppContext) signup(c web.C, w http.ResponseWriter, r *http.Request) err
 	user.IsAuthenticated = true
 
 	go func() {
-		if err := a.sendWelcomeMail(user); err != nil {
+		if err := a.mailer.sendWelcomeMail(user); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -233,46 +232,10 @@ func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Req
 	}
 
 	go func() {
-		if err := a.sendResetPasswordMail(user, code, r); err != nil {
+		if err := a.mailer.sendResetPasswordMail(user, code, r); err != nil {
 			log.Println(err)
 		}
 	}()
 
 	return renderString(w, http.StatusOK, "Password reset")
-}
-
-func (a *AppContext) sendResetPasswordMail(user *User, recoveryCode string, r *http.Request) error {
-	msg, err := MessageFromTemplate(
-		"Reset your password",
-		[]string{user.Email},
-		a.config.SmtpDefaultSender,
-		recoverPassTmpl,
-		&struct {
-			Name         string
-			RecoveryCode string
-			Url          string
-		}{
-			user.Name,
-			recoveryCode,
-			baseURL(r),
-		},
-	)
-	if err != nil {
-		return err
-	}
-	return a.mailer.Mail(msg)
-}
-
-func (a *AppContext) sendWelcomeMail(user *User) error {
-	msg, err := MessageFromTemplate(
-		"Welcome to photoshare!",
-		[]string{user.Email},
-		a.config.SmtpDefaultSender,
-		signupTmpl,
-		user,
-	)
-	if err != nil {
-		return err
-	}
-	return a.mailer.Mail(msg)
 }

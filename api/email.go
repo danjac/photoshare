@@ -4,14 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"net/http"
 	"net/smtp"
+	"path"
 	"strings"
 	"text/template"
-)
-
-var (
-	signupTmpl,
-	recoverPassTmpl *template.Template
 )
 
 type Message struct {
@@ -30,11 +27,25 @@ func (msg *Message) String() string {
 	)
 }
 
+type Mailer struct {
+	Sender    MailSender
+	Config    *AppConfig
+	Templates map[string]*template.Template
+}
+
+func (m *Mailer) Send(msg *Message) error {
+	return m.Sender.Send(msg)
+}
+
+func (m *Mailer) ParseTemplate(name string) (*template.Template, error) {
+	return template.ParseFiles(path.Join(m.Config.TemplatesDir, name))
+}
+
 // Creates a new message from a template; message body set to rendered template
-func MessageFromTemplate(subject string,
+func (m *Mailer) MessageFromTemplate(subject string,
 	to []string,
 	from string,
-	t *template.Template,
+	templateName string,
 	data interface{}) (*Message, error) {
 
 	msg := &Message{
@@ -43,6 +54,14 @@ func MessageFromTemplate(subject string,
 		From:    from,
 	}
 	b := &bytes.Buffer{}
+	t, ok := m.Templates[templateName]
+	if !ok {
+		t, err := m.ParseTemplate(templateName + ".tmpl")
+		if err != nil {
+			return nil, err
+		}
+		m.Templates[templateName] = t
+	}
 	if err := t.Execute(b, data); err != nil {
 		return nil, err
 	}
@@ -50,42 +69,77 @@ func MessageFromTemplate(subject string,
 	return msg, nil
 }
 
-type Mailer interface {
-	Mail(*Message) error
+type MailSender interface {
+	Send(*Message) error
 }
 
-type smtpMailer struct {
+type smtpSender struct {
 	smtp.Auth
 	config *AppConfig
 }
 
-func (m *smtpMailer) Mail(msg *Message) error {
+func (m *smtpSender) Send(msg *Message) error {
 	return smtp.SendMail(m.config.SmtpHost+":25", m.Auth, msg.From, msg.To, msg.Body)
 }
 
-type fakeMailer struct{}
+type fakeSender struct{}
 
-func (m *fakeMailer) Mail(msg *Message) error {
+func (m *fakeSender) Send(msg *Message) error {
 	log.Println(msg)
 	return nil
 }
 
-func newSmtpMailer(config *AppConfig) Mailer {
-	m := &smtpMailer{config: config}
-	m.Auth = smtp.PlainAuth("", config.SmtpName, config.SmtpPassword, config.SmtpHost)
-	return m
+func newSmtpSender(config *AppConfig) *smtpSender {
+	s := &smtpSender{config: config}
+	s.Auth = smtp.PlainAuth("", config.SmtpName, config.SmtpPassword, config.SmtpHost)
+	return s
 }
 
-func NewMailer(config *AppConfig) Mailer {
-	var mailer Mailer
+func NewMailer(config *AppConfig) *Mailer {
+	mailer := &Mailer{Config: config}
 	if config.SmtpName == "" {
 		log.Println("WARNING: using fake mailer, messages will not be sent by SMTP. " +
 			"Set SMTP_NAME and SMTP_PASSWORD in environment to enable.")
-		mailer = &fakeMailer{}
+		mailer.Sender = &fakeSender{}
 	} else {
-		mailer = newSmtpMailer(config)
+		mailer.Sender = newSmtpSender(config)
 	}
-	signupTmpl = parseTemplate(config, "signup.tmpl")
-	recoverPassTmpl = parseTemplate(config, "recover_pass.tmpl")
+	mailer.Templates = make(map[string]*template.Template)
 	return mailer
+}
+
+func (m *Mailer) sendResetPasswordMail(user *User, recoveryCode string, r *http.Request) error {
+	msg, err := m.MessageFromTemplate(
+		"Reset your password",
+		[]string{user.Email},
+		m.Config.SmtpDefaultSender,
+		"recover_pass",
+		&struct {
+			Name         string
+			RecoveryCode string
+			Url          string
+		}{
+			user.Name,
+			recoveryCode,
+			baseURL(r),
+		},
+	)
+	if err != nil {
+		return err
+	}
+	return m.Send(msg)
+}
+
+func (m *Mailer) sendWelcomeMail(user *User) error {
+	msg, err := m.MessageFromTemplate(
+		"Welcome to photoshare!",
+		[]string{user.Email},
+		m.Config.SmtpDefaultSender,
+		"signup",
+		user,
+	)
+	if err != nil {
+		return err
+	}
+	return m.Send(msg)
 }

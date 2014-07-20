@@ -54,9 +54,14 @@ func (m *Mailer) MessageFromTemplate(subject string,
 		From:    from,
 	}
 	b := &bytes.Buffer{}
-	t, ok := m.Templates[templateName]
+	var (
+		t   *template.Template
+		ok  bool
+		err error
+	)
+	t, ok = m.Templates[templateName]
 	if !ok {
-		t, err := m.ParseTemplate(templateName + ".tmpl")
+		t, err = m.ParseTemplate(templateName + ".tmpl")
 		if err != nil {
 			return nil, err
 		}

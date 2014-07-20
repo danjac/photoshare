@@ -31,6 +31,13 @@ func renderString(w http.ResponseWriter, status int, msg string) error {
 	return writeBody(w, []byte(msg), status, "text/plain")
 }
 
+func logError(err error) {
+	log.Println("ERROR:", err)
+	if err, ok := err.(errgo.Locationer); ok {
+		log.Println("LOCATION:", err.Location())
+	}
+}
+
 func handleError(w http.ResponseWriter, r *http.Request, err error) {
 	if err == nil {
 		return
@@ -51,10 +58,8 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 		return
 	}
 
-	log.Println("ERROR:", err)
-	if err, ok := err.(errgo.Locationer); ok {
-		log.Println("LOCATION:", err.Location())
-	}
+	logError(err)
+
 	http.Error(w, "Sorry, an error occurred", http.StatusInternalServerError)
 }
 

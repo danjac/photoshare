@@ -3,7 +3,6 @@ package api
 import (
 	"database/sql"
 	"github.com/zenazn/goji/web"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -159,7 +158,7 @@ func (a *AppContext) signup(c web.C, w http.ResponseWriter, r *http.Request) err
 
 	go func() {
 		if err := a.mailer.SendWelcomeMail(user); err != nil {
-			log.Println(err)
+			logError(err)
 		}
 	}()
 
@@ -233,7 +232,7 @@ func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Req
 
 	go func() {
 		if err := a.mailer.SendResetPasswordMail(user, code, r); err != nil {
-			log.Println(err)
+			logError(err)
 		}
 	}()
 

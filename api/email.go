@@ -131,7 +131,7 @@ func (m *Mailer) SendResetPasswordMail(user *User, recoveryCode string, r *http.
 		"Reset your password",
 		[]string{user.Email},
 		m.defaultFromAddress,
-		"recover_pass",
+		"recoverpass",
 		&struct {
 			Name         string
 			RecoveryCode string

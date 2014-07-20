@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/coopernurse/gorp"
+	"github.com/juju/errgo"
 	_ "github.com/lib/pq"
 	"log"
 	"os"
@@ -47,24 +48,24 @@ func NewPhotoDataStore(dbMap *gorp.DbMap) PhotoDataStore {
 
 func (ds *defaultPhotoDataStore) Delete(photo *Photo) error {
 	_, err := ds.dbMap.Delete(photo)
-	return err
+	return errgo.Mask(err)
 }
 
 func (ds *defaultPhotoDataStore) Update(photo *Photo) error {
 	_, err := ds.dbMap.Update(photo)
-	return err
+	return errgo.Mask(err)
 }
 
 func (ds *defaultPhotoDataStore) Insert(photo *Photo) error {
 	t, err := ds.dbMap.Begin()
 	if err != nil {
-		return err
+		return errgo.Mask(err)
 	}
 	if err := ds.dbMap.Insert(photo); err != nil {
-		return err
+		return errgo.Mask(err)
 	}
 	if err := ds.UpdateTags(photo); err != nil {
-		return err
+		return errgo.Mask(err)
 	}
 	return t.Commit()
 }
@@ -86,10 +87,10 @@ func (ds *defaultPhotoDataStore) UpdateTags(photo *Photo) error {
 	}
 	if isEmpty && photo.ID != 0 {
 		_, err := ds.dbMap.Exec("DELETE FROM photo_tags WHERE photo_id=$1", photo.ID)
-		return err
+		return errgo.Mask(err)
 	}
 	_, err := ds.dbMap.Exec(fmt.Sprintf("SELECT add_tags(%s)", strings.Join(args, ",")), params...)
-	return err
+	return errgo.Mask(err)
 
 }
 
@@ -103,7 +104,7 @@ func (ds *defaultPhotoDataStore) Get(photoID int64) (*Photo, error) {
 
 	obj, err := ds.dbMap.Get(photo, photoID)
 	if err != nil {
-		return photo, err
+		return photo, errgo.Mask(err)
 	}
 	if obj == nil {
 		return photo, sql.ErrNoRows
@@ -124,7 +125,7 @@ func (ds *defaultPhotoDataStore) GetDetail(photoID int64, user *User) (*PhotoDet
 		"WHERE p.id=$1"
 
 	if err := ds.dbMap.SelectOne(photo, q, photoID); err != nil {
-		return photo, err
+		return photo, errgo.Mask(err)
 	}
 
 	var tags []Tag
@@ -132,7 +133,7 @@ func (ds *defaultPhotoDataStore) GetDetail(photoID int64, user *User) (*PhotoDet
 	if _, err := ds.dbMap.Select(&tags,
 		"SELECT t.* FROM tags t JOIN photo_tags pt ON pt.tag_id=t.id "+
 			"WHERE pt.photo_id=$1", photo.ID); err != nil {
-		return photo, err
+		return photo, errgo.Mask(err)
 	}
 	for _, tag := range tags {
 		photo.Tags = append(photo.Tags, tag.Name)
@@ -158,14 +159,14 @@ func (ds *defaultPhotoDataStore) ByOwnerID(page *Page, ownerID int64) (*PhotoLis
 		return nil, nil
 	}
 	if total, err = ds.dbMap.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {
-		return nil, err
+		return nil, errgo.Mask(err)
 	}
 
 	if _, err = ds.dbMap.Select(&photos,
 		"SELECT * FROM photos WHERE owner_id = $1"+
 			"ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $2 OFFSET $3",
 		ownerID, page.Size, page.Offset); err != nil {
-		return nil, err
+		return nil, errgo.Mask(err)
 	}
 	return NewPhotoList(photos, total, page.Index), nil
 }
@@ -225,7 +226,7 @@ func (ds *defaultPhotoDataStore) Search(page *Page, q string) (*PhotoList, error
 	countSql := fmt.Sprintf("SELECT COUNT(id) FROM (%s) q", clausesSql)
 
 	if total, err = ds.dbMap.SelectInt(countSql, params...); err != nil {
-		return nil, err
+		return nil, errgo.Mask(err)
 	}
 
 	numParams := len(params)
@@ -237,7 +238,7 @@ func (ds *defaultPhotoDataStore) Search(page *Page, q string) (*PhotoList, error
 	params = append(params, interface{}(page.Offset))
 
 	if _, err = ds.dbMap.Select(&photos, sql, params...); err != nil {
-		return nil, err
+		return nil, errgo.Mask(err)
 	}
 	return NewPhotoList(photos, total, page.Index), nil
 }
@@ -256,13 +257,13 @@ func (ds *defaultPhotoDataStore) All(page *Page, orderBy string) (*PhotoList, er
 	}
 
 	if total, err = ds.dbMap.SelectInt("SELECT COUNT(id) FROM photos"); err != nil {
-		return nil, err
+		return nil, errgo.Mask(err)
 	}
 
 	if _, err = ds.dbMap.Select(&photos,
 		"SELECT * FROM photos "+
 			"ORDER BY "+orderBy+" DESC LIMIT $1 OFFSET $2", page.Size, page.Offset); err != nil {
-		return nil, err
+		return nil, errgo.Mask(err)
 	}
 	return NewPhotoList(photos, total, page.Index), nil
 }
@@ -270,7 +271,7 @@ func (ds *defaultPhotoDataStore) All(page *Page, orderBy string) (*PhotoList, er
 func (ds *defaultPhotoDataStore) GetTagCounts() ([]TagCount, error) {
 	var tags []TagCount
 	if _, err := ds.dbMap.Select(&tags, "SELECT name, photo, num_photos FROM tag_counts"); err != nil {
-		return tags, err
+		return tags, errgo.Mask(err)
 	}
 	return tags, nil
 }
@@ -295,12 +296,12 @@ type defaultUserDataStore struct {
 }
 
 func (ds *defaultUserDataStore) Insert(user *User) error {
-	return ds.dbMap.Insert(user)
+	return errgo.Mask(ds.dbMap.Insert(user))
 }
 
 func (ds *defaultUserDataStore) Update(user *User) error {
 	_, err := ds.dbMap.Update(user)
-	return err
+	return errgo.Mask(err)
 }
 
 func (ds *defaultUserDataStore) IsNameAvailable(user *User) (bool, error) {
@@ -316,7 +317,7 @@ func (ds *defaultUserDataStore) IsNameAvailable(user *User) (bool, error) {
 		num, err = ds.dbMap.SelectInt(q, user.Name, user.ID)
 	}
 	if err != nil {
-		return false, err
+		return false, errgo.Mask(err)
 	}
 	return num == 0, nil
 }
@@ -334,7 +335,7 @@ func (ds *defaultUserDataStore) IsEmailAvailable(user *User) (bool, error) {
 		num, err = ds.dbMap.SelectInt(q, user.Email, user.ID)
 	}
 	if err != nil {
-		return false, err
+		return false, errgo.Mask(err)
 	}
 	return num == 0, nil
 }
@@ -343,7 +344,7 @@ func (ds *defaultUserDataStore) GetActive(userID int64) (*User, error) {
 
 	user := &User{}
 	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
-		return user, err
+		return user, errgo.Mask(err)
 	}
 	return user, nil
 
@@ -356,7 +357,7 @@ func (ds *defaultUserDataStore) GetByRecoveryCode(code string) (*User, error) {
 		return user, sql.ErrNoRows
 	}
 	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND recovery_code=$2", true, code); err != nil {
-		return user, err
+		return user, errgo.Mask(err)
 	}
 	return user, nil
 
@@ -364,7 +365,7 @@ func (ds *defaultUserDataStore) GetByRecoveryCode(code string) (*User, error) {
 func (ds *defaultUserDataStore) GetByEmail(email string) (*User, error) {
 	user := &User{}
 	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
-		return user, err
+		return user, errgo.Mask(err)
 	}
 	return user, nil
 }
@@ -373,7 +374,7 @@ func (ds *defaultUserDataStore) GetByNameOrEmail(identifier string) (*User, erro
 	user := &User{}
 
 	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
-		return user, err
+		return user, errgo.Mask(err)
 	}
 
 	return user, nil

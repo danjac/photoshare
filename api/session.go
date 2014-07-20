@@ -2,6 +2,7 @@ package api
 
 import (
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/juju/errgo"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -23,11 +24,11 @@ func NewSessionManager(config *AppConfig) (SessionManager, error) {
 	var err error
 	mgr.signKey, err = ioutil.ReadFile(config.PrivateKey)
 	if err != nil {
-		return mgr, err
+		return mgr, errgo.Mask(err)
 	}
 	mgr.verifyKey, err = ioutil.ReadFile(config.PublicKey)
 	if err != nil {
-		return mgr, err
+		return mgr, errgo.Mask(err)
 	}
 	return mgr, nil
 }
@@ -58,7 +59,7 @@ func (m *defaultSessionManager) ReadToken(r *http.Request) (int64, error) {
 	case *jwt.ValidationError:
 		return 0, nil
 	default:
-		return 0, err
+		return 0, errgo.Mask(err)
 	}
 }
 
@@ -68,7 +69,7 @@ func (m *defaultSessionManager) WriteToken(w http.ResponseWriter, userID int64) 
 	token.Claims["exp"] = time.Now().Add(time.Minute * expiry).Unix()
 	tokenString, err := token.SignedString(m.signKey)
 	if err != nil {
-		return err
+		return errgo.Mask(err)
 	}
 	w.Header().Set(tokenHeader, tokenString)
 	return nil

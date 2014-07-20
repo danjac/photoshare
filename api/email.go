@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"fmt"
+	"github.com/juju/errgo"
 	"log"
 	"net/http"
 	"net/smtp"
@@ -48,7 +49,7 @@ func (m *Mailer) ParseTemplate(name string) (*template.Template, error) {
 	if !ok {
 		t, err = template.ParseFiles(path.Join(m.config.TemplatesDir, name+".tmpl"))
 		if err != nil {
-			return nil, err
+			return nil, errgo.Mask(err)
 		}
 		m.templates[name] = t
 
@@ -75,7 +76,7 @@ func (m *Mailer) MessageFromTemplate(subject string,
 	}
 
 	if err := t.Execute(b, data); err != nil {
-		return nil, err
+		return nil, errgo.Mask(err)
 	}
 	msg.Body = b.Bytes()
 	return msg, nil
@@ -91,7 +92,7 @@ type smtpSender struct {
 }
 
 func (s *smtpSender) Send(msg *Message) error {
-	return smtp.SendMail(s.config.SmtpHost+":25", s.Auth, msg.From, msg.To, msg.Body)
+	return errgo.Mask(smtp.SendMail(s.config.SmtpHost+":25", s.Auth, msg.From, msg.To, msg.Body))
 }
 
 type fakeSender struct{}

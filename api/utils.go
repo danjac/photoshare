@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/juju/errgo"
 	"log"
 	"net/http"
 	"strconv"
@@ -15,13 +16,13 @@ func writeBody(w http.ResponseWriter, body []byte, status int, contentType strin
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
 	w.WriteHeader(status)
 	_, err := w.Write(body)
-	return err
+	return errgo.Mask(err)
 }
 
 func renderJSON(w http.ResponseWriter, value interface{}, status int) error {
 	body, err := json.Marshal(value)
 	if err != nil {
-		return err
+		return errgo.Mask(err)
 	}
 	return writeBody(w, body, status, "application/json")
 }
@@ -50,12 +51,15 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 		return
 	}
 
-	log.Println(err) // more sophisticated logging needed
+	log.Println("ERROR:", err)
+	if err, ok := err.(errgo.Locationer); ok {
+		log.Println("LOCATION:", err.Location())
+	}
 	http.Error(w, "Sorry, an error occurred", http.StatusInternalServerError)
 }
 
 func decodeJSON(r *http.Request, value interface{}) error {
-	return json.NewDecoder(r.Body).Decode(value)
+	return errgo.Mask(json.NewDecoder(r.Body).Decode(value))
 }
 
 func scheme(r *http.Request) string {

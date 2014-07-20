@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/graphics-go/graphics"
 	"errors"
 	"github.com/dchest/uniuri"
+	"github.com/juju/errgo"
 	"image"
 	"image/jpeg"
 	"image/png"
@@ -60,10 +61,10 @@ func (f *defaultFileManager) Clean(name string) error {
 	thumbnailPath := path.Join(f.config.ThumbnailsDir, name)
 
 	if err := os.Remove(imagePath); err != nil {
-		return err
+		return errgo.Mask(err)
 	}
 	if err := os.Remove(thumbnailPath); err != nil {
-		return err
+		return errgo.Mask(err)
 	}
 	return nil
 }
@@ -76,11 +77,11 @@ func (f *defaultFileManager) Store(src multipart.File, contentType string) (stri
 	filename := generateRandomFilename(contentType)
 
 	if err := os.MkdirAll(f.config.UploadsDir, 0777); err != nil && !os.IsExist(err) {
-		return filename, err
+		return filename, errgo.Mask(err)
 	}
 
 	if err := os.MkdirAll(f.config.ThumbnailsDir, 0777); err != nil && !os.IsExist(err) {
-		return filename, err
+		return filename, errgo.Mask(err)
 	}
 
 	// make thumbnail
@@ -96,7 +97,7 @@ func (f *defaultFileManager) Store(src multipart.File, contentType string) (stri
 	}
 
 	if err != nil {
-		return filename, err
+		return filename, errgo.Mask(err)
 	}
 
 	thumb := image.NewRGBA(image.Rect(0, 0, ThumbnailWidth, ThumbnailHeight))
@@ -105,7 +106,7 @@ func (f *defaultFileManager) Store(src multipart.File, contentType string) (stri
 	dst, err := os.Create(path.Join(f.config.ThumbnailsDir, filename))
 
 	if err != nil {
-		return filename, err
+		return filename, errgo.Mask(err)
 	}
 
 	defer dst.Close()
@@ -121,14 +122,14 @@ func (f *defaultFileManager) Store(src multipart.File, contentType string) (stri
 	dst, err = os.Create(path.Join(f.config.UploadsDir, filename))
 
 	if err != nil {
-		return filename, err
+		return filename, errgo.Mask(err)
 	}
 
 	defer dst.Close()
 
 	_, err = io.Copy(dst, src)
 	if err != nil {
-		return filename, err
+		return filename, errgo.Mask(err)
 	}
 
 	return filename, nil

@@ -20,9 +20,9 @@ type Message struct {
 }
 
 func (msg *Message) String() string {
-	return fmt.Sprintf("To:%s\r\nFrom:%s\r\nSubject: %s\r\nBody:%s",
-		strings.Join(msg.To, ", "),
+	return fmt.Sprintf("From:%s\r\nTo:%s\r\nSubject: %s\r\n\r\n%s",
 		msg.From,
+		strings.Join(msg.To, ", "),
 		msg.Subject,
 		string(msg.Body),
 	)
@@ -97,7 +97,7 @@ func (s *smtpSender) Send(msg *Message) error {
 		s.Auth,
 		msg.From,
 		msg.To,
-		msg.Body,
+		[]byte(msg.String()),
 	))
 }
 

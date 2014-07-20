@@ -24,7 +24,7 @@ type AppConfig struct {
 	SmtpPassword      string `env:"key=SMTP_PASS"`
 	SmtpUser          string `env:"key=SMTP_USER"`
 	SmtpHost          string `env:"key=SMTP_HOST default=localhost"`
-	SmtpPort          int    `env="key=SMTP_PORT default=25"`
+	SmtpPort          int    `env:"key=SMTP_PORT default=25"`
 	SmtpDefaultSender string `env:"key=DEFAULT_EMAIL_SENDER default=webmaster@localhost"`
 
 	BaseDir       string `env:"key=BASE_DIR"`

@@ -27,7 +27,12 @@ func newSessionInfo(user *User) *sessionInfo {
 func (a *AppContext) authenticate(c web.C, r *http.Request, required bool) (*User, error) {
 
 	var user *User
-	var invalidLogin = httpError(http.StatusUnauthorized, "You must be logged in")
+	var invalidLogin = func() error {
+		if required {
+			return httpError(http.StatusUnauthorized, "You must be logged in")
+		}
+		return nil
+	}
 
 	obj, ok := c.Env["user"]
 
@@ -39,12 +44,12 @@ func (a *AppContext) authenticate(c web.C, r *http.Request, required bool) (*Use
 			return user, err
 		}
 		if userID == 0 {
-			return user, invalidLogin
+			return user, invalidLogin()
 		}
 		user, err = a.userDS.GetActive(userID)
 		if err != nil {
 			if err == sql.ErrNoRows {
-				return user, invalidLogin
+				return user, invalidLogin()
 			}
 			return user, err
 		}

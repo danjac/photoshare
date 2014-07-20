@@ -53,7 +53,7 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 		return
 	}
 
-	if err == sql.ErrNoRows {
+	if err == sql.ErrNoRows || err.(*errgo.Err).Underlying() == sql.ErrNoRows {
 		http.NotFound(w, r)
 		return
 	}

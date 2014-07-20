@@ -32,10 +32,11 @@ func renderString(w http.ResponseWriter, status int, msg string) error {
 }
 
 func logError(err error) {
-	log.Println("ERROR:", err)
+	s := fmt.Sprintf("Error:%s", err)
 	if err, ok := err.(errgo.Locationer); ok {
-		log.Println("LOCATION:", err.Location())
+		s += fmt.Sprintf(" %s", err.Location())
 	}
+	log.Println(s)
 }
 
 func handleError(w http.ResponseWriter, r *http.Request, err error) {

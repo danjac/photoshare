@@ -92,7 +92,13 @@ type smtpSender struct {
 }
 
 func (s *smtpSender) Send(msg *Message) error {
-	return errgo.Mask(smtp.SendMail(s.config.SmtpHost+":25", s.Auth, msg.From, msg.To, msg.Body))
+	return errgo.Mask(smtp.SendMail(
+		fmt.Sprintf("%s:%d", s.config.SmtpHost, s.config.SmtpPort),
+		s.Auth,
+		msg.From,
+		msg.To,
+		msg.Body,
+	))
 }
 
 type fakeSender struct{}
@@ -131,7 +137,7 @@ func (m *Mailer) SendResetPasswordMail(user *User, recoveryCode string, r *http.
 		"Reset your password",
 		[]string{user.Email},
 		m.defaultFromAddress,
-		"recoverpass",
+		"recover_pass",
 		&struct {
 			Name         string
 			RecoveryCode string

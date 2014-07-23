@@ -67,7 +67,7 @@ func (a *AppContext) popularFeed(_ web.C, w http.ResponseWriter, r *http.Request
 }
 
 func (a *AppContext) ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) error {
-	ownerID, _ := strconv.ParseInt(c.URLParams["ownerID"], 10, 0)
+	ownerID := getIntParam(c, "ownerID")
 	owner, err := a.userDS.GetActive(ownerID)
 	if err != nil {
 		return err

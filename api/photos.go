@@ -4,7 +4,6 @@ import (
 	"github.com/zenazn/goji/web"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -14,8 +13,7 @@ func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
-	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err := a.photoDS.Get(photoID)
+	photo, err := a.photoDS.Get(getIntParam(c, "id"))
 	if err != nil {
 		return err
 	}
@@ -44,8 +42,7 @@ func (a *AppContext) photoDetail(c web.C, w http.ResponseWriter, r *http.Request
 		return err
 	}
 
-	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err := a.photoDS.GetDetail(photoID, user)
+	photo, err := a.photoDS.GetDetail(getIntParam(c, "id"), user)
 	if err != nil {
 		return err
 	}
@@ -58,8 +55,7 @@ func (a *AppContext) getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Requ
 		return nil, err
 	}
 
-	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err := a.photoDS.Get(photoID)
+	photo, err := a.photoDS.Get(getIntParam(c, "id"))
 	if err != nil {
 		return photo, err
 	}
@@ -190,10 +186,7 @@ func (a *AppContext) searchPhotos(_ web.C, w http.ResponseWriter, r *http.Reques
 }
 
 func (a *AppContext) photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) error {
-	ownerID, err := strconv.ParseInt(c.URLParams["ownerID"], 10, 0)
-	if err != nil {
-		return err
-	}
+	ownerID := getIntParam(c, "ownerID")
 	photos, err := a.photoDS.ByOwnerID(getPage(r), ownerID)
 	if err != nil {
 		return err
@@ -236,8 +229,7 @@ func (a *AppContext) vote(c web.C, w http.ResponseWriter, r *http.Request, fn fu
 		return err
 	}
 
-	photoID, _ := strconv.ParseInt(c.URLParams["id"], 10, 0)
-	photo, err = a.photoDS.Get(photoID)
+	photo, err = a.photoDS.Get(getIntParam(c, "id"))
 	if err != nil {
 		return err
 	}

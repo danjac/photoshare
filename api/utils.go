@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/juju/errgo"
+	"github.com/zenazn/goji/web"
 	"log"
 	"net/http"
 	"strconv"
@@ -81,6 +82,11 @@ func scheme(r *http.Request) string {
 
 func baseURL(r *http.Request) string {
 	return fmt.Sprintf("%s://%s", scheme(r), r.Host)
+}
+
+func getIntParam(c web.C, name string) int64 {
+	value, _ := strconv.ParseInt(c.URLParams[name], 10, 0)
+	return value
 }
 
 // Converts a Pg Array (returned as string) to an int slice

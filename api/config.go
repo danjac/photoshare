@@ -64,7 +64,7 @@ func NewAppConfig() (*AppConfig, error) {
 	}
 
 	if config.TestDBName == config.DBName {
-		errors.New("Test DB name same as DB name")
+		return config, errors.New("Test DB name same as DB name")
 	}
 
 	if config.BaseDir == "" {

@@ -104,7 +104,6 @@ func (f *defaultFileStorage) Store(src multipart.File, contentType string) (stri
 		return filename, errgo.Mask(err)
 	}
 
-
 	thumb := image.NewRGBA(image.Rect(0, 0, ThumbnailWidth, ThumbnailHeight))
 	graphics.Thumbnail(thumb, img)
 

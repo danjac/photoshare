@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/graphics-go/graphics"
 	"errors"
 	"github.com/dchest/uniuri"
+	"github.com/disintegration/gift"
 	"github.com/juju/errgo"
 	"image"
 	"image/jpeg"
@@ -42,23 +43,23 @@ func generateRandomFilename(contentType string) string {
 	return filename + ".jpg"
 }
 
-type FileManager interface {
+type FileStorage interface {
 	Clean(string) error
 	Store(src multipart.File, contentType string) (string, error)
 }
 
-func NewFileManager(config *AppConfig) FileManager {
-	return &defaultFileManager{
+func NewFileStorage(config *AppConfig) FileStorage {
+	return &defaultFileStorage{
 		config.UploadsDir,
 		config.ThumbnailsDir,
 	}
 }
 
-type defaultFileManager struct {
+type defaultFileStorage struct {
 	uploadsDir, thumbnailsDir string
 }
 
-func (f *defaultFileManager) Clean(name string) error {
+func (f *defaultFileStorage) Clean(name string) error {
 
 	imagePath := path.Join(f.uploadsDir, name)
 	thumbnailPath := path.Join(f.thumbnailsDir, name)
@@ -72,7 +73,7 @@ func (f *defaultFileManager) Clean(name string) error {
 	return nil
 }
 
-func (f *defaultFileManager) Store(src multipart.File, contentType string) (string, error) {
+func (f *defaultFileStorage) Store(src multipart.File, contentType string) (string, error) {
 
 	if !isAllowedContentType(contentType) {
 		return "", InvalidContentType
@@ -103,10 +104,14 @@ func (f *defaultFileManager) Store(src multipart.File, contentType string) (stri
 		return filename, errgo.Mask(err)
 	}
 
+
 	thumb := image.NewRGBA(image.Rect(0, 0, ThumbnailWidth, ThumbnailHeight))
 	graphics.Thumbnail(thumb, img)
 
 	dst, err := os.Create(path.Join(f.thumbnailsDir, filename))
+
+	g := gift.New(gift.Contrast(-30))
+	g.Draw(thumb, thumb)
 
 	if err != nil {
 		return filename, errgo.Mask(err)

@@ -20,13 +20,14 @@ func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 
 	if !photo.CanDelete(user) {
 		return httpError(http.StatusForbidden, "You're not allowed to delete this photo")
+
 	}
 	if err := a.photoDS.Delete(photo); err != nil {
 		return err
 	}
 
 	go func() {
-		if err := a.fileMgr.Clean(photo.Filename); err != nil {
+		if err := a.fs.Clean(photo.Filename); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -148,7 +149,7 @@ func (a *AppContext) upload(c web.C, w http.ResponseWriter, r *http.Request) err
 
 	contentType := hdr.Header["Content-Type"][0]
 
-	filename, err := a.fileMgr.Store(src, contentType)
+	filename, err := a.fs.Store(src, contentType)
 
 	if err != nil {
 		if err == InvalidContentType {

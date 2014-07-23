@@ -29,7 +29,6 @@ func (h AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := h(web.C{}, w, r)
 	handleError(w, r, err)
 }
-
 func (h AppHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request) {
 	err := h(c, w, r)
 	handleError(w, r, err)
@@ -37,9 +36,9 @@ func (h AppHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request) 
 
 type AppContext struct {
 	config     *AppConfig
+	fs         FileStorage
 	photoDS    PhotoDataStore
 	userDS     UserDataStore
-	fileMgr    FileManager
 	sessionMgr SessionManager
 	mailer     *Mailer
 }
@@ -47,7 +46,7 @@ type AppContext struct {
 func NewAppContext(config *AppConfig, dbMap *gorp.DbMap) (*AppContext, error) {
 	photoDS := NewPhotoDataStore(dbMap)
 	userDS := NewUserDataStore(dbMap)
-	fileMgr := NewFileManager(config)
+	fs := NewFileStorage(config)
 	mailer := NewMailer(config)
 
 	sessionMgr, err := NewSessionManager(config)
@@ -59,7 +58,7 @@ func NewAppContext(config *AppConfig, dbMap *gorp.DbMap) (*AppContext, error) {
 		config:     config,
 		photoDS:    photoDS,
 		userDS:     userDS,
-		fileMgr:    fileMgr,
+		fs:         fs,
 		sessionMgr: sessionMgr,
 		mailer:     mailer,
 	}

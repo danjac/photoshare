@@ -186,8 +186,7 @@ func (a *AppContext) searchPhotos(_ web.C, w http.ResponseWriter, r *http.Reques
 }
 
 func (a *AppContext) photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) error {
-	ownerID := getIntParam(c, "ownerID")
-	photos, err := a.photoDS.ByOwnerID(getPage(r), ownerID)
+	photos, err := a.photoDS.ByOwnerID(getPage(r), getIntParam(c, "ownerID"))
 	if err != nil {
 		return err
 	}

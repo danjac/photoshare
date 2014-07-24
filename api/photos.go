@@ -1,6 +1,8 @@
 package api
 
 import (
+	"encoding/base64"
+	"fmt"
 	"github.com/zenazn/goji/web"
 	"log"
 	"net/http"
@@ -32,6 +34,10 @@ func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 		}
 	}()
 
+	if err := a.cache.DeleteAll(); err != nil {
+		return err
+	}
+
 	sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_deleted"})
 	return renderString(w, http.StatusOK, "Photo deleted")
 }
@@ -48,6 +54,7 @@ func (a *AppContext) photoDetail(c web.C, w http.ResponseWriter, r *http.Request
 		return err
 	}
 	return renderJSON(w, photo, http.StatusOK)
+
 }
 
 func (a *AppContext) getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Request) (*Photo, error) {
@@ -179,35 +186,61 @@ func (a *AppContext) upload(c web.C, w http.ResponseWriter, r *http.Request) err
 }
 
 func (a *AppContext) searchPhotos(_ web.C, w http.ResponseWriter, r *http.Request) error {
-	photos, err := a.photoDS.Search(getPage(r), r.FormValue("q"))
-	if err != nil {
-		return err
-	}
-	return renderJSON(w, photos, http.StatusOK)
+
+	page := getPage(r)
+	q := r.FormValue("q")
+	qKey := base64.StdEncoding.EncodeToString([]byte(q))
+	cacheKey := fmt.Sprintf("photos:search:%s:page:%d", qKey, page.Index)
+
+	return a.cache.Render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
+		photos, err := a.photoDS.Search(page, q)
+		if err != nil {
+			return photos, err
+		}
+		return photos, nil
+	})
+
 }
 
 func (a *AppContext) photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Request) error {
-	photos, err := a.photoDS.ByOwnerID(getPage(r), getIntParam(c, "ownerID"))
-	if err != nil {
-		return err
-	}
-	return renderJSON(w, photos, http.StatusOK)
+
+	page := getPage(r)
+	ownerID := getIntParam(c, "ownerID")
+	cacheKey := fmt.Sprintf("photos:ownerID:%d:page:%d", ownerID, page.Index)
+
+	return a.cache.Render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
+		photos, err := a.photoDS.ByOwnerID(page, ownerID)
+		if err != nil {
+			return photos, err
+		}
+		return photos, nil
+	})
 }
 
 func (a *AppContext) getPhotos(_ web.C, w http.ResponseWriter, r *http.Request) error {
-	photos, err := a.photoDS.All(getPage(r), r.FormValue("orderBy"))
-	if err != nil {
-		return err
-	}
-	return renderJSON(w, photos, http.StatusOK)
+
+	page := getPage(r)
+	orderBy := r.FormValue("orderBy")
+	cacheKey := fmt.Sprintf("photos:%s:page:%d", orderBy, page.Index)
+
+	return a.cache.Render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
+		photos, err := a.photoDS.All(page, orderBy)
+		if err != nil {
+			return photos, err
+		}
+		return photos, nil
+	})
 }
 
 func (a *AppContext) getTags(_ web.C, w http.ResponseWriter, r *http.Request) error {
-	tags, err := a.photoDS.GetTagCounts()
-	if err != nil {
-		return err
-	}
-	return renderJSON(w, tags, http.StatusOK)
+	return a.cache.Render(w, http.StatusOK, "tags", func() (interface{}, error) {
+		tags, err := a.photoDS.GetTagCounts()
+		if err != nil {
+			return tags, err
+		}
+		return tags, nil
+	})
+
 }
 
 func (a *AppContext) voteDown(c web.C, w http.ResponseWriter, r *http.Request) error {

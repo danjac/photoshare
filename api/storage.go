@@ -73,19 +73,13 @@ func (f *defaultFileStorage) Clean(name string) error {
 	return nil
 }
 
-func (f *defaultFileStorage) Store(src multipart.File, contentType string) (string, error) {
-
-	if !isAllowedContentType(contentType) {
-		return "", InvalidContentType
-	}
-	filename := generateRandomFilename(contentType)
-
+func (f *defaultFileStorage) saveFiles(filename string, contentType string, src multipart.File) error {
 	if err := os.MkdirAll(f.uploadsDir, 0777); err != nil && !os.IsExist(err) {
-		return filename, errgo.Mask(err)
+		return errgo.Mask(err)
 	}
 
 	if err := os.MkdirAll(f.thumbnailsDir, 0777); err != nil && !os.IsExist(err) {
-		return filename, errgo.Mask(err)
+		return errgo.Mask(err)
 	}
 
 	// make thumbnail
@@ -101,19 +95,22 @@ func (f *defaultFileStorage) Store(src multipart.File, contentType string) (stri
 	}
 
 	if err != nil {
-		return filename, errgo.Mask(err)
+		return errgo.Mask(err)
 	}
 
 	thumb := image.NewRGBA(image.Rect(0, 0, ThumbnailWidth, ThumbnailHeight))
 	graphics.Thumbnail(thumb, img)
 
 	dst, err := os.Create(path.Join(f.thumbnailsDir, filename))
+	if err != nil {
+		return errgo.Mask(err)
+	}
 
 	g := gift.New(gift.Contrast(-30))
 	g.Draw(thumb, thumb)
 
 	if err != nil {
-		return filename, errgo.Mask(err)
+		return errgo.Mask(err)
 	}
 
 	defer dst.Close()
@@ -129,15 +126,34 @@ func (f *defaultFileStorage) Store(src multipart.File, contentType string) (stri
 	dst, err = os.Create(path.Join(f.uploadsDir, filename))
 
 	if err != nil {
-		return filename, errgo.Mask(err)
+		return errgo.Mask(err)
 	}
 
 	defer dst.Close()
 
 	_, err = io.Copy(dst, src)
 	if err != nil {
-		return filename, errgo.Mask(err)
+		return errgo.Mask(err)
 	}
+
+	return nil
+
+}
+
+func (f *defaultFileStorage) Store(src multipart.File, contentType string) (string, error) {
+
+	if !isAllowedContentType(contentType) {
+		return "", InvalidContentType
+	}
+
+	filename := generateRandomFilename(contentType)
+
+	go func() {
+		err := f.saveFiles(filename, contentType, src)
+		if err != nil {
+			logError(err)
+		}
+	}()
 
 	return filename, nil
 

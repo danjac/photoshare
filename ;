@@ -2,7 +2,9 @@ package api
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/coopernurse/gorp"
 	"github.com/juju/errgo"
 	_ "github.com/lib/pq"
@@ -40,10 +42,12 @@ type PhotoDataStore interface {
 
 type defaultPhotoDataStore struct {
 	dbMap *gorp.DbMap
+	mc    *memcache.Client
 }
 
 func NewPhotoDataStore(dbMap *gorp.DbMap) PhotoDataStore {
-	return &defaultPhotoDataStore{dbMap}
+	mc := memcache.New("0.0.0.0:11211") // this will be passed in as separate arg
+	return &defaultPhotoDataStore{dbMap, mc}
 }
 
 func (ds *defaultPhotoDataStore) Delete(photo *Photo) error {
@@ -153,10 +157,25 @@ func (ds *defaultPhotoDataStore) ByOwnerID(page *Page, ownerID int64) (*PhotoLis
 		photos []Photo
 		err    error
 		total  int64
+		list   *PhotoList
 	)
 
+	cacheKey := fmt.Sprintf("photos:owner:%d:page:%d", ownerID, page.Index)
+	log.Println("CACHEKEY:", cacheKey)
+	it, err := ds.mc.Get(cacheKey)
+	if err == nil && len(it.Value) > 0 {
+		list = &PhotoList{}
+		if err := json.Unmarshal(it.Value, list); err != nil {
+			return list, errgo.Mask(err)
+		}
+		log.Println("RETURNING LIST!!!")
+		return list, nil
+	} else if err != memcache.ErrCacheMiss {
+		return nil, errgo.Mask(err)
+	}
+
 	if ownerID == 0 {
-		return nil, sql.ErrNoRows
+		return nil, nil
 	}
 	if total, err = ds.dbMap.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {
 		return nil, errgo.Mask(err)
@@ -168,7 +187,15 @@ func (ds *defaultPhotoDataStore) ByOwnerID(page *Page, ownerID int64) (*PhotoLis
 		ownerID, page.Size, page.Offset); err != nil {
 		return nil, errgo.Mask(err)
 	}
-	return NewPhotoList(photos, total, page.Index), nil
+	list = NewPhotoList(photos, total, page.Index)
+	it = &memcache.Item{Key: cacheKey, Expiration: 24 * 60 * 60}
+	if it.Value, err = json.Marshal(list); err != nil {
+		return list, errgo.Mask(err)
+	}
+	if err := ds.mc.Set(it); err != nil {
+		return list, errgo.Mask(err)
+	}
+	return list, nil
 
 }
 

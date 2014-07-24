@@ -7,6 +7,8 @@ import (
 	"net/http"
 )
 
+const defaultExpiration = 86400 // 24 hours
+
 type Cache interface {
 	Set(string, interface{}) ([]byte, error)
 	Get(string, func() (interface{}, error)) (interface{}, error)
@@ -23,7 +25,11 @@ func (m *Memcache) Set(key string, obj interface{}) ([]byte, error) {
 	if err != nil {
 		return value, err
 	}
-	item := &memcache.Item{Key: key, Value: value}
+	item := &memcache.Item{
+		Key:        key,
+		Value:      value,
+		Expiration: defaultExpiration,
+	}
 	if err := m.mc.Set(item); err != nil {
 		return value, err
 	}

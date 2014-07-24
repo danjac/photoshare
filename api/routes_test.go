@@ -2,11 +2,38 @@ package api
 
 import (
 	"database/sql"
+	"encoding/json"
 	"github.com/zenazn/goji/web"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
+
+type mockCache struct{}
+
+func (m *mockCache) Set(key string, obj interface{}) ([]byte, error) {
+	return json.Marshal(obj)
+}
+
+func (m *mockCache) DeleteAll() error {
+	return nil
+}
+
+func (m *mockCache) Get(key string, fn func() (interface{}, error)) (interface{}, error) {
+	return fn()
+}
+
+func (m *mockCache) Render(w http.ResponseWriter, status int, key string, fn func() (interface{}, error)) error {
+	obj, err := fn()
+	if err != nil {
+		return err
+	}
+	value, err := json.Marshal(obj)
+	if err != nil {
+		return err
+	}
+	return writeBody(w, value, status, "application/json")
+}
 
 type mockSessionManager struct {
 }
@@ -148,6 +175,7 @@ func TestGetPhotos(t *testing.T) {
 
 	a := &AppContext{
 		photoDS: &mockPhotoDataStore{},
+		cache:   &mockCache{},
 	}
 
 	a.getPhotos(web.C{}, res, req)

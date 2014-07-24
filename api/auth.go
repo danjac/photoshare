@@ -139,9 +139,7 @@ func (a *AppContext) signup(c web.C, w http.ResponseWriter, r *http.Request) err
 		Password: s.Password,
 	}
 
-	validator := NewUserValidator(user, a.userDS)
-
-	if err := validate(validator); err != nil {
+	if err := validate(NewUserValidator(user, a.userDS)); err != nil {
 		return err
 	}
 

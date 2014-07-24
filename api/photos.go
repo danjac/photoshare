@@ -181,6 +181,10 @@ func (a *AppContext) upload(c web.C, w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
+	if err := a.cache.DeleteAll(); err != nil {
+		return err
+	}
+
 	sendMessage(&SocketMessage{user.Name, "", photo.ID, "photo_uploaded"})
 	return renderJSON(w, photo, http.StatusCreated)
 }

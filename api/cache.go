@@ -76,7 +76,7 @@ func (m *Memcache) Render(w http.ResponseWriter, status int, key string, fn func
 }
 
 func (m *Memcache) DeleteAll() error {
-	return m.mc.DeleteAll()
+	return errgo.Mask(m.mc.DeleteAll())
 }
 
 func NewCache(config *AppConfig) Cache {

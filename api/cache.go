@@ -5,9 +5,10 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/juju/errgo"
 	"net/http"
+	"strings"
 )
 
-const defaultExpiration = 86400 // 24 hours
+const defaultExpiration = 300 // 5 minutes
 
 type Cache interface {
 	Set(string, interface{}) ([]byte, error)
@@ -86,6 +87,6 @@ func (m *Memcache) DeleteAll() error {
 }
 
 func NewCache(config *AppConfig) Cache {
-	mc := memcache.New("0.0.0.0:11211") // will be from config
+	mc := memcache.New(strings.Split(config.MemcacheHost, ",")...) // will be from config
 	return &Memcache{mc}
 }

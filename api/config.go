@@ -36,6 +36,8 @@ type AppConfig struct {
 	PrivateKey string `env:"key=PRIVATE_KEY required=true"`
 	PublicKey  string `env:"key=PUBLIC_KEY required=true"`
 
+	MemcacheHost string `env:"key=MEMCACHE_HOST default=0.0.0.0:11211"`
+
 	ServerPort int `env:"key=PORT default=5000"`
 }
 

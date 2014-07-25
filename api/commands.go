@@ -11,7 +11,7 @@ import (
 // Serve runs the HTTP server
 func Serve() {
 
-	config, err := NewAppConfig()
+	config, err := newAppConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,12 +34,12 @@ func Serve() {
 		db.Close()
 	}()
 
-	dbMap, err := InitDB(db, config.LogSql)
+	dbMap, err := initDB(db, config.LogSql)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	router, err := GetRouter(config, dbMap)
+	router, err := getRouter(config, dbMap)
 	if err != nil {
 		log.Fatal(err)
 	}

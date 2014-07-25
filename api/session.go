@@ -14,14 +14,12 @@ const (
 	expiry      = 60 // minutes
 )
 
-// SessionManager handles all session tokens
-type SessionManager interface {
-	ReadToken(*http.Request) (int64, error)
-	WriteToken(http.ResponseWriter, int64) error
+type sessionManager interface {
+	readToken(*http.Request) (int64, error)
+	writeToken(http.ResponseWriter, int64) error
 }
 
-// NewSessionManager creates a new SessionManager instance
-func NewSessionManager(config *AppConfig) (SessionManager, error) {
+func newSessionManager(config *appConfig) (sessionManager, error) {
 	mgr := &defaultSessionManager{}
 	var err error
 	mgr.signKey, err = ioutil.ReadFile(config.PrivateKey)
@@ -39,7 +37,7 @@ type defaultSessionManager struct {
 	verifyKey, signKey []byte
 }
 
-func (m *defaultSessionManager) ReadToken(r *http.Request) (int64, error) {
+func (m *defaultSessionManager) readToken(r *http.Request) (int64, error) {
 	tokenString := r.Header.Get(tokenHeader)
 	if tokenString == "" {
 		return 0, nil
@@ -65,7 +63,7 @@ func (m *defaultSessionManager) ReadToken(r *http.Request) (int64, error) {
 	}
 }
 
-func (m *defaultSessionManager) WriteToken(w http.ResponseWriter, userID int64) error {
+func (m *defaultSessionManager) writeToken(w http.ResponseWriter, userID int64) error {
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 	token.Claims["uid"] = strconv.FormatInt(userID, 10)
 	token.Claims["exp"] = time.Now().Add(time.Minute * expiry).Unix()

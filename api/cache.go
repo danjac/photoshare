@@ -10,19 +10,18 @@ import (
 
 const defaultExpiration = 300 // 5 minutes
 
-// Cache exposes common caching functions
-type Cache interface {
-	Set(string, interface{}) ([]byte, error)
-	Get(string, func() (interface{}, error)) (interface{}, error)
-	DeleteAll() error
-	Render(http.ResponseWriter, int, string, func() (interface{}, error)) error
+type cache interface {
+	set(string, interface{}) ([]byte, error)
+	get(string, func() (interface{}, error)) (interface{}, error)
+	clear() error
+	render(http.ResponseWriter, int, string, func() (interface{}, error)) error
 }
 
 type memcacheCache struct {
 	mc *memcache.Client
 }
 
-func (m *memcacheCache) Set(key string, obj interface{}) ([]byte, error) {
+func (m *memcacheCache) set(key string, obj interface{}) ([]byte, error) {
 	value, err := json.Marshal(obj)
 	if err != nil {
 		return value, err
@@ -38,7 +37,7 @@ func (m *memcacheCache) Set(key string, obj interface{}) ([]byte, error) {
 	return value, nil
 }
 
-func (m *memcacheCache) Get(key string, fn func() (interface{}, error)) (interface{}, error) {
+func (m *memcacheCache) get(key string, fn func() (interface{}, error)) (interface{}, error) {
 	it, err := m.mc.Get(key)
 	if err == nil {
 		var obj interface{}
@@ -53,13 +52,13 @@ func (m *memcacheCache) Get(key string, fn func() (interface{}, error)) (interfa
 	if err != nil {
 		return obj, err
 	}
-	if _, err := m.Set(key, obj); err != nil {
+	if _, err := m.set(key, obj); err != nil {
 		return obj, err
 	}
 	return obj, nil
 }
 
-func (m *memcacheCache) Render(w http.ResponseWriter, status int, key string, fn func() (interface{}, error)) error {
+func (m *memcacheCache) render(w http.ResponseWriter, status int, key string, fn func() (interface{}, error)) error {
 
 	var write = func(value []byte) error {
 		return writeBody(w, value, status, "application/json")
@@ -75,7 +74,7 @@ func (m *memcacheCache) Render(w http.ResponseWriter, status int, key string, fn
 	if err != nil {
 		return err
 	}
-	value, err := m.Set(key, obj)
+	value, err := m.set(key, obj)
 	if err != nil {
 		return err
 	}
@@ -83,12 +82,12 @@ func (m *memcacheCache) Render(w http.ResponseWriter, status int, key string, fn
 
 }
 
-func (m *memcacheCache) DeleteAll() error {
+func (m *memcacheCache) clear() error {
 	return errgo.Mask(m.mc.DeleteAll())
 }
 
 // NewCache creates a new Cache instance
-func NewCache(config *AppConfig) Cache {
+func newCache(config *appConfig) cache {
 	mc := memcache.New(strings.Split(config.MemcacheHost, ",")...) // will be from config
 	return &memcacheCache{mc}
 }

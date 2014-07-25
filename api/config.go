@@ -7,8 +7,7 @@ import (
 	"path"
 )
 
-// AppConfig contains all the environment-based configuration settings for the application
-type AppConfig struct {
+type appConfig struct {
 	DBName     string `env:"key=DB_NAME required=true"`
 	DBUser     string `env:"key=DB_USER required=true"`
 	DBPassword string `env:"key=DB_PASS required=true"`
@@ -42,10 +41,9 @@ type AppConfig struct {
 	ServerPort int `env:"key=PORT default=5000"`
 }
 
-// NewAppConfig reads configuration from environment and creates a new AppConfig instance
-func NewAppConfig() (*AppConfig, error) {
+func newAppConfig() (*appConfig, error) {
 
-	config := &AppConfig{}
+	config := &appConfig{}
 
 	if err := env.Process(config); err != nil {
 		return nil, err

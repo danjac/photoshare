@@ -7,26 +7,26 @@ import (
 
 func TestGetIfNotNone(t *testing.T) {
 
-	config, _ := NewAppConfig()
-	tdb := MakeTestDB(config)
-	defer tdb.Clean()
+	config, _ := newAppConfig()
+	tdb := makeTestDB(config)
+	defer tdb.clean()
 
-	userDS := NewUserDataStore(tdb.dbMap)
-	photoDS := NewPhotoDataStore(tdb.dbMap)
+	userDS := newUserDataStore(tdb.dbMap)
+	photoDS := newPhotoDataStore(tdb.dbMap)
 
-	user := &User{Name: "tester", Email: "tester@gmail.com", Password: "test"}
+	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
 
-	if err := userDS.Insert(user); err != nil {
+	if err := userDS.insert(user); err != nil {
 		t.Error(err)
 		return
 	}
-	photo := &Photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := photoDS.Insert(photo); err != nil {
+	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
+	if err := photoDS.insert(photo); err != nil {
 		t.Error(err)
 		return
 	}
 
-	photo, err := photoDS.Get(photo.ID)
+	photo, err := photoDS.get(photo.ID)
 	if err != nil {
 		t.Error(err)
 		return
@@ -35,11 +35,11 @@ func TestGetIfNotNone(t *testing.T) {
 
 func TestGetIfNone(t *testing.T) {
 
-	config, _ := NewAppConfig()
-	tdb := MakeTestDB(config)
-	defer tdb.Clean()
+	config, _ := newAppConfig()
+	tdb := makeTestDB(config)
+	defer tdb.clean()
 
-	_, err := NewPhotoDataStore(tdb.dbMap).Get(1)
+	_, err := newPhotoDataStore(tdb.dbMap).get(1)
 	if err != sql.ErrNoRows {
 		t.Error(err)
 		return
@@ -48,24 +48,24 @@ func TestGetIfNone(t *testing.T) {
 }
 
 func TestSearchPhotos(t *testing.T) {
-	config, _ := NewAppConfig()
-	tdb := MakeTestDB(config)
-	defer tdb.Clean()
+	config, _ := newAppConfig()
+	tdb := makeTestDB(config)
+	defer tdb.clean()
 
-	photoDS := NewPhotoDataStore(tdb.dbMap)
-	userDS := NewUserDataStore(tdb.dbMap)
+	photoDS := newPhotoDataStore(tdb.dbMap)
+	userDS := newUserDataStore(tdb.dbMap)
 
-	user := &User{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	if err := userDS.Insert(user); err != nil {
+	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
+	if err := userDS.insert(user); err != nil {
 		t.Error(err)
 		return
 	}
-	photo := &Photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := photoDS.Insert(photo); err != nil {
+	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
+	if err := photoDS.insert(photo); err != nil {
 		t.Error(err)
 		return
 	}
-	result, err := photoDS.Search(NewPage(1), "test")
+	result, err := photoDS.search(newPage(1), "test")
 	if err != nil {
 		t.Error(err)
 		return
@@ -76,24 +76,24 @@ func TestSearchPhotos(t *testing.T) {
 	}
 }
 func TestAllPhotos(t *testing.T) {
-	config, _ := NewAppConfig()
-	tdb := MakeTestDB(config)
-	defer tdb.Clean()
+	config, _ := newAppConfig()
+	tdb := makeTestDB(config)
+	defer tdb.clean()
 
-	photoDS := NewPhotoDataStore(tdb.dbMap)
-	userDS := NewUserDataStore(tdb.dbMap)
+	photoDS := newPhotoDataStore(tdb.dbMap)
+	userDS := newUserDataStore(tdb.dbMap)
 
-	user := &User{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	if err := userDS.Insert(user); err != nil {
+	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
+	if err := userDS.insert(user); err != nil {
 		t.Error(err)
 		return
 	}
-	photo := &Photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := photoDS.Insert(photo); err != nil {
+	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
+	if err := photoDS.insert(photo); err != nil {
 		t.Error(err)
 		return
 	}
-	result, err := photoDS.All(NewPage(1), "")
+	result, err := photoDS.all(newPage(1), "")
 	if err != nil {
 		t.Error(err)
 		return
@@ -105,40 +105,40 @@ func TestAllPhotos(t *testing.T) {
 }
 
 func TestCanEdit(t *testing.T) {
-	user := &User{ID: 1}
-	photo := &Photo{ID: 1, OwnerID: 1}
+	user := &user{ID: 1}
+	photo := &photo{ID: 1, OwnerID: 1}
 
-	if photo.CanEdit(user) {
+	if photo.canEdit(user) {
 		t.Error("Non-authenticated should not be able to edit")
 	}
 
 	user.IsAuthenticated = true
 
-	if !photo.CanEdit(user) {
+	if !photo.canEdit(user) {
 		t.Error("User should be able to edit")
 	}
 
 	photo.OwnerID = 2
 
-	if photo.CanEdit(user) {
+	if photo.canEdit(user) {
 		t.Error("User should not be able to edit")
 	}
 
 	user.IsAdmin = true
-	if !photo.CanEdit(user) {
+	if !photo.canEdit(user) {
 		t.Error("Admin should be able to edit")
 	}
 }
 
 func TestHasVoted(t *testing.T) {
 
-	u := &User{}
-	if u.HasVoted(1) {
+	u := &user{}
+	if u.hasVoted(1) {
 		t.Error("The user has not voted yet")
 	}
 
-	u.RegisterVote(1)
-	if !u.HasVoted(1) {
+	u.registerVote(1)
+	if !u.hasVoted(1) {
 		t.Error("The user should have voted")
 	}
 }

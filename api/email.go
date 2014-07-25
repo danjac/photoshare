@@ -12,37 +12,34 @@ import (
 	"text/template"
 )
 
-// Message models an email message
-type Message struct {
-	Subject string
-	Body    []byte
-	To      []string
-	From    string
+type message struct {
+	subject string
+	body    []byte
+	to      []string
+	from    string
 }
 
-func (msg *Message) String() string {
+func (msg *message) String() string {
 	return fmt.Sprintf("From:%s\r\nTo:%s\r\nSubject: %s\r\n\r\n%s",
-		msg.From,
-		strings.Join(msg.To, ", "),
-		msg.Subject,
-		string(msg.Body),
+		msg.from,
+		strings.Join(msg.to, ", "),
+		msg.subject,
+		string(msg.body),
 	)
 }
 
-// Mailer keeps email sender and template info
-type Mailer struct {
-	sender             MailSender
-	config             *AppConfig
+type mailer struct {
+	sender             mailSender
+	config             *appConfig
 	defaultFromAddress string
 	templates          map[string]*template.Template
 }
 
-// Send sends the message
-func (m *Mailer) Send(msg *Message) error {
-	return m.sender.Send(msg)
+func (m *mailer) send(msg *message) error {
+	return m.sender.send(msg)
 }
 
-func (m *Mailer) parseTemplate(name string) (*template.Template, error) {
+func (m *mailer) parseTemplate(name string) (*template.Template, error) {
 	var (
 		t   *template.Template
 		ok  bool
@@ -61,16 +58,16 @@ func (m *Mailer) parseTemplate(name string) (*template.Template, error) {
 }
 
 // Creates a new message from a template; message body set to rendered template
-func (m *Mailer) messageFromTemplate(subject string,
+func (m *mailer) messageFromTemplate(subject string,
 	to []string,
 	from string,
 	templateName string,
-	data interface{}) (*Message, error) {
+	data interface{}) (*message, error) {
 
-	msg := &Message{
-		Subject: subject,
-		To:      to,
-		From:    from,
+	msg := &message{
+		subject: subject,
+		to:      to,
+		from:    from,
 	}
 	b := &bytes.Buffer{}
 	t, err := m.parseTemplate(templateName)
@@ -81,38 +78,37 @@ func (m *Mailer) messageFromTemplate(subject string,
 	if err := t.Execute(b, data); err != nil {
 		return nil, errgo.Mask(err)
 	}
-	msg.Body = b.Bytes()
+	msg.body = b.Bytes()
 	return msg, nil
 }
 
-// MailSender handles sending of email
-type MailSender interface {
-	Send(*Message) error
+type mailSender interface {
+	send(*message) error
 }
 
 type smtpSender struct {
 	smtp.Auth
-	config *AppConfig
+	config *appConfig
 }
 
-func (s *smtpSender) Send(msg *Message) error {
+func (s *smtpSender) send(msg *message) error {
 	return errgo.Mask(smtp.SendMail(
 		fmt.Sprintf("%s:%d", s.config.SmtpHost, s.config.SmtpPort),
 		s.Auth,
-		msg.From,
-		msg.To,
+		msg.from,
+		msg.to,
 		[]byte(msg.String()),
 	))
 }
 
 type fakeSender struct{}
 
-func (s *fakeSender) Send(msg *Message) error {
+func (s *fakeSender) send(msg *message) error {
 	log.Println(msg)
 	return nil
 }
 
-func newSmtpSender(config *AppConfig) *smtpSender {
+func newSmtpSender(config *appConfig) *smtpSender {
 	s := &smtpSender{config: config}
 	s.Auth = smtp.PlainAuth("",
 		config.SmtpName,
@@ -122,9 +118,8 @@ func newSmtpSender(config *AppConfig) *smtpSender {
 	return s
 }
 
-// NewMailer creates a new Mailer instance
-func NewMailer(config *AppConfig) *Mailer {
-	mailer := &Mailer{config: config}
+func newMailer(config *appConfig) *mailer {
+	mailer := &mailer{config: config}
 	if config.SmtpName == "" {
 		log.Println("WARNING: using fake mailer, messages will not be sent by SMTP. " +
 			"Set SMTP_NAME and SMTP_PASSWORD in environment to enable.")
@@ -137,8 +132,7 @@ func NewMailer(config *AppConfig) *Mailer {
 	return mailer
 }
 
-// SendResetPasswordMail sends email to user to reset their password
-func (m *Mailer) SendResetPasswordMail(user *User, recoveryCode string, r *http.Request) error {
+func (m *mailer) sendResetPasswordMail(user *user, recoveryCode string, r *http.Request) error {
 	msg, err := m.messageFromTemplate(
 		"Reset your password",
 		[]string{user.Email},
@@ -157,11 +151,10 @@ func (m *Mailer) SendResetPasswordMail(user *User, recoveryCode string, r *http.
 	if err != nil {
 		return err
 	}
-	return m.Send(msg)
+	return m.send(msg)
 }
 
-// SendWelcomeMail sends a welcome message to user
-func (m *Mailer) SendWelcomeMail(user *User) error {
+func (m *mailer) sendWelcomeMail(user *user) error {
 	msg, err := m.messageFromTemplate(
 		"Welcome to photoshare!",
 		[]string{user.Email},
@@ -172,5 +165,5 @@ func (m *Mailer) SendWelcomeMail(user *User) error {
 	if err != nil {
 		return err
 	}
-	return m.Send(msg)
+	return m.send(msg)
 }

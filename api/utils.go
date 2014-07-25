@@ -54,7 +54,7 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 		return
 	}
 
-	if err, ok := err.(ValidationFailure); ok {
+	if err, ok := err.(validationFailure); ok {
 		renderJSON(w, err, http.StatusBadRequest)
 		return
 	}
@@ -112,10 +112,10 @@ func intSliceToPgArr(items []int64) string {
 	return "{" + strings.Join(s, ",") + "}"
 }
 
-func getPage(r *http.Request) *Page {
+func getPage(r *http.Request) *page {
 	pageNum, err := strconv.ParseInt(r.FormValue("page"), 10, 64)
 	if err != nil {
 		pageNum = 1
 	}
-	return NewPage(pageNum)
+	return newPage(pageNum)
 }

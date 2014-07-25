@@ -22,14 +22,12 @@ func newContext() web.C {
 	return c
 }
 
-// TestDB represents dummy database connection
-type TestDB struct {
+type testDB struct {
 	DB    *sql.DB
 	dbMap *gorp.DbMap
 }
 
-// Clean resets all database rows
-func (tdb *TestDB) Clean() {
+func (tdb *testDB) clean() {
 	var tables = []string{"photo_tags", "tags", "photos", "users"}
 	for _, table := range tables {
 		if _, err := tdb.dbMap.Exec("DELETE FROM " + table); err != nil {
@@ -39,8 +37,7 @@ func (tdb *TestDB) Clean() {
 	defer tdb.DB.Close()
 }
 
-// MakeTestDB creates new TestDB instance
-func MakeTestDB(config *AppConfig) (tdb *TestDB) {
+func makeTestDB(config *appConfig) (tdb *testDB) {
 	var err error
 
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
@@ -54,10 +51,10 @@ func MakeTestDB(config *AppConfig) (tdb *TestDB) {
 		panic(err)
 	}
 
-	dbMap, err := InitDB(db, false)
+	dbMap, err := initDB(db, false)
 	if err != nil {
 		panic(err)
 	}
 
-	return &TestDB{db, dbMap}
+	return &testDB{db, dbMap}
 }

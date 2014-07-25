@@ -6,43 +6,38 @@ import (
 
 var emailRegex = regexp.MustCompile(".+@.+\\..+")
 
-// ValidationFailure represents a set of validation errors
-type ValidationFailure struct {
+type validationFailure struct {
 	Errors map[string]string `json:"errors"`
 }
 
-func (err ValidationFailure) Error() string {
+func (f validationFailure) Error() string {
 	return "Validation failure"
 }
 
-func validate(validator Validator) error {
+func validate(v validator) error {
 	errors := make(map[string]string)
-	if err := validator.Validate(errors); err != nil {
+	if err := v.validate(errors); err != nil {
 		return err
 	}
 	if len(errors) > 0 {
-		return ValidationFailure{errors}
+		return validationFailure{errors}
 	}
 	return nil
 }
 
-// Validator is a common validation interface
-type Validator interface {
-	Validate(map[string]string) error
+type validator interface {
+	validate(map[string]string) error
 }
 
-// NewPhotoValidator creates a new PhotoValidator instance
-func NewPhotoValidator(photo *Photo) *PhotoValidator {
-	return &PhotoValidator{photo}
+func newPhotoValidator(photo *photo) *photoValidator {
+	return &photoValidator{photo}
 }
 
-// PhotoValidator checks if a photo is valid
-type PhotoValidator struct {
-	photo *Photo
+type photoValidator struct {
+	photo *photo
 }
 
-// Validate does actual validation
-func (v *PhotoValidator) Validate(errors map[string]string) error {
+func (v *photoValidator) validate(errors map[string]string) error {
 	if v.photo.OwnerID == 0 {
 		errors["ownerID"] = "Owner ID is missing"
 	}
@@ -62,24 +57,21 @@ func validateEmail(email string) bool {
 	return emailRegex.Match([]byte(email))
 }
 
-// NewUserValidator creates new UserValidator instance
-func NewUserValidator(user *User, mgr UserDataStore) *UserValidator {
-	return &UserValidator{user, mgr}
+func newUserValidator(user *user, ds userDataStore) *userValidator {
+	return &userValidator{user, ds}
 }
 
-// UserValidator validates user model is correct
-type UserValidator struct {
-	user   *User
-	userDS UserDataStore
+type userValidator struct {
+	user   *user
+	userDS userDataStore
 }
 
-// Validate does actual validation
-func (v *UserValidator) Validate(errors map[string]string) error {
+func (v *userValidator) validate(errors map[string]string) error {
 
 	if v.user.Name == "" {
 		errors["name"] = "Name is missing"
 	} else {
-		ok, err := v.userDS.IsNameAvailable(v.user)
+		ok, err := v.userDS.isNameAvailable(v.user)
 		if err != nil {
 			return err
 		}
@@ -93,7 +85,7 @@ func (v *UserValidator) Validate(errors map[string]string) error {
 	} else if !validateEmail(v.user.Email) {
 		errors["email"] = "Invalid email address"
 	} else {
-		ok, err := v.userDS.IsEmailAvailable(v.user)
+		ok, err := v.userDS.isEmailAvailable(v.user)
 		if err != nil {
 			return err
 		}

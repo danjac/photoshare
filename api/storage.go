@@ -21,9 +21,8 @@ const (
 )
 
 var (
-	allowedContentTypes = []string{"image/png", "image/jpeg"}
-	// ErrInvalidContentType is raised if not a valid image content type
-	ErrInvalidContentType = errors.New("must be PNG or JPG")
+	allowedContentTypes   = []string{"image/png", "image/jpeg"}
+	errInvalidContentType = errors.New("must be PNG or JPG")
 )
 
 func isAllowedContentType(contentType string) bool {
@@ -44,14 +43,12 @@ func generateRandomFilename(contentType string) string {
 	return filename + ".jpg"
 }
 
-// FileStorage handles all file-based operations
-type FileStorage interface {
-	Clean(string) error
-	Store(src multipart.File, contentType string) (string, error)
+type fileStorage interface {
+	clean(string) error
+	store(src multipart.File, contentType string) (string, error)
 }
 
-// NewFileStorage generates new FileStorage instance
-func NewFileStorage(config *AppConfig) FileStorage {
+func newFileStorage(config *appConfig) fileStorage {
 	return &defaultFileStorage{
 		config.UploadsDir,
 		config.ThumbnailsDir,
@@ -62,7 +59,7 @@ type defaultFileStorage struct {
 	uploadsDir, thumbnailsDir string
 }
 
-func (f *defaultFileStorage) Clean(name string) error {
+func (f *defaultFileStorage) clean(name string) error {
 
 	imagePath := path.Join(f.uploadsDir, name)
 	thumbnailPath := path.Join(f.thumbnailsDir, name)
@@ -143,10 +140,10 @@ func (f *defaultFileStorage) saveFiles(filename string, contentType string, src 
 
 }
 
-func (f *defaultFileStorage) Store(src multipart.File, contentType string) (string, error) {
+func (f *defaultFileStorage) store(src multipart.File, contentType string) (string, error) {
 
 	if !isAllowedContentType(contentType) {
-		return "", ErrInvalidContentType
+		return "", errInvalidContentType
 	}
 
 	filename := generateRandomFilename(contentType)

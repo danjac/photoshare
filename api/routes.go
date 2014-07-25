@@ -35,37 +35,36 @@ func (h appHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request) 
 	handleError(w, r, err)
 }
 
-// AppContext tracks all global handler stuff
-type AppContext struct {
-	config     *AppConfig
-	ds         *DataStores
-	mailer     *Mailer
-	fs         FileStorage
-	sessionMgr SessionManager
-	cache      Cache
+type appContext struct {
+	config     *appConfig
+	ds         *dataStores
+	mailer     *mailer
+	fs         fileStorage
+	sessionMgr sessionManager
+	cache      cache
 }
 
-// NewAppContext creates new AppContext instance
-func NewAppContext(config *AppConfig, dbMap *gorp.DbMap) (*AppContext, error) {
+// newAppContext creates new AppContext instance
+func newAppContext(config *appConfig, dbMap *gorp.DbMap) (*appContext, error) {
 
-	photoDS := NewPhotoDataStore(dbMap)
-	userDS := NewUserDataStore(dbMap)
+	photoDS := newPhotoDataStore(dbMap)
+	userDS := newUserDataStore(dbMap)
 
-	ds := &DataStores{
+	ds := &dataStores{
 		photos: photoDS,
 		users:  userDS,
 	}
 
-	fs := NewFileStorage(config)
-	mailer := NewMailer(config)
-	cache := NewCache(config)
+	fs := newFileStorage(config)
+	mailer := newMailer(config)
+	cache := newCache(config)
 
-	sessionMgr, err := NewSessionManager(config)
+	sessionMgr, err := newSessionManager(config)
 	if err != nil {
 		return nil, err
 	}
 
-	a := &AppContext{
+	a := &appContext{
 		config:     config,
 		ds:         ds,
 		fs:         fs,
@@ -76,10 +75,9 @@ func NewAppContext(config *AppConfig, dbMap *gorp.DbMap) (*AppContext, error) {
 	return a, nil
 }
 
-// GetRouter generates a new set of routes
-func GetRouter(config *AppConfig, dbMap *gorp.DbMap) (*web.Mux, error) {
+func getRouter(config *appConfig, dbMap *gorp.DbMap) (*web.Mux, error) {
 
-	a, err := NewAppContext(config, dbMap)
+	a, err := newAppContext(config, dbMap)
 	if err != nil {
 		return nil, err
 	}

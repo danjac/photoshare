@@ -14,7 +14,7 @@ func photoFeed(w http.ResponseWriter,
 	title string,
 	description string,
 	link string,
-	photos *PhotoList) error {
+	photos *photoList) error {
 
 	baseURL := baseURL(r)
 
@@ -44,9 +44,9 @@ func photoFeed(w http.ResponseWriter,
 	return nil
 }
 
-func (a *AppContext) latestFeed(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *appContext) latestFeed(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
-	photos, err := a.ds.photos.All(NewPage(1), "")
+	photos, err := a.ds.photos.all(newPage(1), "")
 
 	if err != nil {
 		return err
@@ -55,9 +55,9 @@ func (a *AppContext) latestFeed(_ web.C, w http.ResponseWriter, r *http.Request)
 	return photoFeed(w, r, "Latest photos", "Most recent photos", "/latest", photos)
 }
 
-func (a *AppContext) popularFeed(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *appContext) popularFeed(_ web.C, w http.ResponseWriter, r *http.Request) error {
 
-	photos, err := a.ds.photos.All(NewPage(1), "votes")
+	photos, err := a.ds.photos.all(newPage(1), "votes")
 
 	if err != nil {
 		return err
@@ -66,9 +66,9 @@ func (a *AppContext) popularFeed(_ web.C, w http.ResponseWriter, r *http.Request
 	return photoFeed(w, r, "Popular photos", "Most upvoted photos", "/popular", photos)
 }
 
-func (a *AppContext) ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *appContext) ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) error {
 	ownerID := getIntParam(c, "ownerID")
-	owner, err := a.ds.users.GetActive(ownerID)
+	owner, err := a.ds.users.getActive(ownerID)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (a *AppContext) ownerFeed(c web.C, w http.ResponseWriter, r *http.Request) 
 	description := "List of feeds for " + owner.Name
 	link := fmt.Sprintf("/owner/%d/%s", ownerID, owner.Name)
 
-	photos, err := a.ds.photos.ByOwnerID(NewPage(1), ownerID)
+	photos, err := a.ds.photos.byOwnerID(newPage(1), ownerID)
 
 	if err != nil {
 		return err

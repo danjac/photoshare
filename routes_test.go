@@ -38,7 +38,7 @@ func (m *mockCache) render(w http.ResponseWriter, status int, key string, fn fun
 type mockSessionManager struct {
 }
 
-func (m *mockSessionManager) readToken(r *http.Request) (int64, error) {
+func (m *mockSessionManager) readToken(r *request) (int64, error) {
 	return 0, nil
 }
 
@@ -122,7 +122,7 @@ func (m *emptyPhotoDataStore) getDetail(photoID int64, user *user) (*photoDetail
 
 // should return a 404
 func TestGetPhotoDetailIfNone(t *testing.T) {
-	req := &http.Request{}
+	req := &request{&http.Request{}}
 	res := httptest.NewRecorder()
 	c := web.C{}
 	c.Env = make(map[string]interface{})
@@ -140,7 +140,8 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 
 func TestGetPhotoDetail(t *testing.T) {
 
-	req, _ := http.NewRequest("GET", "http://localhost/api/photos/1", nil)
+	r, _ := http.NewRequest("GET", "http://localhost/api/photos/1", nil)
+	req := &request{r}
 	res := httptest.NewRecorder()
 	c := web.C{}
 	c.Env = make(map[string]interface{})
@@ -170,7 +171,7 @@ func TestGetPhotoDetail(t *testing.T) {
 
 func TestGetPhotos(t *testing.T) {
 
-	req := &http.Request{}
+	req := &request{&http.Request{}}
 	res := httptest.NewRecorder()
 
 	a := &appContext{

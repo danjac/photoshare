@@ -15,7 +15,7 @@ const (
 )
 
 type sessionManager interface {
-	readToken(*http.Request) (int64, error)
+	readToken(*request) (int64, error)
 	writeToken(http.ResponseWriter, int64) error
 }
 
@@ -37,7 +37,7 @@ type defaultSessionManager struct {
 	verifyKey, signKey []byte
 }
 
-func (m *defaultSessionManager) readToken(r *http.Request) (int64, error) {
+func (m *defaultSessionManager) readToken(r *request) (int64, error) {
 	tokenString := r.Header.Get(tokenHeader)
 	if tokenString == "" {
 		return 0, nil

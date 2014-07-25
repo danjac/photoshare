@@ -22,7 +22,7 @@ func newSessionInfo(user *user) *sessionInfo {
 	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
-func (a *appContext) authenticate(c web.C, r *http.Request, required bool) (*user, error) {
+func (a *appContext) authenticate(c web.C, r *request, required bool) (*user, error) {
 
 	var (
 		u            *user
@@ -59,7 +59,7 @@ func (a *appContext) authenticate(c web.C, r *http.Request, required bool) (*use
 	return u, nil
 }
 
-func (a *appContext) logout(c web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *appContext) logout(c web.C, w http.ResponseWriter, r *request) error {
 
 	u, err := a.authenticate(c, r, true)
 	if err != nil {
@@ -75,7 +75,7 @@ func (a *appContext) logout(c web.C, w http.ResponseWriter, r *http.Request) err
 
 }
 
-func (a *appContext) getSessionInfo(c web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *appContext) getSessionInfo(c web.C, w http.ResponseWriter, r *request) error {
 
 	user, err := a.authenticate(c, r, false)
 	if err != nil {
@@ -85,7 +85,7 @@ func (a *appContext) getSessionInfo(c web.C, w http.ResponseWriter, r *http.Requ
 	return renderJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
-func (a *appContext) login(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *appContext) login(_ web.C, w http.ResponseWriter, r *request) error {
 
 	s := &struct {
 		Identifier string `json:"identifier"`
@@ -94,7 +94,7 @@ func (a *appContext) login(_ web.C, w http.ResponseWriter, r *http.Request) erro
 
 	var invalidLogin = &httpError{http.StatusBadRequest, "Invalid email or password"}
 
-	if err := decodeJSON(r, s); err != nil {
+	if err := r.decodeJSON(s); err != nil {
 		return err
 	}
 
@@ -123,7 +123,7 @@ func (a *appContext) login(_ web.C, w http.ResponseWriter, r *http.Request) erro
 	return renderJSON(w, newSessionInfo(user), http.StatusCreated)
 }
 
-func (a *appContext) signup(c web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *appContext) signup(c web.C, w http.ResponseWriter, r *request) error {
 
 	s := &struct {
 		Name     string `json:"name"`
@@ -131,7 +131,7 @@ func (a *appContext) signup(c web.C, w http.ResponseWriter, r *http.Request) err
 		Password string `json:"password"`
 	}{}
 
-	if err := decodeJSON(r, s); err != nil {
+	if err := r.decodeJSON(s); err != nil {
 		return err
 	}
 
@@ -165,7 +165,7 @@ func (a *appContext) signup(c web.C, w http.ResponseWriter, r *http.Request) err
 
 }
 
-func (a *appContext) changePassword(c web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *appContext) changePassword(c web.C, w http.ResponseWriter, r *request) error {
 
 	var (
 		user *user
@@ -177,7 +177,7 @@ func (a *appContext) changePassword(c web.C, w http.ResponseWriter, r *http.Requ
 		RecoveryCode string `json:"code"`
 	}{}
 
-	if err = decodeJSON(r, s); err != nil {
+	if err = r.decodeJSON(s); err != nil {
 		return err
 	}
 
@@ -203,13 +203,13 @@ func (a *appContext) changePassword(c web.C, w http.ResponseWriter, r *http.Requ
 	return renderString(w, http.StatusOK, "Password changed")
 }
 
-func (a *appContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Request) error {
+func (a *appContext) recoverPassword(_ web.C, w http.ResponseWriter, r *request) error {
 
 	s := &struct {
 		Email string `json:"email"`
 	}{}
 
-	if err := decodeJSON(r, s); err != nil {
+	if err := r.decodeJSON(s); err != nil {
 		return err
 	}
 	if s.Email == "" {

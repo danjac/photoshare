@@ -59,5 +59,9 @@ body { padding-top: 70px; }
 }
 
 .navbar-form  {
-  padding-top: 6px;
+    padding-top: 6px;
+}
+
+.tag-control-box {
+    padding-bottom: 10px;
 }

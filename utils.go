@@ -2,7 +2,6 @@ package photoshare
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/juju/errgo"
 	"github.com/zenazn/goji/web"
 	"net/http"
@@ -28,21 +27,6 @@ func renderJSON(w http.ResponseWriter, value interface{}, status int) error {
 
 func renderString(w http.ResponseWriter, status int, msg string) error {
 	return writeBody(w, []byte(msg), status, "text/plain")
-}
-
-func decodeJSON(r *http.Request, value interface{}) error {
-	return errgo.Mask(json.NewDecoder(r.Body).Decode(value))
-}
-
-func scheme(r *http.Request) string {
-	if r.TLS == nil {
-		return "http"
-	}
-	return "https"
-}
-
-func baseURL(r *http.Request) string {
-	return fmt.Sprintf("%s://%s", scheme(r), r.Host)
 }
 
 func getIntParam(c web.C, name string) int64 {
@@ -71,12 +55,4 @@ func intSliceToPgArr(items []int64) string {
 		s = append(s, strconv.FormatInt(value, 10))
 	}
 	return "{" + strings.Join(s, ",") + "}"
-}
-
-func getPage(r *http.Request) *page {
-	pageNum, err := strconv.ParseInt(r.FormValue("page"), 10, 64)
-	if err != nil {
-		pageNum = 1
-	}
-	return newPage(pageNum)
 }

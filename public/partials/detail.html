@@ -1,31 +1,25 @@
 <div class="row" ng-show="pageLoaded">
-<h2 class="col-md-9" ng-click="showEditForm()" ng-show="!editTitle">{{photo.title}}</h2>
-<div class="button-group col-md-3 pull-right" ng-show="!editTitle">
-  <button type="button" class="btn btn-default"  ng-show="photo.perms.edit" ng-click="showEditForm()"> <span class="glyphicon glyphicon-pencil"></span></button>
-  <button type="button" class="btn btn-default" ng-show="photo.perms.vote" ng-click="voteUp()"><span class="glyphicon glyphicon-thumbs-up"></span></button>
-  <button type="button" class="btn btn-default" ng-show="photo.perms.vote" ng-click="voteDown()"><span class="glyphicon glyphicon-thumbs-down"></span></button>
-  <button type="button" ng-show="photo.perms.delete" class="btn btn-danger" ng-click="deletePhoto()"><span class="glyphicon glyphicon-remove"></span></button>
-</div>
+    <h2 class="col-md-9" ng-click="showEditForm()" ng-show="!editTitle">{{photo.title}}</h2>
+    <div class="button-group col-md-3 pull-right" ng-show="!editTitle">
+        <button type="button" class="btn btn-default" ng-show="photo.perms.edit" ng-click="showEditForm()"> <span class="glyphicon glyphicon-pencil"></span>
+        </button>
+        <button type="button" class="btn btn-default" ng-show="photo.perms.vote" ng-click="voteUp()"><span class="glyphicon glyphicon-thumbs-up"></span>
+        </button>
+        <button type="button" class="btn btn-default" ng-show="photo.perms.vote" ng-click="voteDown()"><span class="glyphicon glyphicon-thumbs-down"></span>
+        </button>
+        <button type="button" ng-show="photo.perms.delete" class="btn btn-danger" ng-click="deletePhoto()"><span class="glyphicon glyphicon-remove"></span>
+        </button>
+    </div>
 
 </div>
-    <form role="form"
-          action=""
-          name="form"
-          ng-show="editTitle"
-          novalidate>
-          <div class="form-group" ng-class="{'has-error': formErrors.title }">
-          <input type="text" class="form-control" ng-model="photo.title" required="required">
-          <span class="help-block" ng-show="formErrors.title">{{formErrors.title}}</span>
-      </div>
-          <button type="submit"
-                  class="btn btn-primary"
-                  ng-click="updateTitle()"
-                  ng-disabled="form.$invalid">Save</button>
-          <button type="cancel"
-                  class="btn btn-default"
-                  ng-disabled="form.$invalid"
-                  ng-click="hideEditForm()">Cancel</button>
-      </form>
+<form role="form" action="" name="form" ng-show="editTitle" novalidate>
+    <div class="form-group" ng-class="{'has-error': formErrors.title }">
+        <input type="text" class="form-control" ng-model="photo.title" required="required">
+        <span class="help-block" ng-show="formErrors.title">{{formErrors.title}}</span>
+    </div>
+    <button type="submit" class="btn btn-primary" ng-click="updateTitle()" ng-disabled="form.$invalid">Save</button>
+    <button type="cancel" class="btn btn-default" ng-disabled="form.$invalid" ng-click="hideEditForm()">Cancel</button>
+</form>
 
 <hr>
 <h3 ng-show="pageLoaded">
@@ -58,23 +52,24 @@
 <div class="row" ng-show="pageLoaded">
     <div class="col-xs-6 col-md-3">
         <a target="_blank" class="thumbnail" title="{{photo.title}}" ng-href="uploads/{{photo.photo}}">
-            <img alt="{{photo.title}}" ng-src="uploads/thumbnails/{{photo.photo}}" />
+            <img alt="{{photo.title}}" ng-src="uploads/thumbnails/{{photo.photo}}" err-src="img/image-loading.png" />
         </a>
         <div class="btn-group">
 
-      </div>
+        </div>
     </div>
     <div class="col-xs-6">
         <dl>
-          <dt>Score <span class="badge">{{photo.score}}</span></dt>
-          <dd>
-            <span class="glyphicon glyphicon-thumbs-up" ng-click="voteUp()"></span> {{photo.upVotes}}
-            <span class="glyphicon glyphicon-thumbs-down" ng-click="voteDown()"></span> {{photo.downVotes}}
-          </dd>
-          <dt>Uploaded by</dt>
-            <dd><a href="#/owner/{{photo.ownerId}}/{{photo.ownerName}}">{{photo.ownerName}}</a></dd>        	<dt>Uploaded on</dt>
+            <dt>Score <span class="badge">{{photo.score}}</span></dt>
+            <dd>
+                <span class="glyphicon glyphicon-thumbs-up" ng-click="voteUp()"></span> {{photo.upVotes}}
+                <span class="glyphicon glyphicon-thumbs-down" ng-click="voteDown()"></span> {{photo.downVotes}}
+            </dd>
+            <dt>Uploaded by</dt>
+            <dd><a href="#/owner/{{photo.ownerId}}/{{photo.ownerName}}">{{photo.ownerName}}</a>
+            </dd>	<dt>Uploaded on</dt>
             <dd>{{photo.createdAt|date:"dd/MM/yyyy"}}</dd>
-          </dl>
+        </dl>
 
     </div>
 </div>

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/juju/errgo"
 	"log"
-	"net/http"
 	"net/smtp"
 	"path"
 	"strings"
@@ -132,7 +131,7 @@ func newMailer(config *appConfig) *mailer {
 	return mailer
 }
 
-func (m *mailer) sendResetPasswordMail(user *user, recoveryCode string, r *http.Request) error {
+func (m *mailer) sendResetPasswordMail(user *user, recoveryCode string, r *request) error {
 	msg, err := m.messageFromTemplate(
 		"Reset your password",
 		[]string{user.Email},
@@ -145,7 +144,7 @@ func (m *mailer) sendResetPasswordMail(user *user, recoveryCode string, r *http.
 		}{
 			user.Name,
 			recoveryCode,
-			baseURL(r),
+			r.baseURL(),
 		},
 	)
 	if err != nil {

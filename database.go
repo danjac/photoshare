@@ -47,7 +47,6 @@ type defaultPhotoDataStore struct {
 	dbMap *gorp.DbMap
 }
 
-// NewphotoDataStore creates new photoDataStore instance
 func newPhotoDataStore(dbMap *gorp.DbMap) photoDataStore {
 	return &defaultPhotoDataStore{dbMap}
 }

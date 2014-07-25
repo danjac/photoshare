@@ -7,14 +7,14 @@ import (
 	"net/http"
 )
 
-type appHandler func(c web.C, w http.ResponseWriter, r *http.Request) error
+type appHandler func(c web.C, w http.ResponseWriter, r *request) error
 
 func (h appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := h(web.C{}, w, r)
+	err := h(web.C{}, w, &request{r})
 	handleError(w, r, err)
 }
 func (h appHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request) {
-	err := h(c, w, r)
+	err := h(c, w, &request{r})
 	handleError(w, r, err)
 }
 

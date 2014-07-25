@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	pageSize               = 12
+	pageSize               = 20
 	recoveryCodeLength     = 30
 	recoveryCodeCharacters = "abcdefghijklmnopqrstuvwxyz0123456789"
 )

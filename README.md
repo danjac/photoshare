@@ -34,3 +34,5 @@ You need Go (1.3), node.js/npm and PostgreSQL (9.1+).
 - `./server`
 
 Tested on Chrome and Firefox 30+.
+
+Loading image (img/image-loading.png) created using http://dummyimage.com/

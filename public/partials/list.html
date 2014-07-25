@@ -1,13 +1,13 @@
 <div class="row-fluid">
-	<div ng-show="showHeader" ng-class="{'col-md-6': showPagination, 'col-md-12': !showPagination }">
-	<h2 ng-show="pageLoaded && tag"><ng-pluralize count="total" when="{'one': 'One photo', 'other': '{{total}} photos'}"></ng-pluralize> tagged #{{ tag }}</h2>
-	<h2 ng-show="pageLoaded && ownerName"><ng-pluralize count="total" when="{'one': 'One photo', 'other': '{{total}} photos'}"></ng-pluralize> uploaded by {{ ownerName }}</h2>
-	<h2 ng-show="pageLoaded && searchQuery"><ng-pluralize count="total" when="{'0': 'No results', 'one': 'One result', 'other': '{{total}} results'}"></ng-pluralize> for '{{ searchQuery }}'</h2>
-	</div>
+    <div ng-show="showHeader" ng-class="{'col-md-6': showPagination, 'col-md-12': !showPagination }">
+        <h2 ng-show="pageLoaded && tag"><ng-pluralize count="total" when="{'one': 'One photo', 'other': '{{total}} photos'}"></ng-pluralize> tagged #{{ tag }}</h2>
+        <h2 ng-show="pageLoaded && ownerName"><ng-pluralize count="total" when="{'one': 'One photo', 'other': '{{total}} photos'}"></ng-pluralize> uploaded by {{ ownerName }}</h2>
+        <h2 ng-show="pageLoaded && searchQuery"><ng-pluralize count="total" when="{'0': 'No results', 'one': 'One result', 'other': '{{total}} results'}"></ng-pluralize> for '{{ searchQuery }}'</h2>
+    </div>
 
-	<div ng-class="{'col-md-6': showHeader, 'col-md-12': !showHeader}" ng-show="showPagination">
-		<pagination class="pull-right" num-pages="numPages" current-page="currentPage" on-next-page="nextPage" />
-	</div>
+    <div ng-class="{'col-md-6': showHeader, 'col-md-12': !showHeader}" ng-show="showPagination">
+        <pagination class="pull-right" num-pages="numPages" current-page="currentPage" on-next-page="nextPage" />
+    </div>
 
 </div>
 
@@ -17,17 +17,17 @@
 <div class="row-fluid" ng-show="photos.length && pageLoaded">
     <div ng-repeat="photo in photos" class="col-xs-6 col-md-3">
         <div class="thumbnail" ng-click="getDetail(photo)">
-            <img alt="{{photo.title}}" class="img-responsive" ng-src="uploads/thumbnails/{{photo.photo}}" />
+            <img alt="{{photo.title}}" class="img-responsive" ng-src="uploads/thumbnails/{{photo.photo}}" err-src="img/image-loading.png" />
             <div class="caption">
                 <h3>{{photo.title}}</h3>
-           </div>
+            </div>
         </div>
     </div>
 </div>
 
 
 <div class="row-fluid" ng-show="showPagination">
-	<div class="col-md-12">
-		<pagination class="pull-right" num-pages="numPages" current-page="currentPage" on-next-page="nextPage" />
-	</div>
+    <div class="col-md-12">
+        <pagination class="pull-right" num-pages="numPages" current-page="currentPage" on-next-page="nextPage" />
+    </div>
 </div>

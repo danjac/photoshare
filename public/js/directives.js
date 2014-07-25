@@ -3,6 +3,17 @@
 (function() {
     'use strict';
     angular.module('photoshare.directives', []).
+    directive('errSrc', function() {
+        return {
+            link: function(scope, element, attrs) {
+                element.bind('error', function() {
+                    if (attrs.src != attrs.errSrc) {
+                        attrs.$set('src', attrs.errSrc);
+                    };
+                });
+            }
+        }
+    }).
     directive('filesModel', function() {
         /* https://github.com/angular/angular.js/issues/1375#issuecomment-21933012 */
         return {

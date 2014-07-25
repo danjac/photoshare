@@ -23,7 +23,7 @@ func (a *appContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 	if !photo.canDelete(user) {
 		return &httpError{http.StatusForbidden, "You're not allowed to delete this photo"}
 	}
-	if err := a.ds.photos.delete(photo); err != nil {
+	if err := a.ds.photos.remove(photo); err != nil {
 		return err
 	}
 
@@ -173,7 +173,7 @@ func (a *appContext) upload(c web.C, w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	if err := a.ds.photos.insert(photo); err != nil {
+	if err := a.ds.photos.create(photo); err != nil {
 		return err
 	}
 

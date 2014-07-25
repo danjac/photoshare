@@ -145,7 +145,7 @@ func (a *appContext) signup(c web.C, w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	if err := a.ds.users.insert(user); err != nil {
+	if err := a.ds.users.create(user); err != nil {
 		return err
 	}
 

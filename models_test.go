@@ -16,12 +16,12 @@ func TestGetIfNotNone(t *testing.T) {
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
 
-	if err := userDS.insert(user); err != nil {
+	if err := userDS.create(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := photoDS.insert(photo); err != nil {
+	if err := photoDS.create(photo); err != nil {
 		t.Error(err)
 		return
 	}
@@ -56,12 +56,12 @@ func TestSearchPhotos(t *testing.T) {
 	userDS := newUserDataStore(tdb.dbMap)
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	if err := userDS.insert(user); err != nil {
+	if err := userDS.create(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := photoDS.insert(photo); err != nil {
+	if err := photoDS.create(photo); err != nil {
 		t.Error(err)
 		return
 	}
@@ -84,12 +84,12 @@ func TestAllPhotos(t *testing.T) {
 	userDS := newUserDataStore(tdb.dbMap)
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	if err := userDS.insert(user); err != nil {
+	if err := userDS.create(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := photoDS.insert(photo); err != nil {
+	if err := photoDS.create(photo); err != nil {
 		t.Error(err)
 		return
 	}

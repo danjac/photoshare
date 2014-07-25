@@ -31,9 +31,9 @@ type dataStores struct {
 }
 
 type photoDataStore interface {
-	insert(*photo) error
+	create(*photo) error
 	update(*photo) error
-	delete(*photo) error
+	remove(*photo) error
 	get(int64) (*photo, error)
 	getDetail(int64, *user) (*photoDetail, error)
 	getTagCounts() ([]tagCount, error)
@@ -52,7 +52,7 @@ func newPhotoDataStore(dbMap *gorp.DbMap) photoDataStore {
 	return &defaultPhotoDataStore{dbMap}
 }
 
-func (ds *defaultPhotoDataStore) delete(photo *photo) error {
+func (ds *defaultPhotoDataStore) remove(photo *photo) error {
 	_, err := ds.dbMap.Delete(photo)
 	return errgo.Mask(err)
 }
@@ -62,7 +62,7 @@ func (ds *defaultPhotoDataStore) update(photo *photo) error {
 	return errgo.Mask(err)
 }
 
-func (ds *defaultPhotoDataStore) insert(photo *photo) error {
+func (ds *defaultPhotoDataStore) create(photo *photo) error {
 	t, err := ds.dbMap.Begin()
 	if err != nil {
 		return errgo.Mask(err)
@@ -284,7 +284,7 @@ func (ds *defaultPhotoDataStore) getTagCounts() ([]tagCount, error) {
 }
 
 type userDataStore interface {
-	insert(user *user) error
+	create(user *user) error
 	update(user *user) error
 	isNameAvailable(user *user) (bool, error)
 	isEmailAvailable(user *user) (bool, error)
@@ -302,7 +302,7 @@ type defaultUserDataStore struct {
 	dbMap *gorp.DbMap
 }
 
-func (ds *defaultUserDataStore) insert(user *user) error {
+func (ds *defaultUserDataStore) create(user *user) error {
 	return errgo.Mask(ds.dbMap.Insert(user))
 }
 

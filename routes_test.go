@@ -95,11 +95,11 @@ func (m *mockPhotoDataStore) getTagCounts() ([]tagCount, error) {
 	return []tagCount{}, nil
 }
 
-func (m *mockPhotoDataStore) delete(photo *photo) error {
+func (m *mockPhotoDataStore) remove(photo *photo) error {
 	return nil
 }
 
-func (m *mockPhotoDataStore) insert(photo *photo) error {
+func (m *mockPhotoDataStore) create(photo *photo) error {
 	return nil
 }
 

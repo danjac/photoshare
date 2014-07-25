@@ -1,20 +1,14 @@
 package api
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/juju/errgo"
 	"github.com/zenazn/goji/web"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 )
-
-func isErrSqlNoRows(err error) bool {
-	return err == sql.ErrNoRows || err.(*errgo.Err).Underlying() == sql.ErrNoRows
-}
 
 func writeBody(w http.ResponseWriter, body []byte, status int, contentType string) error {
 	w.Header().Set("Content-Type", contentType+"; charset=UTF8")
@@ -34,39 +28,6 @@ func renderJSON(w http.ResponseWriter, value interface{}, status int) error {
 
 func renderString(w http.ResponseWriter, status int, msg string) error {
 	return writeBody(w, []byte(msg), status, "text/plain")
-}
-
-func logError(err error) {
-	s := fmt.Sprintf("Error:%s", err)
-	if err, ok := err.(errgo.Locationer); ok {
-		s += fmt.Sprintf(" %s", err.Location())
-	}
-	log.Println(s)
-}
-
-func handleError(w http.ResponseWriter, r *http.Request, err error) {
-	if err == nil {
-		return
-	}
-
-	if err, ok := err.(HTTPError); ok {
-		http.Error(w, err.Error(), err.Status)
-		return
-	}
-
-	if err, ok := err.(validationFailure); ok {
-		renderJSON(w, err, http.StatusBadRequest)
-		return
-	}
-
-	if isErrSqlNoRows(err) {
-		http.NotFound(w, r)
-		return
-	}
-
-	logError(err)
-
-	http.Error(w, "Sorry, an error occurred", http.StatusInternalServerError)
 }
 
 func decodeJSON(r *http.Request, value interface{}) error {

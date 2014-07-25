@@ -7,23 +7,6 @@ import (
 	"net/http"
 )
 
-// HTTPError is a wrapper for all HTTP-based errors
-type HTTPError struct {
-	Status      int
-	Description string
-}
-
-func (h HTTPError) Error() string {
-	if h.Description == "" {
-		return http.StatusText(h.Status)
-	}
-	return h.Description
-}
-
-func httpError(status int, description string) HTTPError {
-	return HTTPError{status, description}
-}
-
 type appHandler func(c web.C, w http.ResponseWriter, r *http.Request) error
 
 func (h appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

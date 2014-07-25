@@ -21,8 +21,7 @@ func (a *appContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 	}
 
 	if !photo.canDelete(user) {
-		return httpError(http.StatusForbidden, "You're not allowed to delete this photo")
-
+		return &httpError{http.StatusForbidden, "You're not allowed to delete this photo"}
 	}
 	if err := a.ds.photos.delete(photo); err != nil {
 		return err
@@ -69,7 +68,7 @@ func (a *appContext) getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Requ
 	}
 
 	if !photo.canEdit(user) {
-		return photo, httpError(http.StatusForbidden, "You're not allowed to edit this photo")
+		return photo, &httpError{http.StatusForbidden, "You're not allowed to edit this photo"}
 	}
 	return photo, nil
 }
@@ -147,7 +146,7 @@ func (a *appContext) upload(c web.C, w http.ResponseWriter, r *http.Request) err
 	src, hdr, err := r.FormFile("photo")
 	if err != nil {
 		if err == http.ErrMissingFile || err == http.ErrNotMultipart {
-			return httpError(http.StatusBadRequest, "Invalid photo")
+			return &httpError{http.StatusBadRequest, "Invalid photo"}
 		}
 		return err
 	}
@@ -159,7 +158,7 @@ func (a *appContext) upload(c web.C, w http.ResponseWriter, r *http.Request) err
 
 	if err != nil {
 		if err == errInvalidContentType {
-			return httpError(http.StatusBadRequest, err.Error())
+			return &httpError{http.StatusBadRequest, err.Error()}
 		}
 		return err
 	}
@@ -269,7 +268,7 @@ func (a *appContext) vote(c web.C, w http.ResponseWriter, r *http.Request, fn fu
 	}
 
 	if !photo.canVote(user) {
-		return httpError(http.StatusForbidden, "You're not allowed to vote on this photo")
+		return &httpError{http.StatusForbidden, "You're not allowed to vote on this photo"}
 	}
 
 	fn(photo)

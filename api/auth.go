@@ -30,7 +30,7 @@ func (a *appContext) authenticate(c web.C, r *http.Request, required bool) (*use
 	)
 
 	if required {
-		invalidLogin = httpError(http.StatusUnauthorized, "You must be logged in")
+		invalidLogin = &httpError{http.StatusUnauthorized, "You must be logged in"}
 	}
 
 	obj, ok := c.Env["user"]
@@ -92,7 +92,7 @@ func (a *appContext) login(_ web.C, w http.ResponseWriter, r *http.Request) erro
 		Password   string `json:"password"`
 	}{}
 
-	var invalidLogin = httpError(http.StatusBadRequest, "Invalid email or password")
+	var invalidLogin = &httpError{http.StatusBadRequest, "Invalid email or password"}
 
 	if err := decodeJSON(r, s); err != nil {
 		return err
@@ -213,12 +213,12 @@ func (a *appContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Req
 		return err
 	}
 	if s.Email == "" {
-		return httpError(http.StatusBadRequest, "Missing email address")
+		return &httpError{http.StatusBadRequest, "Missing email address"}
 	}
 	user, err := a.ds.users.getByEmail(s.Email)
 	if err != nil {
 		if isErrSqlNoRows(err) {
-			return httpError(http.StatusBadRequest, "Email address not found")
+			return &httpError{http.StatusBadRequest, "Email address not found"}
 		}
 		return err
 	}

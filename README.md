@@ -31,6 +31,7 @@ You need Go (1.3), node.js/npm and PostgreSQL (9.1+).
 - `go get goose`
 - Copy and edit db/db.yml.sample to point to the correct databases.
 - `goose -env=development up`
-- `./photoshare`
+- `cd commands/server && go build`
+- `./commands/server/server'
 
 Tested on Chrome and Firefox 30+.

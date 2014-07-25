@@ -49,7 +49,7 @@ func handleError(w http.ResponseWriter, r *http.Request, err error) {
 		return
 	}
 
-	if err, ok := err.(HttpError); ok {
+	if err, ok := err.(HTTPError); ok {
 		http.Error(w, err.Error(), err.Status)
 		return
 	}

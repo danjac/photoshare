@@ -11,7 +11,7 @@ import (
 
 // unit test helper functions
 
-func parseJsonBody(res *httptest.ResponseRecorder, value interface{}) error {
+func parseJSONBody(res *httptest.ResponseRecorder, value interface{}) error {
 	return json.Unmarshal([]byte(res.Body.String()), value)
 }
 
@@ -22,11 +22,13 @@ func newContext() web.C {
 	return c
 }
 
+// TestDB represents dummy database connection
 type TestDB struct {
 	DB    *sql.DB
 	dbMap *gorp.DbMap
 }
 
+// Clean resets all database rows
 func (tdb *TestDB) Clean() {
 	var tables = []string{"photo_tags", "tags", "photos", "users"}
 	for _, table := range tables {
@@ -37,6 +39,7 @@ func (tdb *TestDB) Clean() {
 	defer tdb.DB.Close()
 }
 
+// MakeTestDB creates new TestDB instance
 func MakeTestDB(config *AppConfig) (tdb *TestDB) {
 	var err error
 

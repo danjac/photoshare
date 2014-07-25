@@ -9,6 +9,7 @@ import (
 
 var pub pubsub.Publisher
 
+// SocketMessage represents info to be sent
 type SocketMessage struct {
 	Sender   string `json:"sender"`
 	Receiver string `json:"receiver"`

@@ -157,7 +157,7 @@ func (a *AppContext) upload(c web.C, w http.ResponseWriter, r *http.Request) err
 	filename, err := a.fs.Store(src, contentType)
 
 	if err != nil {
-		if err == InvalidContentType {
+		if err == ErrInvalidContentType {
 			return httpError(http.StatusBadRequest, err.Error())
 		}
 		return err
@@ -244,11 +244,11 @@ func (a *AppContext) getTags(_ web.C, w http.ResponseWriter, r *http.Request) er
 }
 
 func (a *AppContext) voteDown(c web.C, w http.ResponseWriter, r *http.Request) error {
-	return a.vote(c, w, r, func(photo *Photo) { photo.DownVotes += 1 })
+	return a.vote(c, w, r, func(photo *Photo) { photo.DownVotes++ })
 }
 
 func (a *AppContext) voteUp(c web.C, w http.ResponseWriter, r *http.Request) error {
-	return a.vote(c, w, r, func(photo *Photo) { photo.UpVotes += 1 })
+	return a.vote(c, w, r, func(photo *Photo) { photo.UpVotes++ })
 }
 
 func (a *AppContext) vote(c web.C, w http.ResponseWriter, r *http.Request, fn func(photo *Photo)) error {

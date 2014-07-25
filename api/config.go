@@ -7,6 +7,7 @@ import (
 	"path"
 )
 
+// AppConfig contains all the environment-based configuration settings for the application
 type AppConfig struct {
 	DBName     string `env:"key=DB_NAME required=true"`
 	DBUser     string `env:"key=DB_USER required=true"`
@@ -41,6 +42,7 @@ type AppConfig struct {
 	ServerPort int `env:"key=PORT default=5000"`
 }
 
+// NewAppConfig reads configuration from environment and creates a new AppConfig instance
 func NewAppConfig() (*AppConfig, error) {
 
 	config := &AppConfig{}
@@ -66,7 +68,7 @@ func NewAppConfig() (*AppConfig, error) {
 	}
 
 	if config.TestDBName == config.DBName {
-		return config, errors.New("Test DB name same as DB name")
+		return config, errors.New("test DB name same as DB name")
 	}
 
 	if config.BaseDir == "" {

@@ -156,7 +156,7 @@ func TestGetPhotoDetail(t *testing.T) {
 
 	a.photoDetail(c, res, req)
 	value := &PhotoDetail{}
-	parseJsonBody(res, value)
+	parseJSONBody(res, value)
 	if res.Code != 200 {
 		t.Fatal("Photo not found")
 	}
@@ -180,7 +180,7 @@ func TestGetPhotos(t *testing.T) {
 
 	a.getPhotos(web.C{}, res, req)
 	value := &PhotoList{}
-	parseJsonBody(res, value)
+	parseJSONBody(res, value)
 	if value.Total != 1 {
 		t.Fail()
 	}

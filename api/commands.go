@@ -8,6 +8,7 @@ import (
 	"runtime"
 )
 
+// Serve runs the HTTP server
 func Serve() {
 
 	config, err := NewAppConfig()

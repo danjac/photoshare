@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"github.com/coopernurse/gorp"
 	"github.com/juju/errgo"
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // PostgreSQL library
 	"log"
 	"os"
 	"strings"
 )
 
+// InitDB creates a new database map
 func InitDB(db *sql.DB, logSql bool) (*gorp.DbMap, error) {
 	dbMap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
 
@@ -25,11 +26,13 @@ func InitDB(db *sql.DB, logSql bool) (*gorp.DbMap, error) {
 	return dbMap, nil
 }
 
+// DataStores contains all the different DataStore instances
 type DataStores struct {
 	photos PhotoDataStore
 	users  UserDataStore
 }
 
+// PhotoDataStore manages all interaction with photos table
 type PhotoDataStore interface {
 	Insert(*Photo) error
 	Update(*Photo) error
@@ -47,6 +50,7 @@ type defaultPhotoDataStore struct {
 	dbMap *gorp.DbMap
 }
 
+// NewPhotoDataStore creates new PhotoDataStore instance
 func NewPhotoDataStore(dbMap *gorp.DbMap) PhotoDataStore {
 	return &defaultPhotoDataStore{dbMap}
 }
@@ -197,7 +201,7 @@ func (ds *defaultPhotoDataStore) Search(page *Page, q string) (*PhotoList, error
 			break
 		}
 
-		num += 1
+		num++
 
 		if strings.HasPrefix(word, "@") {
 			word = word[1:]
@@ -282,6 +286,7 @@ func (ds *defaultPhotoDataStore) GetTagCounts() ([]TagCount, error) {
 	return tags, nil
 }
 
+// UserDataStore manages interaction with users table
 type UserDataStore interface {
 	Insert(user *User) error
 	Update(user *User) error
@@ -293,6 +298,7 @@ type UserDataStore interface {
 	GetByNameOrEmail(identifier string) (*User, error)
 }
 
+// NewUserDataStore creates a new UserDataStore instance
 func NewUserDataStore(dbMap *gorp.DbMap) UserDataStore {
 	return &defaultUserDataStore{dbMap}
 }

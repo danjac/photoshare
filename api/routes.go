@@ -7,33 +7,35 @@ import (
 	"net/http"
 )
 
-type HttpError struct {
+// HTTPError is a wrapper for all HTTP-based errors
+type HTTPError struct {
 	Status      int
 	Description string
 }
 
-func (h HttpError) Error() string {
+func (h HTTPError) Error() string {
 	if h.Description == "" {
 		return http.StatusText(h.Status)
 	}
 	return h.Description
 }
 
-func httpError(status int, description string) HttpError {
-	return HttpError{status, description}
+func httpError(status int, description string) HTTPError {
+	return HTTPError{status, description}
 }
 
-type AppHandler func(c web.C, w http.ResponseWriter, r *http.Request) error
+type appHandler func(c web.C, w http.ResponseWriter, r *http.Request) error
 
-func (h AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := h(web.C{}, w, r)
 	handleError(w, r, err)
 }
-func (h AppHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request) {
+func (h appHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request) {
 	err := h(c, w, r)
 	handleError(w, r, err)
 }
 
+// AppContext tracks all global handler stuff
 type AppContext struct {
 	config     *AppConfig
 	ds         *DataStores
@@ -43,6 +45,7 @@ type AppContext struct {
 	cache      Cache
 }
 
+// NewAppContext creates new AppContext instance
 func NewAppContext(config *AppConfig, dbMap *gorp.DbMap) (*AppContext, error) {
 
 	photoDS := NewPhotoDataStore(dbMap)
@@ -73,6 +76,7 @@ func NewAppContext(config *AppConfig, dbMap *gorp.DbMap) (*AppContext, error) {
 	return a, nil
 }
 
+// GetRouter generates a new set of routes
 func GetRouter(config *AppConfig, dbMap *gorp.DbMap) (*web.Mux, error) {
 
 	a, err := NewAppContext(config, dbMap)
@@ -87,30 +91,30 @@ func GetRouter(config *AppConfig, dbMap *gorp.DbMap) (*web.Mux, error) {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.AutomaticOptions)
 
-	r.Get("/api/photos/", AppHandler(a.getPhotos))
-	r.Post("/api/photos/", AppHandler(a.upload))
-	r.Get("/api/photos/search", AppHandler(a.searchPhotos))
-	r.Get("/api/photos/owner/:ownerID", AppHandler(a.photosByOwnerID))
+	r.Get("/api/photos/", appHandler(a.getPhotos))
+	r.Post("/api/photos/", appHandler(a.upload))
+	r.Get("/api/photos/search", appHandler(a.searchPhotos))
+	r.Get("/api/photos/owner/:ownerID", appHandler(a.photosByOwnerID))
 
-	r.Get("/api/photos/:id", AppHandler(a.photoDetail))
-	r.Delete("/api/photos/:id", AppHandler(a.deletePhoto))
-	r.Patch("/api/photos/:id/title", AppHandler(a.editPhotoTitle))
-	r.Patch("/api/photos/:id/tags", AppHandler(a.editPhotoTags))
-	r.Patch("/api/photos/:id/upvote", AppHandler(a.voteUp))
-	r.Patch("/api/photos/:id/downvote", AppHandler(a.voteDown))
+	r.Get("/api/photos/:id", appHandler(a.photoDetail))
+	r.Delete("/api/photos/:id", appHandler(a.deletePhoto))
+	r.Patch("/api/photos/:id/title", appHandler(a.editPhotoTitle))
+	r.Patch("/api/photos/:id/tags", appHandler(a.editPhotoTags))
+	r.Patch("/api/photos/:id/upvote", appHandler(a.voteUp))
+	r.Patch("/api/photos/:id/downvote", appHandler(a.voteDown))
 
-	r.Get("/api/tags/", AppHandler(a.getTags))
+	r.Get("/api/tags/", appHandler(a.getTags))
 
-	r.Get("/api/auth/", AppHandler(a.getSessionInfo))
-	r.Post("/api/auth/", AppHandler(a.login))
-	r.Delete("/api/auth/", AppHandler(a.logout))
-	r.Post("/api/auth/signup", AppHandler(a.signup))
-	r.Put("/api/auth/recoverpass", AppHandler(a.recoverPassword))
-	r.Put("/api/auth/changepass", AppHandler(a.changePassword))
+	r.Get("/api/auth/", appHandler(a.getSessionInfo))
+	r.Post("/api/auth/", appHandler(a.login))
+	r.Delete("/api/auth/", appHandler(a.logout))
+	r.Post("/api/auth/signup", appHandler(a.signup))
+	r.Put("/api/auth/recoverpass", appHandler(a.recoverPassword))
+	r.Put("/api/auth/changepass", appHandler(a.changePassword))
 
-	r.Get("/feeds/", AppHandler(a.latestFeed))
-	r.Get("/feeds/popular/", AppHandler(a.popularFeed))
-	r.Get("/feeds/owner/:ownerID", AppHandler(a.ownerFeed))
+	r.Get("/feeds/", appHandler(a.latestFeed))
+	r.Get("/feeds/popular/", appHandler(a.popularFeed))
+	r.Get("/feeds/owner/:ownerID", appHandler(a.ownerFeed))
 
 	r.Handle("/api/messages/*", messageHandler)
 	r.Handle("/*", http.FileServer(http.Dir(config.PublicDir)))

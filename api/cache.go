@@ -10,6 +10,7 @@ import (
 
 const defaultExpiration = 300 // 5 minutes
 
+// Cache exposes common caching functions
 type Cache interface {
 	Set(string, interface{}) ([]byte, error)
 	Get(string, func() (interface{}, error)) (interface{}, error)
@@ -17,11 +18,11 @@ type Cache interface {
 	Render(http.ResponseWriter, int, string, func() (interface{}, error)) error
 }
 
-type Memcache struct {
+type memcacheCache struct {
 	mc *memcache.Client
 }
 
-func (m *Memcache) Set(key string, obj interface{}) ([]byte, error) {
+func (m *memcacheCache) Set(key string, obj interface{}) ([]byte, error) {
 	value, err := json.Marshal(obj)
 	if err != nil {
 		return value, err
@@ -37,7 +38,7 @@ func (m *Memcache) Set(key string, obj interface{}) ([]byte, error) {
 	return value, nil
 }
 
-func (m *Memcache) Get(key string, fn func() (interface{}, error)) (interface{}, error) {
+func (m *memcacheCache) Get(key string, fn func() (interface{}, error)) (interface{}, error) {
 	it, err := m.mc.Get(key)
 	if err == nil {
 		var obj interface{}
@@ -58,7 +59,7 @@ func (m *Memcache) Get(key string, fn func() (interface{}, error)) (interface{},
 	return obj, nil
 }
 
-func (m *Memcache) Render(w http.ResponseWriter, status int, key string, fn func() (interface{}, error)) error {
+func (m *memcacheCache) Render(w http.ResponseWriter, status int, key string, fn func() (interface{}, error)) error {
 
 	var write = func(value []byte) error {
 		return writeBody(w, value, status, "application/json")
@@ -82,11 +83,12 @@ func (m *Memcache) Render(w http.ResponseWriter, status int, key string, fn func
 
 }
 
-func (m *Memcache) DeleteAll() error {
+func (m *memcacheCache) DeleteAll() error {
 	return errgo.Mask(m.mc.DeleteAll())
 }
 
+// NewCache creates a new Cache instance
 func NewCache(config *AppConfig) Cache {
 	mc := memcache.New(strings.Split(config.MemcacheHost, ",")...) // will be from config
-	return &Memcache{mc}
+	return &memcacheCache{mc}
 }

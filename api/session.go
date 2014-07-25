@@ -14,11 +14,13 @@ const (
 	expiry      = 60 // minutes
 )
 
+// SessionManager handles all session tokens
 type SessionManager interface {
 	ReadToken(*http.Request) (int64, error)
 	WriteToken(http.ResponseWriter, int64) error
 }
 
+// NewSessionManager creates a new SessionManager instance
 func NewSessionManager(config *AppConfig) (SessionManager, error) {
 	mgr := &defaultSessionManager{}
 	var err error
@@ -51,11 +53,11 @@ func (m *defaultSessionManager) ReadToken(r *http.Request) (int64, error) {
 			return 0, nil
 		}
 		token := token.Claims["uid"].(string)
-		if userID, err := strconv.ParseInt(token, 10, 0); err != nil {
+		userID, err := strconv.ParseInt(token, 10, 0)
+		if err != nil {
 			return 0, nil
-		} else {
-			return userID, nil
 		}
+		return userID, nil
 	case *jwt.ValidationError:
 		return 0, nil
 	default:

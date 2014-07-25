@@ -6,6 +6,7 @@ import (
 
 var emailRegex = regexp.MustCompile(".+@.+\\..+")
 
+// ValidationFailure represents a set of validation errors
 type ValidationFailure struct {
 	Errors map[string]string `json:"errors"`
 }
@@ -25,18 +26,22 @@ func validate(validator Validator) error {
 	return nil
 }
 
+// Validator is a common validation interface
 type Validator interface {
 	Validate(map[string]string) error
 }
 
+// NewPhotoValidator creates a new PhotoValidator instance
 func NewPhotoValidator(photo *Photo) *PhotoValidator {
 	return &PhotoValidator{photo}
 }
 
+// PhotoValidator checks if a photo is valid
 type PhotoValidator struct {
 	photo *Photo
 }
 
+// Validate does actual validation
 func (v *PhotoValidator) Validate(errors map[string]string) error {
 	if v.photo.OwnerID == 0 {
 		errors["ownerID"] = "Owner ID is missing"
@@ -57,15 +62,18 @@ func validateEmail(email string) bool {
 	return emailRegex.Match([]byte(email))
 }
 
+// NewUserValidator creates new UserValidator instance
 func NewUserValidator(user *User, mgr UserDataStore) *UserValidator {
 	return &UserValidator{user, mgr}
 }
 
+// UserValidator validates user model is correct
 type UserValidator struct {
 	user   *User
 	userDS UserDataStore
 }
 
+// Validate does actual validation
 func (v *UserValidator) Validate(errors map[string]string) error {
 
 	if v.user.Name == "" {

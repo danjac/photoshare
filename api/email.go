@@ -12,6 +12,7 @@ import (
 	"text/template"
 )
 
+// Message models an email message
 type Message struct {
 	Subject string
 	Body    []byte
@@ -28,6 +29,7 @@ func (msg *Message) String() string {
 	)
 }
 
+// Mailer keeps email sender and template info
 type Mailer struct {
 	sender             MailSender
 	config             *AppConfig
@@ -35,11 +37,12 @@ type Mailer struct {
 	templates          map[string]*template.Template
 }
 
+// Send sends the message
 func (m *Mailer) Send(msg *Message) error {
 	return m.sender.Send(msg)
 }
 
-func (m *Mailer) ParseTemplate(name string) (*template.Template, error) {
+func (m *Mailer) parseTemplate(name string) (*template.Template, error) {
 	var (
 		t   *template.Template
 		ok  bool
@@ -58,7 +61,7 @@ func (m *Mailer) ParseTemplate(name string) (*template.Template, error) {
 }
 
 // Creates a new message from a template; message body set to rendered template
-func (m *Mailer) MessageFromTemplate(subject string,
+func (m *Mailer) messageFromTemplate(subject string,
 	to []string,
 	from string,
 	templateName string,
@@ -70,7 +73,7 @@ func (m *Mailer) MessageFromTemplate(subject string,
 		From:    from,
 	}
 	b := &bytes.Buffer{}
-	t, err := m.ParseTemplate(templateName)
+	t, err := m.parseTemplate(templateName)
 	if err != nil {
 		return nil, err
 	}
@@ -82,6 +85,7 @@ func (m *Mailer) MessageFromTemplate(subject string,
 	return msg, nil
 }
 
+// MailSender handles sending of email
 type MailSender interface {
 	Send(*Message) error
 }
@@ -118,6 +122,7 @@ func newSmtpSender(config *AppConfig) *smtpSender {
 	return s
 }
 
+// NewMailer creates a new Mailer instance
 func NewMailer(config *AppConfig) *Mailer {
 	mailer := &Mailer{config: config}
 	if config.SmtpName == "" {
@@ -132,8 +137,9 @@ func NewMailer(config *AppConfig) *Mailer {
 	return mailer
 }
 
+// SendResetPasswordMail sends email to user to reset their password
 func (m *Mailer) SendResetPasswordMail(user *User, recoveryCode string, r *http.Request) error {
-	msg, err := m.MessageFromTemplate(
+	msg, err := m.messageFromTemplate(
 		"Reset your password",
 		[]string{user.Email},
 		m.defaultFromAddress,
@@ -141,7 +147,7 @@ func (m *Mailer) SendResetPasswordMail(user *User, recoveryCode string, r *http.
 		&struct {
 			Name         string
 			RecoveryCode string
-			Url          string
+			URL          string
 		}{
 			user.Name,
 			recoveryCode,
@@ -154,8 +160,9 @@ func (m *Mailer) SendResetPasswordMail(user *User, recoveryCode string, r *http.
 	return m.Send(msg)
 }
 
+// SendWelcomeMail sends a welcome message to user
 func (m *Mailer) SendWelcomeMail(user *User) error {
-	msg, err := m.MessageFromTemplate(
+	msg, err := m.messageFromTemplate(
 		"Welcome to photoshare!",
 		[]string{user.Email},
 		m.defaultFromAddress,

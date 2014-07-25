@@ -36,17 +36,23 @@ func (h AppHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request) 
 
 type AppContext struct {
 	config     *AppConfig
+	ds         *DataStores
 	mailer     *Mailer
 	fs         FileStorage
-	photoDS    PhotoDataStore
-	userDS     UserDataStore
 	sessionMgr SessionManager
 	cache      Cache
 }
 
 func NewAppContext(config *AppConfig, dbMap *gorp.DbMap) (*AppContext, error) {
+
 	photoDS := NewPhotoDataStore(dbMap)
 	userDS := NewUserDataStore(dbMap)
+
+	ds := &DataStores{
+		photos: photoDS,
+		users:  userDS,
+	}
+
 	fs := NewFileStorage(config)
 	mailer := NewMailer(config)
 	cache := NewCache(config)
@@ -58,8 +64,7 @@ func NewAppContext(config *AppConfig, dbMap *gorp.DbMap) (*AppContext, error) {
 
 	a := &AppContext{
 		config:     config,
-		photoDS:    photoDS,
-		userDS:     userDS,
+		ds:         ds,
 		fs:         fs,
 		sessionMgr: sessionMgr,
 		mailer:     mailer,

@@ -129,7 +129,7 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 
 	a := &AppContext{
 		sessionMgr: &mockSessionManager{},
-		photoDS:    &emptyPhotoDataStore{},
+		ds:         &DataStores{photos: &emptyPhotoDataStore{}},
 	}
 
 	err := a.photoDetail(c, res, req)
@@ -149,7 +149,7 @@ func TestGetPhotoDetail(t *testing.T) {
 
 	a := &AppContext{
 		sessionMgr: &mockSessionManager{},
-		photoDS:    &mockPhotoDataStore{},
+		ds:         &DataStores{photos: &mockPhotoDataStore{}},
 	}
 
 	c.Env["user"] = &User{}
@@ -174,8 +174,8 @@ func TestGetPhotos(t *testing.T) {
 	res := httptest.NewRecorder()
 
 	a := &AppContext{
-		photoDS: &mockPhotoDataStore{},
-		cache:   &mockCache{},
+		ds:    &DataStores{photos: &mockPhotoDataStore{}},
+		cache: &mockCache{},
 	}
 
 	a.getPhotos(web.C{}, res, req)

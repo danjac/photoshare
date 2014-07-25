@@ -15,7 +15,7 @@ func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
-	photo, err := a.photoDS.Get(getIntParam(c, "id"))
+	photo, err := a.ds.photos.Get(getIntParam(c, "id"))
 	if err != nil {
 		return err
 	}
@@ -24,7 +24,7 @@ func (a *AppContext) deletePhoto(c web.C, w http.ResponseWriter, r *http.Request
 		return httpError(http.StatusForbidden, "You're not allowed to delete this photo")
 
 	}
-	if err := a.photoDS.Delete(photo); err != nil {
+	if err := a.ds.photos.Delete(photo); err != nil {
 		return err
 	}
 
@@ -49,7 +49,7 @@ func (a *AppContext) photoDetail(c web.C, w http.ResponseWriter, r *http.Request
 		return err
 	}
 
-	photo, err := a.photoDS.GetDetail(getIntParam(c, "id"), user)
+	photo, err := a.ds.photos.GetDetail(getIntParam(c, "id"), user)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (a *AppContext) getPhotoToEdit(c web.C, w http.ResponseWriter, r *http.Requ
 		return nil, err
 	}
 
-	photo, err := a.photoDS.Get(getIntParam(c, "id"))
+	photo, err := a.ds.photos.Get(getIntParam(c, "id"))
 	if err != nil {
 		return photo, err
 	}
@@ -96,7 +96,7 @@ func (a *AppContext) editPhotoTitle(c web.C, w http.ResponseWriter, r *http.Requ
 		return err
 	}
 
-	if err := a.photoDS.Update(photo); err != nil {
+	if err := a.ds.photos.Update(photo); err != nil {
 		return err
 	}
 	if user, err := a.authenticate(c, r, true); err == nil {
@@ -122,7 +122,7 @@ func (a *AppContext) editPhotoTags(c web.C, w http.ResponseWriter, r *http.Reque
 
 	photo.Tags = s.Tags
 
-	if err := a.photoDS.UpdateTags(photo); err != nil {
+	if err := a.ds.photos.UpdateTags(photo); err != nil {
 		return err
 	}
 	if user, err := a.authenticate(c, r, true); err == nil {
@@ -173,7 +173,7 @@ func (a *AppContext) upload(c web.C, w http.ResponseWriter, r *http.Request) err
 		return err
 	}
 
-	if err := a.photoDS.Insert(photo); err != nil {
+	if err := a.ds.photos.Insert(photo); err != nil {
 		return err
 	}
 
@@ -193,7 +193,7 @@ func (a *AppContext) searchPhotos(_ web.C, w http.ResponseWriter, r *http.Reques
 	cacheKey := fmt.Sprintf("photos:search:%s:page:%d", qKey, page.Index)
 
 	return a.cache.Render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
-		photos, err := a.photoDS.Search(page, q)
+		photos, err := a.ds.photos.Search(page, q)
 		if err != nil {
 			return photos, err
 		}
@@ -209,7 +209,7 @@ func (a *AppContext) photosByOwnerID(c web.C, w http.ResponseWriter, r *http.Req
 	cacheKey := fmt.Sprintf("photos:ownerID:%d:page:%d", ownerID, page.Index)
 
 	return a.cache.Render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
-		photos, err := a.photoDS.ByOwnerID(page, ownerID)
+		photos, err := a.ds.photos.ByOwnerID(page, ownerID)
 		if err != nil {
 			return photos, err
 		}
@@ -224,7 +224,7 @@ func (a *AppContext) getPhotos(_ web.C, w http.ResponseWriter, r *http.Request) 
 	cacheKey := fmt.Sprintf("photos:%s:page:%d", orderBy, page.Index)
 
 	return a.cache.Render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
-		photos, err := a.photoDS.All(page, orderBy)
+		photos, err := a.ds.photos.All(page, orderBy)
 		if err != nil {
 			return photos, err
 		}
@@ -234,7 +234,7 @@ func (a *AppContext) getPhotos(_ web.C, w http.ResponseWriter, r *http.Request) 
 
 func (a *AppContext) getTags(_ web.C, w http.ResponseWriter, r *http.Request) error {
 	return a.cache.Render(w, http.StatusOK, "tags", func() (interface{}, error) {
-		tags, err := a.photoDS.GetTagCounts()
+		tags, err := a.ds.photos.GetTagCounts()
 		if err != nil {
 			return tags, err
 		}
@@ -262,7 +262,7 @@ func (a *AppContext) vote(c web.C, w http.ResponseWriter, r *http.Request, fn fu
 		return err
 	}
 
-	photo, err = a.photoDS.Get(getIntParam(c, "id"))
+	photo, err = a.ds.photos.Get(getIntParam(c, "id"))
 	if err != nil {
 		return err
 	}
@@ -273,13 +273,13 @@ func (a *AppContext) vote(c web.C, w http.ResponseWriter, r *http.Request, fn fu
 
 	fn(photo)
 
-	if err = a.photoDS.Update(photo); err != nil {
+	if err = a.ds.photos.Update(photo); err != nil {
 		return err
 	}
 
 	user.RegisterVote(photo.ID)
 
-	if err = a.userDS.Update(user); err != nil {
+	if err = a.ds.users.Update(user); err != nil {
 		return err
 	}
 	return renderString(w, http.StatusOK, "Voting successful")

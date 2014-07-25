@@ -25,6 +25,11 @@ func InitDB(db *sql.DB, logSql bool) (*gorp.DbMap, error) {
 	return dbMap, nil
 }
 
+type DataStores struct {
+	photos PhotoDataStore
+	users  UserDataStore
+}
+
 type PhotoDataStore interface {
 	Insert(*Photo) error
 	Update(*Photo) error

@@ -43,7 +43,7 @@ func (a *AppContext) authenticate(c web.C, r *http.Request, required bool) (*Use
 		if userID == 0 {
 			return user, invalidLogin
 		}
-		user, err = a.userDS.GetActive(userID)
+		user, err = a.ds.users.GetActive(userID)
 		if err != nil {
 			if isErrSqlNoRows(err) {
 				return user, invalidLogin
@@ -100,7 +100,7 @@ func (a *AppContext) login(_ web.C, w http.ResponseWriter, r *http.Request) erro
 		return invalidLogin
 	}
 
-	user, err := a.userDS.GetByNameOrEmail(s.Identifier)
+	user, err := a.ds.users.GetByNameOrEmail(s.Identifier)
 	if err != nil {
 		if isErrSqlNoRows(err) {
 			return invalidLogin
@@ -139,11 +139,11 @@ func (a *AppContext) signup(c web.C, w http.ResponseWriter, r *http.Request) err
 		Password: s.Password,
 	}
 
-	if err := validate(NewUserValidator(user, a.userDS)); err != nil {
+	if err := validate(NewUserValidator(user, a.ds.users)); err != nil {
 		return err
 	}
 
-	if err := a.userDS.Insert(user); err != nil {
+	if err := a.ds.users.Insert(user); err != nil {
 		return err
 	}
 
@@ -184,7 +184,7 @@ func (a *AppContext) changePassword(c web.C, w http.ResponseWriter, r *http.Requ
 			return err
 		}
 	} else {
-		if user, err = a.userDS.GetByRecoveryCode(s.RecoveryCode); err != nil {
+		if user, err = a.ds.users.GetByRecoveryCode(s.RecoveryCode); err != nil {
 			return err
 		}
 		user.ResetRecoveryCode()
@@ -194,7 +194,7 @@ func (a *AppContext) changePassword(c web.C, w http.ResponseWriter, r *http.Requ
 		return err
 	}
 
-	if err = a.userDS.Update(user); err != nil {
+	if err = a.ds.users.Update(user); err != nil {
 		return err
 	}
 
@@ -213,7 +213,7 @@ func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Req
 	if s.Email == "" {
 		return httpError(http.StatusBadRequest, "Missing email address")
 	}
-	user, err := a.userDS.GetByEmail(s.Email)
+	user, err := a.ds.users.GetByEmail(s.Email)
 	if err != nil {
 		if isErrSqlNoRows(err) {
 			return httpError(http.StatusBadRequest, "Email address not found")
@@ -226,7 +226,7 @@ func (a *AppContext) recoverPassword(_ web.C, w http.ResponseWriter, r *http.Req
 		return err
 	}
 
-	if err := a.userDS.Update(user); err != nil {
+	if err := a.ds.users.Update(user); err != nil {
 		return err
 	}
 

@@ -139,7 +139,7 @@ func (user *user) validate(c *appContext, errors map[string]string) error {
 	if user.Name == "" {
 		errors["name"] = "Name is missing"
 	} else {
-		ok, err := c.ds.users.isNameAvailable(user)
+		ok, err := c.datastore.users.isNameAvailable(user)
 		if err != nil {
 			return err
 		}
@@ -153,7 +153,7 @@ func (user *user) validate(c *appContext, errors map[string]string) error {
 	} else if !validateEmail(user.Email) {
 		errors["email"] = "Invalid email address"
 	} else {
-		ok, err := c.ds.users.isEmailAvailable(user)
+		ok, err := c.datastore.users.isEmailAvailable(user)
 		if err != nil {
 			return err
 		}

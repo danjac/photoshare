@@ -23,7 +23,7 @@ func newSessionInfo(user *user) *sessionInfo {
 
 func logout(c *appContext, w http.ResponseWriter, r *request) error {
 
-	if err := c.sessionMgr.writeToken(w, 0); err != nil {
+	if err := c.session.writeToken(w, 0); err != nil {
 		return err
 	}
 
@@ -59,7 +59,7 @@ func login(c *appContext, w http.ResponseWriter, r *request) error {
 		return invalidLogin
 	}
 
-	user, err := c.ds.users.getByNameOrEmail(s.Identifier)
+	user, err := c.datastore.users.getByNameOrEmail(s.Identifier)
 	if err != nil {
 		if isErrSqlNoRows(err) {
 			return invalidLogin
@@ -70,7 +70,7 @@ func login(c *appContext, w http.ResponseWriter, r *request) error {
 		return invalidLogin
 	}
 
-	if err := c.sessionMgr.writeToken(w, user.ID); err != nil {
+	if err := c.session.writeToken(w, user.ID); err != nil {
 		return err
 	}
 
@@ -102,11 +102,11 @@ func signup(c *appContext, w http.ResponseWriter, r *request) error {
 		return err
 	}
 
-	if err := c.ds.users.create(user); err != nil {
+	if err := c.datastore.users.create(user); err != nil {
 		return err
 	}
 
-	if err := c.sessionMgr.writeToken(w, user.ID); err != nil {
+	if err := c.session.writeToken(w, user.ID); err != nil {
 		return err
 	}
 
@@ -143,7 +143,7 @@ func changePassword(c *appContext, w http.ResponseWriter, r *request) error {
 			return err
 		}
 	} else {
-		if user, err = c.ds.users.getByRecoveryCode(s.RecoveryCode); err != nil {
+		if user, err = c.datastore.users.getByRecoveryCode(s.RecoveryCode); err != nil {
 			return err
 		}
 		user.resetRecoveryCode()
@@ -153,7 +153,7 @@ func changePassword(c *appContext, w http.ResponseWriter, r *request) error {
 		return err
 	}
 
-	if err = c.ds.users.update(user); err != nil {
+	if err = c.datastore.users.update(user); err != nil {
 		return err
 	}
 
@@ -172,7 +172,7 @@ func recoverPassword(c *appContext, w http.ResponseWriter, r *request) error {
 	if s.Email == "" {
 		return httpError{http.StatusBadRequest, "Missing email address"}
 	}
-	user, err := c.ds.users.getByEmail(s.Email)
+	user, err := c.datastore.users.getByEmail(s.Email)
 	if err != nil {
 		if isErrSqlNoRows(err) {
 			return httpError{http.StatusBadRequest, "Email address not found"}
@@ -185,7 +185,7 @@ func recoverPassword(c *appContext, w http.ResponseWriter, r *request) error {
 		return err
 	}
 
-	if err := c.ds.users.update(user); err != nil {
+	if err := c.datastore.users.update(user); err != nil {
 		return err
 	}
 

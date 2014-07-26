@@ -15,12 +15,12 @@ type appHandler struct {
 }
 
 type appContext struct {
-	config     *appConfig
-	ds         *dataStores
-	mailer     *mailer
-	fs         fileStorage
-	sessionMgr sessionManager
-	cache      cache
+	config    *appConfig
+	datastore *dataStore
+	mailer    *mailer
+	filestore fileStorage
+	session   sessionManager
+	cache     cache
 }
 
 func (h *appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -65,14 +65,14 @@ func (c *appContext) authenticate(r *request, required bool) (*user, error) {
 	}
 	r.user = &user{}
 
-	userID, err := c.sessionMgr.readToken(r)
+	userID, err := c.session.readToken(r)
 	if err != nil {
 		return r.user, err
 	}
 	if userID == 0 {
 		return r.user, invalidLogin
 	}
-	user, err := c.ds.users.getActive(userID)
+	user, err := c.datastore.users.getActive(userID)
 	if err != nil {
 		if isErrSqlNoRows(err) {
 			return r.user, invalidLogin
@@ -87,14 +87,7 @@ func (c *appContext) authenticate(r *request, required bool) (*user, error) {
 
 func newContext(config *appConfig, dbMap *gorp.DbMap) (*appContext, error) {
 
-	photoDS := newPhotoDataStore(dbMap)
-	userDS := newUserDataStore(dbMap)
-
-	ds := &dataStores{
-		photos: photoDS,
-		users:  userDS,
-	}
-
+	ds := newDataStore(dbMap)
 	fs := newFileStorage(config)
 	mailer := newMailer(config)
 	cache := newCache(config)
@@ -105,12 +98,12 @@ func newContext(config *appConfig, dbMap *gorp.DbMap) (*appContext, error) {
 	}
 
 	c := &appContext{
-		config:     config,
-		ds:         ds,
-		fs:         fs,
-		sessionMgr: sessionMgr,
-		mailer:     mailer,
-		cache:      cache,
+		config:    config,
+		datastore: ds,
+		filestore: fs,
+		session:   sessionMgr,
+		mailer:    mailer,
+		cache:     cache,
 	}
 	return c, nil
 }

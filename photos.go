@@ -10,7 +10,7 @@ import (
 
 func deletePhoto(c *appContext, w http.ResponseWriter, r *request) error {
 
-	photo, err := c.ds.photos.get(r.getIntParam("id"))
+	photo, err := c.datastore.photos.get(r.getIntParam("id"))
 	if err != nil {
 		return err
 	}
@@ -18,12 +18,12 @@ func deletePhoto(c *appContext, w http.ResponseWriter, r *request) error {
 	if !photo.canDelete(r.user) {
 		return httpError{http.StatusForbidden, "You're not allowed to delete this photo"}
 	}
-	if err := c.ds.photos.remove(photo); err != nil {
+	if err := c.datastore.photos.remove(photo); err != nil {
 		return err
 	}
 
 	go func() {
-		if err := c.fs.clean(photo.Filename); err != nil {
+		if err := c.filestore.clean(photo.Filename); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -43,7 +43,7 @@ func getPhotoDetail(c *appContext, w http.ResponseWriter, r *request) error {
 		return err
 	}
 
-	photo, err := c.ds.photos.getDetail(r.getIntParam("id"), user)
+	photo, err := c.datastore.photos.getDetail(r.getIntParam("id"), user)
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func getPhotoToEdit(c *appContext, w http.ResponseWriter, r *request) (*photo, e
 		return nil, err
 	}
 
-	photo, err := c.ds.photos.get(r.getIntParam("id"))
+	photo, err := c.datastore.photos.get(r.getIntParam("id"))
 	if err != nil {
 		return photo, err
 	}
@@ -91,7 +91,7 @@ func editPhotoTitle(c *appContext, w http.ResponseWriter, r *request) error {
 
 	}
 
-	if err := c.ds.photos.update(photo); err != nil {
+	if err := c.datastore.photos.update(photo); err != nil {
 		return err
 	}
 	sendMessage(&socketMessage{r.user.Name, "", photo.ID, "photo_updated"})
@@ -115,7 +115,7 @@ func editPhotoTags(c *appContext, w http.ResponseWriter, r *request) error {
 
 	photo.Tags = s.Tags
 
-	if err := c.ds.photos.updateTags(photo); err != nil {
+	if err := c.datastore.photos.updateTags(photo); err != nil {
 		return err
 	}
 	sendMessage(&socketMessage{r.user.Name, "", photo.ID, "photo_updated"})
@@ -140,7 +140,7 @@ func upload(c *appContext, w http.ResponseWriter, r *request) error {
 
 	contentType := hdr.Header["Content-Type"][0]
 
-	filename, err := c.fs.store(src, contentType)
+	filename, err := c.filestore.store(src, contentType)
 
 	if err != nil {
 		if err == errInvalidContentType {
@@ -159,7 +159,7 @@ func upload(c *appContext, w http.ResponseWriter, r *request) error {
 		return err
 	}
 
-	if err := c.ds.photos.create(photo); err != nil {
+	if err := c.datastore.photos.create(photo); err != nil {
 		return err
 	}
 
@@ -179,7 +179,7 @@ func searchPhotos(c *appContext, w http.ResponseWriter, r *request) error {
 	cacheKey := fmt.Sprintf("photos:search:%s:page:%d", qKey, page.index)
 
 	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
-		photos, err := c.ds.photos.search(page, q)
+		photos, err := c.datastore.photos.search(page, q)
 		if err != nil {
 			return photos, err
 		}
@@ -195,7 +195,7 @@ func photosByOwnerID(c *appContext, w http.ResponseWriter, r *request) error {
 	cacheKey := fmt.Sprintf("photos:ownerID:%d:page:%d", ownerID, page.index)
 
 	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
-		photos, err := c.ds.photos.byOwnerID(page, ownerID)
+		photos, err := c.datastore.photos.byOwnerID(page, ownerID)
 		if err != nil {
 			return photos, err
 		}
@@ -210,7 +210,7 @@ func getPhotos(c *appContext, w http.ResponseWriter, r *request) error {
 	cacheKey := fmt.Sprintf("photos:%s:page:%d", orderBy, page.index)
 
 	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
-		photos, err := c.ds.photos.all(page, orderBy)
+		photos, err := c.datastore.photos.all(page, orderBy)
 		if err != nil {
 			return photos, err
 		}
@@ -220,7 +220,7 @@ func getPhotos(c *appContext, w http.ResponseWriter, r *request) error {
 
 func getTags(c *appContext, w http.ResponseWriter, r *request) error {
 	return c.cache.render(w, http.StatusOK, "tags", func() (interface{}, error) {
-		tags, err := c.ds.photos.getTagCounts()
+		tags, err := c.datastore.photos.getTagCounts()
 		if err != nil {
 			return tags, err
 		}
@@ -242,7 +242,7 @@ func vote(c *appContext, w http.ResponseWriter, r *request, fn func(photo *photo
 		photo *photo
 		err   error
 	)
-	photo, err = c.ds.photos.get(r.getIntParam("id"))
+	photo, err = c.datastore.photos.get(r.getIntParam("id"))
 	if err != nil {
 		return err
 	}
@@ -253,13 +253,13 @@ func vote(c *appContext, w http.ResponseWriter, r *request, fn func(photo *photo
 
 	fn(photo)
 
-	if err = c.ds.photos.update(photo); err != nil {
+	if err = c.datastore.photos.update(photo); err != nil {
 		return err
 	}
 
 	r.user.registerVote(photo.ID)
 
-	if err = c.ds.users.update(r.user); err != nil {
+	if err = c.datastore.users.update(r.user); err != nil {
 		return err
 	}
 	return renderString(w, http.StatusOK, "Voting successful")

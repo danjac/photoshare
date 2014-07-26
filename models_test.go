@@ -11,22 +11,21 @@ func TestGetIfNotNone(t *testing.T) {
 	tdb := makeTestDB(config)
 	defer tdb.clean()
 
-	userDS := newUserDataStore(tdb.dbMap)
-	photoDS := newPhotoDataStore(tdb.dbMap)
+	ds := newDataStore(tdb.dbMap)
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
 
-	if err := userDS.create(user); err != nil {
+	if err := ds.users.create(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := photoDS.create(photo); err != nil {
+	if err := ds.photos.create(photo); err != nil {
 		t.Error(err)
 		return
 	}
 
-	photo, err := photoDS.get(photo.ID)
+	photo, err := ds.photos.get(photo.ID)
 	if err != nil {
 		t.Error(err)
 		return
@@ -39,7 +38,9 @@ func TestGetIfNone(t *testing.T) {
 	tdb := makeTestDB(config)
 	defer tdb.clean()
 
-	_, err := newPhotoDataStore(tdb.dbMap).get(1)
+	ds := newDataStore(tdb.dbMap)
+
+	_, err := ds.photos.get(1)
 	if err != sql.ErrNoRows {
 		t.Error(err)
 		return
@@ -52,20 +53,19 @@ func TestSearchPhotos(t *testing.T) {
 	tdb := makeTestDB(config)
 	defer tdb.clean()
 
-	photoDS := newPhotoDataStore(tdb.dbMap)
-	userDS := newUserDataStore(tdb.dbMap)
+	ds := newDataStore(tdb.dbMap)
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	if err := userDS.create(user); err != nil {
+	if err := ds.users.create(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := photoDS.create(photo); err != nil {
+	if err := ds.photos.create(photo); err != nil {
 		t.Error(err)
 		return
 	}
-	result, err := photoDS.search(newPage(1), "test")
+	result, err := ds.photos.search(newPage(1), "test")
 	if err != nil {
 		t.Error(err)
 		return
@@ -80,20 +80,19 @@ func TestAllPhotos(t *testing.T) {
 	tdb := makeTestDB(config)
 	defer tdb.clean()
 
-	photoDS := newPhotoDataStore(tdb.dbMap)
-	userDS := newUserDataStore(tdb.dbMap)
+	ds := newDataStore(tdb.dbMap)
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	if err := userDS.create(user); err != nil {
+	if err := ds.users.create(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := photoDS.create(photo); err != nil {
+	if err := ds.photos.create(photo); err != nil {
 		t.Error(err)
 		return
 	}
-	result, err := photoDS.all(newPage(1), "")
+	result, err := ds.photos.all(newPage(1), "")
 	if err != nil {
 		t.Error(err)
 		return

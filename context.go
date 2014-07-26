@@ -46,7 +46,7 @@ func (c *context) authenticate(r *request, required bool) (*user, error) {
 	var invalidLogin error
 
 	if required {
-		invalidLogin = &httpError{http.StatusUnauthorized, "You must be logged in"}
+		invalidLogin = httpError{http.StatusUnauthorized, "You must be logged in"}
 	}
 
 	if r.user != nil {

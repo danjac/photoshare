@@ -1,7 +1,6 @@
 package photoshare
 
 import (
-	"github.com/coopernurse/gorp"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
 	"net/http"
@@ -19,63 +18,8 @@ var (
 	reOwnerFeed       = regexp.MustCompile(`/feeds/owner/(?P<ownerID>\d+)$`)
 )
 
-type appHandler func(w http.ResponseWriter, r *request) error
+func getRouter(config *appConfig, c *appContext) (*web.Mux, error) {
 
-func (h appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.ServeHTTPC(web.C{}, w, r)
-}
-
-func (h appHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request) {
-	req := newRequest(c, r)
-	handleError(w, r, h(w, req))
-}
-
-type appContext struct {
-	config     *appConfig
-	ds         *dataStores
-	mailer     *mailer
-	fs         fileStorage
-	sessionMgr sessionManager
-	cache      cache
-}
-
-// newAppContext creates new AppContext instance
-func newAppContext(config *appConfig, dbMap *gorp.DbMap) (*appContext, error) {
-
-	photoDS := newPhotoDataStore(dbMap)
-	userDS := newUserDataStore(dbMap)
-
-	ds := &dataStores{
-		photos: photoDS,
-		users:  userDS,
-	}
-
-	fs := newFileStorage(config)
-	mailer := newMailer(config)
-	cache := newCache(config)
-
-	sessionMgr, err := newSessionManager(config)
-	if err != nil {
-		return nil, err
-	}
-
-	a := &appContext{
-		config:     config,
-		ds:         ds,
-		fs:         fs,
-		sessionMgr: sessionMgr,
-		mailer:     mailer,
-		cache:      cache,
-	}
-	return a, nil
-}
-
-func getRouter(config *appConfig, dbMap *gorp.DbMap) (*web.Mux, error) {
-
-	a, err := newAppContext(config, dbMap)
-	if err != nil {
-		return nil, err
-	}
 	r := web.New()
 
 	r.Use(middleware.EnvInit)
@@ -84,30 +28,30 @@ func getRouter(config *appConfig, dbMap *gorp.DbMap) (*web.Mux, error) {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.AutomaticOptions)
 
-	r.Get("/api/photos/", appHandler(a.getPhotos))
-	r.Post("/api/photos/", appHandler(a.upload))
-	r.Get("/api/photos/search", appHandler(a.searchPhotos))
-	r.Get(rePhotosByOwnerID, appHandler(a.photosByOwnerID))
+	r.Get("/api/photos/", c.makeAppHandler(getPhotos, false))
+	r.Post("/api/photos/", c.makeAppHandler(upload, true))
+	r.Get("/api/photos/search", c.makeAppHandler(searchPhotos, false))
+	r.Get(rePhotosByOwnerID, c.makeAppHandler(photosByOwnerID, false))
 
-	r.Get(rePhotoDetail, appHandler(a.photoDetail))
-	r.Delete(reDeletePhoto, appHandler(a.deletePhoto))
-	r.Patch(reEditPhotoTitle, appHandler(a.editPhotoTitle))
-	r.Patch(reEditPhotoTags, appHandler(a.editPhotoTags))
-	r.Patch(reVoteUp, appHandler(a.voteUp))
-	r.Patch(reVoteDown, appHandler(a.voteDown))
+	r.Get(rePhotoDetail, c.makeAppHandler(getPhotoDetail, false))
+	r.Delete(reDeletePhoto, c.makeAppHandler(deletePhoto, true))
+	r.Patch(reEditPhotoTitle, c.makeAppHandler(editPhotoTitle, true))
+	r.Patch(reEditPhotoTags, c.makeAppHandler(editPhotoTags, true))
+	r.Patch(reVoteUp, c.makeAppHandler(voteUp, true))
+	r.Patch(reVoteDown, c.makeAppHandler(voteDown, true))
 
-	r.Get("/api/tags/", appHandler(a.getTags))
+	r.Get("/api/tags/", c.makeAppHandler(getTags, false))
 
-	r.Get("/api/auth/", appHandler(a.getSessionInfo))
-	r.Post("/api/auth/", appHandler(a.login))
-	r.Delete("/api/auth/", appHandler(a.logout))
-	r.Post("/api/auth/signup", appHandler(a.signup))
-	r.Put("/api/auth/recoverpass", appHandler(a.recoverPassword))
-	r.Put("/api/auth/changepass", appHandler(a.changePassword))
+	r.Get("/api/auth/", c.makeAppHandler(getSessionInfo, false))
+	r.Post("/api/auth/", c.makeAppHandler(login, false))
+	r.Delete("/api/auth/", c.makeAppHandler(logout, true))
+	r.Post("/api/auth/signup", c.makeAppHandler(signup, false))
+	r.Put("/api/auth/recoverpass", c.makeAppHandler(recoverPassword, false))
+	r.Put("/api/auth/changepass", c.makeAppHandler(changePassword, false))
 
-	r.Get("/feeds/", appHandler(a.latestFeed))
-	r.Get("/feeds/popular/", appHandler(a.popularFeed))
-	r.Get(reOwnerFeed, appHandler(a.ownerFeed))
+	r.Get("/feeds/", c.makeAppHandler(latestFeed, false))
+	r.Get("/feeds/popular/", c.makeAppHandler(popularFeed, false))
+	r.Get(reOwnerFeed, c.makeAppHandler(ownerFeed, false))
 
 	r.Handle("/api/messages/*", messageHandler)
 	r.Handle("/*", http.FileServer(http.Dir(config.PublicDir)))

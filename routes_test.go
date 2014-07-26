@@ -122,7 +122,6 @@ func (m *emptyPhotoDataStore) getDetail(photoID int64, user *user) (*photoDetail
 
 // should return a 404
 func TestGetPhotoDetailIfNone(t *testing.T) {
-	req := &request{&http.Request{}}
 	res := httptest.NewRecorder()
 	c := web.C{}
 	c.Env = make(map[string]interface{})
@@ -132,7 +131,9 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 		ds:         &dataStores{photos: &emptyPhotoDataStore{}},
 	}
 
-	err := a.photoDetail(c, res, req)
+	req := &request{&http.Request{}, c, nil}
+
+	err := getPhotoDetail(a, res, req)
 	if err != sql.ErrNoRows {
 		t.Fail()
 	}
@@ -141,21 +142,22 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 func TestGetPhotoDetail(t *testing.T) {
 
 	r, _ := http.NewRequest("GET", "http://localhost/api/photos/1", nil)
-	req := &request{r}
 	res := httptest.NewRecorder()
 	c := web.C{}
+
 	c.Env = make(map[string]interface{})
 	c.URLParams = make(map[string]string)
 	c.URLParams["id"] = "1"
+	c.Env["user"] = &user{}
 
 	a := &appContext{
 		sessionMgr: &mockSessionManager{},
 		ds:         &dataStores{photos: &mockPhotoDataStore{}},
 	}
 
-	c.Env["user"] = &user{}
+	req := &request{r, c, nil}
 
-	a.photoDetail(c, res, req)
+	getPhotoDetail(a, res, req)
 	value := &photoDetail{}
 	parseJSONBody(res, value)
 	if res.Code != 200 {
@@ -171,7 +173,6 @@ func TestGetPhotoDetail(t *testing.T) {
 
 func TestGetPhotos(t *testing.T) {
 
-	req := &request{&http.Request{}}
 	res := httptest.NewRecorder()
 
 	a := &appContext{
@@ -179,7 +180,8 @@ func TestGetPhotos(t *testing.T) {
 		cache: &mockCache{},
 	}
 
-	a.getPhotos(web.C{}, res, req)
+	req := &request{&http.Request{}, web.C{}, nil}
+	getPhotos(a, res, req)
 	value := &photoList{}
 	parseJSONBody(res, value)
 	if value.Total != 1 {

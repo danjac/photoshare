@@ -8,46 +8,42 @@ import (
 	"strings"
 )
 
-func (a *appContext) deletePhoto(w http.ResponseWriter, r *request) error {
+func deletePhoto(c *appContext, w http.ResponseWriter, r *request) error {
 
-	user, err := a.authenticate(r, true)
-	if err != nil {
-		return err
-	}
-	photo, err := a.ds.photos.get(r.getIntParam("id"))
+	photo, err := c.ds.photos.get(r.getIntParam("id"))
 	if err != nil {
 		return err
 	}
 
-	if !photo.canDelete(user) {
+	if !photo.canDelete(r.user) {
 		return &httpError{http.StatusForbidden, "You're not allowed to delete this photo"}
 	}
-	if err := a.ds.photos.remove(photo); err != nil {
+	if err := c.ds.photos.remove(photo); err != nil {
 		return err
 	}
 
 	go func() {
-		if err := a.fs.clean(photo.Filename); err != nil {
+		if err := c.fs.clean(photo.Filename); err != nil {
 			log.Println(err)
 		}
 	}()
 
-	if err := a.cache.clear(); err != nil {
+	if err := c.cache.clear(); err != nil {
 		return err
 	}
 
-	sendMessage(&socketMessage{user.Name, "", photo.ID, "photo_deleted"})
+	sendMessage(&socketMessage{r.user.Name, "", photo.ID, "photo_deleted"})
 	return renderString(w, http.StatusOK, "Photo deleted")
 }
 
-func (a *appContext) photoDetail(w http.ResponseWriter, r *request) error {
+func getPhotoDetail(c *appContext, w http.ResponseWriter, r *request) error {
 
-	user, err := a.authenticate(r, false)
+	user, err := c.authenticate(r, false)
 	if err != nil {
 		return err
 	}
 
-	photo, err := a.ds.photos.getDetail(r.getIntParam("id"), user)
+	photo, err := c.ds.photos.getDetail(r.getIntParam("id"), user)
 	if err != nil {
 		return err
 	}
@@ -55,13 +51,13 @@ func (a *appContext) photoDetail(w http.ResponseWriter, r *request) error {
 
 }
 
-func (a *appContext) getPhotoToEdit(w http.ResponseWriter, r *request) (*photo, error) {
-	user, err := a.authenticate(r, true)
+func getPhotoToEdit(c *appContext, w http.ResponseWriter, r *request) (*photo, error) {
+	user, err := c.authenticate(r, true)
 	if err != nil {
 		return nil, err
 	}
 
-	photo, err := a.ds.photos.get(r.getIntParam("id"))
+	photo, err := c.ds.photos.get(r.getIntParam("id"))
 	if err != nil {
 		return photo, err
 	}
@@ -72,9 +68,9 @@ func (a *appContext) getPhotoToEdit(w http.ResponseWriter, r *request) (*photo, 
 	return photo, nil
 }
 
-func (a *appContext) editPhotoTitle(w http.ResponseWriter, r *request) error {
+func editPhotoTitle(c *appContext, w http.ResponseWriter, r *request) error {
 
-	photo, err := a.getPhotoToEdit(w, r)
+	photo, err := getPhotoToEdit(c, w, r)
 
 	if err != nil {
 		return err
@@ -95,18 +91,18 @@ func (a *appContext) editPhotoTitle(w http.ResponseWriter, r *request) error {
 
 	}
 
-	if err := a.ds.photos.update(photo); err != nil {
+	if err := c.ds.photos.update(photo); err != nil {
 		return err
 	}
-	if user, err := a.authenticate(r, true); err == nil {
+	if user, err := c.authenticate(r, true); err == nil {
 		sendMessage(&socketMessage{user.Name, "", photo.ID, "photo_updated"})
 	}
 	return renderString(w, http.StatusOK, "Photo updated")
 }
 
-func (a *appContext) editPhotoTags(w http.ResponseWriter, r *request) error {
+func editPhotoTags(c *appContext, w http.ResponseWriter, r *request) error {
 
-	photo, err := a.getPhotoToEdit(w, r)
+	photo, err := getPhotoToEdit(c, w, r)
 	if err != nil {
 		return err
 	}
@@ -121,22 +117,15 @@ func (a *appContext) editPhotoTags(w http.ResponseWriter, r *request) error {
 
 	photo.Tags = s.Tags
 
-	if err := a.ds.photos.updateTags(photo); err != nil {
+	if err := c.ds.photos.updateTags(photo); err != nil {
 		return err
 	}
-	if user, err := a.authenticate(r, true); err == nil {
-		sendMessage(&socketMessage{user.Name, "", photo.ID, "photo_updated"})
-	}
+	sendMessage(&socketMessage{r.user.Name, "", photo.ID, "photo_updated"})
 	return renderString(w, http.StatusOK, "Photo updated")
 
 }
 
-func (a *appContext) upload(w http.ResponseWriter, r *request) error {
-
-	user, err := a.authenticate(r, true)
-	if err != nil {
-		return err
-	}
+func upload(c *appContext, w http.ResponseWriter, r *request) error {
 
 	title := r.FormValue("title")
 	taglist := r.FormValue("taglist")
@@ -153,7 +142,7 @@ func (a *appContext) upload(w http.ResponseWriter, r *request) error {
 
 	contentType := hdr.Header["Content-Type"][0]
 
-	filename, err := a.fs.store(src, contentType)
+	filename, err := c.fs.store(src, contentType)
 
 	if err != nil {
 		if err == errInvalidContentType {
@@ -163,7 +152,7 @@ func (a *appContext) upload(w http.ResponseWriter, r *request) error {
 	}
 
 	photo := &photo{Title: title,
-		OwnerID:  user.ID,
+		OwnerID:  r.user.ID,
 		Filename: filename,
 		Tags:     tags,
 	}
@@ -172,27 +161,27 @@ func (a *appContext) upload(w http.ResponseWriter, r *request) error {
 		return err
 	}
 
-	if err := a.ds.photos.create(photo); err != nil {
+	if err := c.ds.photos.create(photo); err != nil {
 		return err
 	}
 
-	if err := a.cache.clear(); err != nil {
+	if err := c.cache.clear(); err != nil {
 		return err
 	}
 
-	sendMessage(&socketMessage{user.Name, "", photo.ID, "photo_uploaded"})
+	sendMessage(&socketMessage{r.user.Name, "", photo.ID, "photo_uploaded"})
 	return renderJSON(w, photo, http.StatusCreated)
 }
 
-func (a *appContext) searchPhotos(w http.ResponseWriter, r *request) error {
+func searchPhotos(c *appContext, w http.ResponseWriter, r *request) error {
 
 	page := r.getPage()
 	q := r.FormValue("q")
 	qKey := base64.StdEncoding.EncodeToString([]byte(q))
 	cacheKey := fmt.Sprintf("photos:search:%s:page:%d", qKey, page.index)
 
-	return a.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
-		photos, err := a.ds.photos.search(page, q)
+	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
+		photos, err := c.ds.photos.search(page, q)
 		if err != nil {
 			return photos, err
 		}
@@ -201,14 +190,14 @@ func (a *appContext) searchPhotos(w http.ResponseWriter, r *request) error {
 
 }
 
-func (a *appContext) photosByOwnerID(w http.ResponseWriter, r *request) error {
+func photosByOwnerID(c *appContext, w http.ResponseWriter, r *request) error {
 
 	page := r.getPage()
 	ownerID := r.getIntParam("ownerID")
 	cacheKey := fmt.Sprintf("photos:ownerID:%d:page:%d", ownerID, page.index)
 
-	return a.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
-		photos, err := a.ds.photos.byOwnerID(page, ownerID)
+	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
+		photos, err := c.ds.photos.byOwnerID(page, ownerID)
 		if err != nil {
 			return photos, err
 		}
@@ -216,14 +205,14 @@ func (a *appContext) photosByOwnerID(w http.ResponseWriter, r *request) error {
 	})
 }
 
-func (a *appContext) getPhotos(w http.ResponseWriter, r *request) error {
+func getPhotos(c *appContext, w http.ResponseWriter, r *request) error {
 
 	page := r.getPage()
 	orderBy := r.FormValue("orderBy")
 	cacheKey := fmt.Sprintf("photos:%s:page:%d", orderBy, page.index)
 
-	return a.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
-		photos, err := a.ds.photos.all(page, orderBy)
+	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
+		photos, err := c.ds.photos.all(page, orderBy)
 		if err != nil {
 			return photos, err
 		}
@@ -231,9 +220,9 @@ func (a *appContext) getPhotos(w http.ResponseWriter, r *request) error {
 	})
 }
 
-func (a *appContext) getTags(w http.ResponseWriter, r *request) error {
-	return a.cache.render(w, http.StatusOK, "tags", func() (interface{}, error) {
-		tags, err := a.ds.photos.getTagCounts()
+func getTags(c *appContext, w http.ResponseWriter, r *request) error {
+	return c.cache.render(w, http.StatusOK, "tags", func() (interface{}, error) {
+		tags, err := c.ds.photos.getTagCounts()
 		if err != nil {
 			return tags, err
 		}
@@ -242,43 +231,37 @@ func (a *appContext) getTags(w http.ResponseWriter, r *request) error {
 
 }
 
-func (a *appContext) voteDown(w http.ResponseWriter, r *request) error {
-	return a.vote(w, r, func(photo *photo) { photo.DownVotes++ })
+func voteDown(c *appContext, w http.ResponseWriter, r *request) error {
+	return vote(c, w, r, func(photo *photo) { photo.DownVotes++ })
 }
 
-func (a *appContext) voteUp(w http.ResponseWriter, r *request) error {
-	return a.vote(w, r, func(photo *photo) { photo.UpVotes++ })
+func voteUp(c *appContext, w http.ResponseWriter, r *request) error {
+	return vote(c, w, r, func(photo *photo) { photo.UpVotes++ })
 }
 
-func (a *appContext) vote(w http.ResponseWriter, r *request, fn func(photo *photo)) error {
+func vote(c *appContext, w http.ResponseWriter, r *request, fn func(photo *photo)) error {
 	var (
 		photo *photo
 		err   error
 	)
-	user, err := a.authenticate(r, true)
-
+	photo, err = c.ds.photos.get(r.getIntParam("id"))
 	if err != nil {
 		return err
 	}
 
-	photo, err = a.ds.photos.get(r.getIntParam("id"))
-	if err != nil {
-		return err
-	}
-
-	if !photo.canVote(user) {
+	if !photo.canVote(r.user) {
 		return &httpError{http.StatusForbidden, "You're not allowed to vote on this photo"}
 	}
 
 	fn(photo)
 
-	if err = a.ds.photos.update(photo); err != nil {
+	if err = c.ds.photos.update(photo); err != nil {
 		return err
 	}
 
-	user.registerVote(photo.ID)
+	r.user.registerVote(photo.ID)
 
-	if err = a.ds.users.update(user); err != nil {
+	if err = c.ds.users.update(r.user); err != nil {
 		return err
 	}
 	return renderString(w, http.StatusOK, "Voting successful")

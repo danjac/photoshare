@@ -21,57 +21,20 @@ func newSessionInfo(user *user) *sessionInfo {
 	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
-func (a *appContext) authenticate(r *request, required bool) (*user, error) {
+func logout(c *appContext, w http.ResponseWriter, r *request) error {
 
-	var invalidLogin error
-
-	if required {
-		invalidLogin = &httpError{http.StatusUnauthorized, "You must be logged in"}
-	}
-
-	if r.user != nil {
-		return r.user, nil
-	}
-	r.user = &user{}
-
-	userID, err := a.sessionMgr.readToken(r)
-	if err != nil {
-		return r.user, err
-	}
-	if userID == 0 {
-		return r.user, invalidLogin
-	}
-	r.user, err = a.ds.users.getActive(userID)
-	if err != nil {
-		if isErrSqlNoRows(err) {
-			return r.user, invalidLogin
-		}
-		return r.user, err
-	}
-	r.user.IsAuthenticated = true
-
-	return r.user, nil
-}
-
-func (a *appContext) logout(w http.ResponseWriter, r *request) error {
-
-	u, err := a.authenticate(r, true)
-	if err != nil {
+	if err := c.sessionMgr.writeToken(w, 0); err != nil {
 		return err
 	}
 
-	if err := a.sessionMgr.writeToken(w, 0); err != nil {
-		return err
-	}
-
-	sendMessage(&socketMessage{u.Name, "", 0, "logout"})
+	sendMessage(&socketMessage{r.user.Name, "", 0, "logout"})
 	return renderJSON(w, newSessionInfo(&user{}), http.StatusOK)
 
 }
 
-func (a *appContext) getSessionInfo(w http.ResponseWriter, r *request) error {
+func getSessionInfo(c *appContext, w http.ResponseWriter, r *request) error {
 
-	user, err := a.authenticate(r, false)
+	user, err := c.authenticate(r, false)
 	if err != nil {
 		return err
 	}
@@ -79,7 +42,7 @@ func (a *appContext) getSessionInfo(w http.ResponseWriter, r *request) error {
 	return renderJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
-func (a *appContext) login(w http.ResponseWriter, r *request) error {
+func login(c *appContext, w http.ResponseWriter, r *request) error {
 
 	s := &struct {
 		Identifier string `json:"identifier"`
@@ -96,7 +59,7 @@ func (a *appContext) login(w http.ResponseWriter, r *request) error {
 		return invalidLogin
 	}
 
-	user, err := a.ds.users.getByNameOrEmail(s.Identifier)
+	user, err := c.ds.users.getByNameOrEmail(s.Identifier)
 	if err != nil {
 		if isErrSqlNoRows(err) {
 			return invalidLogin
@@ -107,7 +70,7 @@ func (a *appContext) login(w http.ResponseWriter, r *request) error {
 		return invalidLogin
 	}
 
-	if err := a.sessionMgr.writeToken(w, user.ID); err != nil {
+	if err := c.sessionMgr.writeToken(w, user.ID); err != nil {
 		return err
 	}
 
@@ -117,7 +80,7 @@ func (a *appContext) login(w http.ResponseWriter, r *request) error {
 	return renderJSON(w, newSessionInfo(user), http.StatusCreated)
 }
 
-func (a *appContext) signup(w http.ResponseWriter, r *request) error {
+func signup(c *appContext, w http.ResponseWriter, r *request) error {
 
 	s := &struct {
 		Name     string `json:"name"`
@@ -135,22 +98,22 @@ func (a *appContext) signup(w http.ResponseWriter, r *request) error {
 		Password: s.Password,
 	}
 
-	if err := validate(newUserValidator(user, a.ds.users)); err != nil {
+	if err := validate(newUserValidator(user, c.ds.users)); err != nil {
 		return err
 	}
 
-	if err := a.ds.users.create(user); err != nil {
+	if err := c.ds.users.create(user); err != nil {
 		return err
 	}
 
-	if err := a.sessionMgr.writeToken(w, user.ID); err != nil {
+	if err := c.sessionMgr.writeToken(w, user.ID); err != nil {
 		return err
 	}
 
 	user.IsAuthenticated = true
 
 	go func() {
-		if err := a.mailer.sendWelcomeMail(user); err != nil {
+		if err := c.mailer.sendWelcomeMail(user); err != nil {
 			logError(err)
 		}
 	}()
@@ -159,7 +122,7 @@ func (a *appContext) signup(w http.ResponseWriter, r *request) error {
 
 }
 
-func (a *appContext) changePassword(w http.ResponseWriter, r *request) error {
+func changePassword(c *appContext, w http.ResponseWriter, r *request) error {
 
 	var (
 		user *user
@@ -176,11 +139,11 @@ func (a *appContext) changePassword(w http.ResponseWriter, r *request) error {
 	}
 
 	if s.RecoveryCode == "" {
-		if user, err = a.authenticate(r, true); err != nil {
+		if user, err = c.authenticate(r, true); err != nil {
 			return err
 		}
 	} else {
-		if user, err = a.ds.users.getByRecoveryCode(s.RecoveryCode); err != nil {
+		if user, err = c.ds.users.getByRecoveryCode(s.RecoveryCode); err != nil {
 			return err
 		}
 		user.resetRecoveryCode()
@@ -190,14 +153,14 @@ func (a *appContext) changePassword(w http.ResponseWriter, r *request) error {
 		return err
 	}
 
-	if err = a.ds.users.update(user); err != nil {
+	if err = c.ds.users.update(user); err != nil {
 		return err
 	}
 
 	return renderString(w, http.StatusOK, "Password changed")
 }
 
-func (a *appContext) recoverPassword(w http.ResponseWriter, r *request) error {
+func recoverPassword(c *appContext, w http.ResponseWriter, r *request) error {
 
 	s := &struct {
 		Email string `json:"email"`
@@ -209,7 +172,7 @@ func (a *appContext) recoverPassword(w http.ResponseWriter, r *request) error {
 	if s.Email == "" {
 		return &httpError{http.StatusBadRequest, "Missing email address"}
 	}
-	user, err := a.ds.users.getByEmail(s.Email)
+	user, err := c.ds.users.getByEmail(s.Email)
 	if err != nil {
 		if isErrSqlNoRows(err) {
 			return &httpError{http.StatusBadRequest, "Email address not found"}
@@ -222,12 +185,12 @@ func (a *appContext) recoverPassword(w http.ResponseWriter, r *request) error {
 		return err
 	}
 
-	if err := a.ds.users.update(user); err != nil {
+	if err := c.ds.users.update(user); err != nil {
 		return err
 	}
 
 	go func() {
-		if err := a.mailer.sendResetPasswordMail(user, code, r); err != nil {
+		if err := c.mailer.sendResetPasswordMail(user, code, r); err != nil {
 			logError(err)
 		}
 	}()

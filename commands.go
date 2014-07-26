@@ -39,7 +39,12 @@ func Serve() {
 		log.Fatal(err)
 	}
 
-	router, err := getRouter(config, dbMap)
+	context, err := newAppContext(config, dbMap)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	router, err := getRouter(config, context)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -3,7 +3,6 @@ package photoshare
 import (
 	"encoding/json"
 	"github.com/juju/errgo"
-	"github.com/zenazn/goji/web"
 	"net/http"
 	"strconv"
 	"strings"
@@ -27,11 +26,6 @@ func renderJSON(w http.ResponseWriter, value interface{}, status int) error {
 
 func renderString(w http.ResponseWriter, status int, msg string) error {
 	return writeBody(w, []byte(msg), status, "text/plain")
-}
-
-func getIntParam(c web.C, name string) int64 {
-	value, _ := strconv.ParseInt(c.URLParams[name], 10, 0)
-	return value
 }
 
 // Converts a Pg Array (returned as string) to an int slice

@@ -1,7 +1,6 @@
 package photoshare
 
 import (
-	"github.com/zenazn/goji/web"
 	"net/http"
 	"strings"
 )
@@ -22,46 +21,41 @@ func newSessionInfo(user *user) *sessionInfo {
 	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
-func (a *appContext) authenticate(c web.C, r *request, required bool) (*user, error) {
+func (a *appContext) authenticate(r *request, required bool) (*user, error) {
 
-	var (
-		u            *user
-		invalidLogin error
-	)
+	var invalidLogin error
 
 	if required {
 		invalidLogin = &httpError{http.StatusUnauthorized, "You must be logged in"}
 	}
 
-	obj, ok := c.Env["user"]
-
-	if ok {
-		u = obj.(*user)
-	} else {
-		userID, err := a.sessionMgr.readToken(r)
-		if err != nil {
-			return u, err
-		}
-		if userID == 0 {
-			return u, invalidLogin
-		}
-		u, err = a.ds.users.getActive(userID)
-		if err != nil {
-			if isErrSqlNoRows(err) {
-				return u, invalidLogin
-			}
-			return u, err
-		}
-		c.Env["user"] = u
+	if r.user != nil {
+		return r.user, nil
 	}
-	u.IsAuthenticated = true
+	r.user = &user{}
 
-	return u, nil
+	userID, err := a.sessionMgr.readToken(r)
+	if err != nil {
+		return r.user, err
+	}
+	if userID == 0 {
+		return r.user, invalidLogin
+	}
+	r.user, err = a.ds.users.getActive(userID)
+	if err != nil {
+		if isErrSqlNoRows(err) {
+			return r.user, invalidLogin
+		}
+		return r.user, err
+	}
+	r.user.IsAuthenticated = true
+
+	return r.user, nil
 }
 
-func (a *appContext) logout(c web.C, w http.ResponseWriter, r *request) error {
+func (a *appContext) logout(w http.ResponseWriter, r *request) error {
 
-	u, err := a.authenticate(c, r, true)
+	u, err := a.authenticate(r, true)
 	if err != nil {
 		return err
 	}
@@ -75,9 +69,9 @@ func (a *appContext) logout(c web.C, w http.ResponseWriter, r *request) error {
 
 }
 
-func (a *appContext) getSessionInfo(c web.C, w http.ResponseWriter, r *request) error {
+func (a *appContext) getSessionInfo(w http.ResponseWriter, r *request) error {
 
-	user, err := a.authenticate(c, r, false)
+	user, err := a.authenticate(r, false)
 	if err != nil {
 		return err
 	}
@@ -85,7 +79,7 @@ func (a *appContext) getSessionInfo(c web.C, w http.ResponseWriter, r *request) 
 	return renderJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
-func (a *appContext) login(_ web.C, w http.ResponseWriter, r *request) error {
+func (a *appContext) login(w http.ResponseWriter, r *request) error {
 
 	s := &struct {
 		Identifier string `json:"identifier"`
@@ -123,7 +117,7 @@ func (a *appContext) login(_ web.C, w http.ResponseWriter, r *request) error {
 	return renderJSON(w, newSessionInfo(user), http.StatusCreated)
 }
 
-func (a *appContext) signup(c web.C, w http.ResponseWriter, r *request) error {
+func (a *appContext) signup(w http.ResponseWriter, r *request) error {
 
 	s := &struct {
 		Name     string `json:"name"`
@@ -165,7 +159,7 @@ func (a *appContext) signup(c web.C, w http.ResponseWriter, r *request) error {
 
 }
 
-func (a *appContext) changePassword(c web.C, w http.ResponseWriter, r *request) error {
+func (a *appContext) changePassword(w http.ResponseWriter, r *request) error {
 
 	var (
 		user *user
@@ -182,7 +176,7 @@ func (a *appContext) changePassword(c web.C, w http.ResponseWriter, r *request) 
 	}
 
 	if s.RecoveryCode == "" {
-		if user, err = a.authenticate(c, r, true); err != nil {
+		if user, err = a.authenticate(r, true); err != nil {
 			return err
 		}
 	} else {
@@ -203,7 +197,7 @@ func (a *appContext) changePassword(c web.C, w http.ResponseWriter, r *request) 
 	return renderString(w, http.StatusOK, "Password changed")
 }
 
-func (a *appContext) recoverPassword(_ web.C, w http.ResponseWriter, r *request) error {
+func (a *appContext) recoverPassword(w http.ResponseWriter, r *request) error {
 
 	s := &struct {
 		Email string `json:"email"`

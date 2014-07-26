@@ -19,15 +19,15 @@ var (
 	reOwnerFeed       = regexp.MustCompile(`/feeds/owner/(?P<ownerID>\d+)$`)
 )
 
-type appHandler func(c web.C, w http.ResponseWriter, r *request) error
+type appHandler func(w http.ResponseWriter, r *request) error
 
 func (h appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := h(web.C{}, w, &request{r})
-	handleError(w, r, err)
+	h.ServeHTTPC(web.C{}, w, r)
 }
+
 func (h appHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request) {
-	err := h(c, w, &request{r})
-	handleError(w, r, err)
+	req := newRequest(c, r)
+	handleError(w, r, h(w, req))
 }
 
 type appContext struct {

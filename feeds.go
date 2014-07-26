@@ -3,7 +3,6 @@ package photoshare
 import (
 	"fmt"
 	"github.com/gorilla/feeds"
-	"github.com/zenazn/goji/web"
 	"net/http"
 	"strconv"
 	"time"
@@ -44,7 +43,7 @@ func photoFeed(w http.ResponseWriter,
 	return nil
 }
 
-func (a *appContext) latestFeed(_ web.C, w http.ResponseWriter, r *request) error {
+func (a *appContext) latestFeed(w http.ResponseWriter, r *request) error {
 
 	photos, err := a.ds.photos.all(newPage(1), "")
 
@@ -55,7 +54,7 @@ func (a *appContext) latestFeed(_ web.C, w http.ResponseWriter, r *request) erro
 	return photoFeed(w, r, "Latest photos", "Most recent photos", "/latest", photos)
 }
 
-func (a *appContext) popularFeed(_ web.C, w http.ResponseWriter, r *request) error {
+func (a *appContext) popularFeed(w http.ResponseWriter, r *request) error {
 
 	photos, err := a.ds.photos.all(newPage(1), "votes")
 
@@ -66,8 +65,8 @@ func (a *appContext) popularFeed(_ web.C, w http.ResponseWriter, r *request) err
 	return photoFeed(w, r, "Popular photos", "Most upvoted photos", "/popular", photos)
 }
 
-func (a *appContext) ownerFeed(c web.C, w http.ResponseWriter, r *request) error {
-	ownerID := getIntParam(c, "ownerID")
+func (a *appContext) ownerFeed(w http.ResponseWriter, r *request) error {
+	ownerID := r.getIntParam("ownerID")
 	owner, err := a.ds.users.getActive(ownerID)
 	if err != nil {
 		return err

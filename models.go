@@ -61,6 +61,22 @@ func (photo *photo) PreInsert(s gorp.SqlExecutor) error {
 	return nil
 }
 
+func (photo *photo) validate(c *context, errors map[string]string) error {
+	if photo.OwnerID == 0 {
+		errors["ownerID"] = "Owner ID is missing"
+	}
+	if photo.Title == "" {
+		errors["title"] = "Title is missing"
+	}
+	if len(photo.Title) > 200 {
+		errors["title"] = "Title is too long"
+	}
+	if photo.Filename == "" {
+		errors["photo"] = "Photo filename not set"
+	}
+	return nil
+}
+
 func (photo *photo) canEdit(user *user) bool {
 	if user == nil || !user.IsAuthenticated {
 		return false
@@ -118,6 +134,42 @@ func (user *user) PreInsert(s gorp.SqlExecutor) error {
 	return nil
 }
 
+func (user *user) validate(c *context, errors map[string]string) error {
+
+	if user.Name == "" {
+		errors["name"] = "Name is missing"
+	} else {
+		ok, err := c.ds.users.isNameAvailable(user)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			errors["name"] = "Name already taken"
+		}
+	}
+
+	if user.Email == "" {
+		errors["email"] = "Email is missing"
+	} else if !validateEmail(user.Email) {
+		errors["email"] = "Invalid email address"
+	} else {
+		ok, err := c.ds.users.isEmailAvailable(user)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			errors["email"] = "Email already taken"
+		}
+
+	}
+
+	if user.Password == "" {
+		errors["password"] = "Password is missing"
+	}
+
+	return nil
+
+}
 func (user *user) generateRecoveryCode() (string, error) {
 
 	buf := bytes.Buffer{}

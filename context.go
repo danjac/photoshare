@@ -41,6 +41,17 @@ func (c *context) makeAppHandler(h handlerFunc, loginRequired bool) *appHandler 
 	return &appHandler{c, h, loginRequired}
 }
 
+func (c *context) validate(v validator) error {
+	errors := make(map[string]string)
+	if err := v.validate(c, errors); err != nil {
+		return err
+	}
+	if len(errors) > 0 {
+		return validationFailure{errors}
+	}
+	return nil
+}
+
 func (c *context) authenticate(r *request, required bool) (*user, error) {
 
 	var invalidLogin error

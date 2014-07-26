@@ -98,7 +98,7 @@ func signup(c *context, w http.ResponseWriter, r *request) error {
 		Password: s.Password,
 	}
 
-	if err := validate(newUserValidator(user, c.ds.users)); err != nil {
+	if err := c.validate(user); err != nil {
 		return err
 	}
 

@@ -5,6 +5,18 @@ import (
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
 	"net/http"
+	"regexp"
+)
+
+var (
+	rePhotosByOwnerID = regexp.MustCompile(`^/api/photos/owner/(?P<ownerID>\d+)$`)
+	rePhotoDetail     = regexp.MustCompile(`/api/photos/(?P<id>\d+)$`)
+	reDeletePhoto     = regexp.MustCompile(`/api/photos/(?P<id>\d+)$`)
+	reEditPhotoTitle  = regexp.MustCompile(`/api/photos/(?P<id>\d+)/title$`)
+	reEditPhotoTags   = regexp.MustCompile(`/api/photos/(?P<id>\d+)/tags$`)
+	reVoteUp          = regexp.MustCompile(`/api/photos/(?P<id>\d+)/upvote$`)
+	reVoteDown        = regexp.MustCompile(`/api/photos/(?P<id>\d+)/downvote$`)
+	reOwnerFeed       = regexp.MustCompile(`/feeds/owner/(?P<ownerID>\d+)$`)
 )
 
 type appHandler func(c web.C, w http.ResponseWriter, r *request) error
@@ -75,14 +87,14 @@ func getRouter(config *appConfig, dbMap *gorp.DbMap) (*web.Mux, error) {
 	r.Get("/api/photos/", appHandler(a.getPhotos))
 	r.Post("/api/photos/", appHandler(a.upload))
 	r.Get("/api/photos/search", appHandler(a.searchPhotos))
-	r.Get("/api/photos/owner/:ownerID", appHandler(a.photosByOwnerID))
+	r.Get(rePhotosByOwnerID, appHandler(a.photosByOwnerID))
 
-	r.Get("/api/photos/:id", appHandler(a.photoDetail))
-	r.Delete("/api/photos/:id", appHandler(a.deletePhoto))
-	r.Patch("/api/photos/:id/title", appHandler(a.editPhotoTitle))
-	r.Patch("/api/photos/:id/tags", appHandler(a.editPhotoTags))
-	r.Patch("/api/photos/:id/upvote", appHandler(a.voteUp))
-	r.Patch("/api/photos/:id/downvote", appHandler(a.voteDown))
+	r.Get(rePhotoDetail, appHandler(a.photoDetail))
+	r.Delete(reDeletePhoto, appHandler(a.deletePhoto))
+	r.Patch(reEditPhotoTitle, appHandler(a.editPhotoTitle))
+	r.Patch(reEditPhotoTags, appHandler(a.editPhotoTags))
+	r.Patch(reVoteUp, appHandler(a.voteUp))
+	r.Patch(reVoteDown, appHandler(a.voteDown))
 
 	r.Get("/api/tags/", appHandler(a.getTags))
 
@@ -95,7 +107,7 @@ func getRouter(config *appConfig, dbMap *gorp.DbMap) (*web.Mux, error) {
 
 	r.Get("/feeds/", appHandler(a.latestFeed))
 	r.Get("/feeds/popular/", appHandler(a.popularFeed))
-	r.Get("/feeds/owner/:ownerID", appHandler(a.ownerFeed))
+	r.Get(reOwnerFeed, appHandler(a.ownerFeed))
 
 	r.Handle("/api/messages/*", messageHandler)
 	r.Handle("/*", http.FileServer(http.Dir(config.PublicDir)))

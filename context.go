@@ -6,15 +6,15 @@ import (
 	"net/http"
 )
 
-type handlerFunc func(c *context, w http.ResponseWriter, r *request) error
+type handlerFunc func(c *appContext, w http.ResponseWriter, r *request) error
 
 type appHandler struct {
-	*context
+	*appContext
 	handler       handlerFunc
 	loginRequired bool
 }
 
-type context struct {
+type appContext struct {
 	config     *appConfig
 	ds         *dataStores
 	mailer     *mailer
@@ -34,14 +34,14 @@ func (h *appHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request)
 			handleError(w, r, err)
 		}
 	}
-	handleError(w, r, h.handler(h.context, w, req))
+	handleError(w, r, h.handler(h.appContext, w, req))
 }
 
-func (c *context) makeAppHandler(h handlerFunc, loginRequired bool) *appHandler {
+func (c *appContext) makeAppHandler(h handlerFunc, loginRequired bool) *appHandler {
 	return &appHandler{c, h, loginRequired}
 }
 
-func (c *context) validate(v validator) error {
+func (c *appContext) validate(v validator) error {
 	errors := make(map[string]string)
 	if err := v.validate(c, errors); err != nil {
 		return err
@@ -52,7 +52,7 @@ func (c *context) validate(v validator) error {
 	return nil
 }
 
-func (c *context) authenticate(r *request, required bool) (*user, error) {
+func (c *appContext) authenticate(r *request, required bool) (*user, error) {
 
 	var invalidLogin error
 
@@ -85,7 +85,7 @@ func (c *context) authenticate(r *request, required bool) (*user, error) {
 	return r.user, nil
 }
 
-func newContext(config *appConfig, dbMap *gorp.DbMap) (*context, error) {
+func newContext(config *appConfig, dbMap *gorp.DbMap) (*appContext, error) {
 
 	photoDS := newPhotoDataStore(dbMap)
 	userDS := newUserDataStore(dbMap)
@@ -104,7 +104,7 @@ func newContext(config *appConfig, dbMap *gorp.DbMap) (*context, error) {
 		return nil, err
 	}
 
-	c := &context{
+	c := &appContext{
 		config:     config,
 		ds:         ds,
 		fs:         fs,

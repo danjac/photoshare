@@ -15,7 +15,7 @@ func (f validationFailure) Error() string {
 }
 
 type validator interface {
-	validate(*context, map[string]string) error
+	validate(*appContext, map[string]string) error
 }
 
 func validateEmail(email string) bool {

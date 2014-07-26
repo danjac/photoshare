@@ -6,15 +6,15 @@ import (
 	"net/http"
 )
 
-type handlerFunc func(c *appContext, w http.ResponseWriter, r *request) error
+type handlerFunc func(c *context, w http.ResponseWriter, r *request) error
 
 type appHandler struct {
-	*appContext
+	*context
 	handler       handlerFunc
 	loginRequired bool
 }
 
-type appContext struct {
+type context struct {
 	config     *appConfig
 	ds         *dataStores
 	mailer     *mailer
@@ -34,14 +34,14 @@ func (h *appHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request)
 			handleError(w, r, err)
 		}
 	}
-	handleError(w, r, h.handler(h.appContext, w, req))
+	handleError(w, r, h.handler(h.context, w, req))
 }
 
-func (c *appContext) makeAppHandler(h handlerFunc, loginRequired bool) *appHandler {
+func (c *context) makeAppHandler(h handlerFunc, loginRequired bool) *appHandler {
 	return &appHandler{c, h, loginRequired}
 }
 
-func (c *appContext) authenticate(r *request, required bool) (*user, error) {
+func (c *context) authenticate(r *request, required bool) (*user, error) {
 
 	var invalidLogin error
 
@@ -74,7 +74,7 @@ func (c *appContext) authenticate(r *request, required bool) (*user, error) {
 	return r.user, nil
 }
 
-func newAppContext(config *appConfig, dbMap *gorp.DbMap) (*appContext, error) {
+func newContext(config *appConfig, dbMap *gorp.DbMap) (*context, error) {
 
 	photoDS := newPhotoDataStore(dbMap)
 	userDS := newUserDataStore(dbMap)
@@ -93,7 +93,7 @@ func newAppContext(config *appConfig, dbMap *gorp.DbMap) (*appContext, error) {
 		return nil, err
 	}
 
-	c := &appContext{
+	c := &context{
 		config:     config,
 		ds:         ds,
 		fs:         fs,

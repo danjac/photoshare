@@ -21,7 +21,7 @@ func newSessionInfo(user *user) *sessionInfo {
 	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
-func logout(c *appContext, w http.ResponseWriter, r *request) error {
+func logout(c *context, w http.ResponseWriter, r *request) error {
 
 	if err := c.sessionMgr.writeToken(w, 0); err != nil {
 		return err
@@ -32,7 +32,7 @@ func logout(c *appContext, w http.ResponseWriter, r *request) error {
 
 }
 
-func getSessionInfo(c *appContext, w http.ResponseWriter, r *request) error {
+func getSessionInfo(c *context, w http.ResponseWriter, r *request) error {
 
 	user, err := c.authenticate(r, false)
 	if err != nil {
@@ -42,7 +42,7 @@ func getSessionInfo(c *appContext, w http.ResponseWriter, r *request) error {
 	return renderJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
-func login(c *appContext, w http.ResponseWriter, r *request) error {
+func login(c *context, w http.ResponseWriter, r *request) error {
 
 	s := &struct {
 		Identifier string `json:"identifier"`
@@ -80,7 +80,7 @@ func login(c *appContext, w http.ResponseWriter, r *request) error {
 	return renderJSON(w, newSessionInfo(user), http.StatusCreated)
 }
 
-func signup(c *appContext, w http.ResponseWriter, r *request) error {
+func signup(c *context, w http.ResponseWriter, r *request) error {
 
 	s := &struct {
 		Name     string `json:"name"`
@@ -122,7 +122,7 @@ func signup(c *appContext, w http.ResponseWriter, r *request) error {
 
 }
 
-func changePassword(c *appContext, w http.ResponseWriter, r *request) error {
+func changePassword(c *context, w http.ResponseWriter, r *request) error {
 
 	var (
 		user *user
@@ -160,7 +160,7 @@ func changePassword(c *appContext, w http.ResponseWriter, r *request) error {
 	return renderString(w, http.StatusOK, "Password changed")
 }
 
-func recoverPassword(c *appContext, w http.ResponseWriter, r *request) error {
+func recoverPassword(c *context, w http.ResponseWriter, r *request) error {
 
 	s := &struct {
 		Email string `json:"email"`

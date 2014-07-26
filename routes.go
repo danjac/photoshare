@@ -18,7 +18,7 @@ var (
 	reOwnerFeed       = regexp.MustCompile(`/feeds/owner/(?P<ownerID>\d+)$`)
 )
 
-func getRouter(config *appConfig, c *appContext) (*web.Mux, error) {
+func getRouter(config *appConfig, c *context) (*web.Mux, error) {
 
 	r := web.New()
 

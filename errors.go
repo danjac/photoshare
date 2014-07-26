@@ -21,7 +21,13 @@ func (h httpError) Error() string {
 }
 
 func isErrSqlNoRows(err error) bool {
-	return err == sql.ErrNoRows || err.(*errgo.Err).Underlying() == sql.ErrNoRows
+	if err == sql.ErrNoRows {
+		return true
+	}
+	if err, ok := err.(*errgo.Err); ok && err.Underlying() == sql.ErrNoRows {
+		return true
+	}
+	return false
 }
 
 func logError(err error) {

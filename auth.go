@@ -49,7 +49,7 @@ func login(c *appContext, w http.ResponseWriter, r *request) error {
 		Password   string `json:"password"`
 	}{}
 
-	var invalidLogin = &httpError{http.StatusBadRequest, "Invalid email or password"}
+	var invalidLogin = httpError{http.StatusBadRequest, "Invalid email or password"}
 
 	if err := r.decodeJSON(s); err != nil {
 		return err
@@ -170,12 +170,12 @@ func recoverPassword(c *appContext, w http.ResponseWriter, r *request) error {
 		return err
 	}
 	if s.Email == "" {
-		return &httpError{http.StatusBadRequest, "Missing email address"}
+		return httpError{http.StatusBadRequest, "Missing email address"}
 	}
 	user, err := c.ds.users.getByEmail(s.Email)
 	if err != nil {
 		if isErrSqlNoRows(err) {
-			return &httpError{http.StatusBadRequest, "Email address not found"}
+			return httpError{http.StatusBadRequest, "Email address not found"}
 		}
 		return err
 	}

@@ -16,7 +16,7 @@ func deletePhoto(c *appContext, w http.ResponseWriter, r *request) error {
 	}
 
 	if !photo.canDelete(r.user) {
-		return &httpError{http.StatusForbidden, "You're not allowed to delete this photo"}
+		return httpError{http.StatusForbidden, "You're not allowed to delete this photo"}
 	}
 	if err := c.ds.photos.remove(photo); err != nil {
 		return err
@@ -63,7 +63,7 @@ func getPhotoToEdit(c *appContext, w http.ResponseWriter, r *request) (*photo, e
 	}
 
 	if !photo.canEdit(user) {
-		return photo, &httpError{http.StatusForbidden, "You're not allowed to edit this photo"}
+		return photo, httpError{http.StatusForbidden, "You're not allowed to edit this photo"}
 	}
 	return photo, nil
 }
@@ -94,9 +94,7 @@ func editPhotoTitle(c *appContext, w http.ResponseWriter, r *request) error {
 	if err := c.ds.photos.update(photo); err != nil {
 		return err
 	}
-	if user, err := c.authenticate(r, true); err == nil {
-		sendMessage(&socketMessage{user.Name, "", photo.ID, "photo_updated"})
-	}
+	sendMessage(&socketMessage{r.user.Name, "", photo.ID, "photo_updated"})
 	return renderString(w, http.StatusOK, "Photo updated")
 }
 
@@ -134,7 +132,7 @@ func upload(c *appContext, w http.ResponseWriter, r *request) error {
 	src, hdr, err := r.FormFile("photo")
 	if err != nil {
 		if err == http.ErrMissingFile || err == http.ErrNotMultipart {
-			return &httpError{http.StatusBadRequest, "Invalid photo"}
+			return httpError{http.StatusBadRequest, "Invalid photo"}
 		}
 		return err
 	}
@@ -146,7 +144,7 @@ func upload(c *appContext, w http.ResponseWriter, r *request) error {
 
 	if err != nil {
 		if err == errInvalidContentType {
-			return &httpError{http.StatusBadRequest, err.Error()}
+			return httpError{http.StatusBadRequest, err.Error()}
 		}
 		return err
 	}
@@ -250,7 +248,7 @@ func vote(c *appContext, w http.ResponseWriter, r *request, fn func(photo *photo
 	}
 
 	if !photo.canVote(r.user) {
-		return &httpError{http.StatusForbidden, "You're not allowed to vote on this photo"}
+		return httpError{http.StatusForbidden, "You're not allowed to vote on this photo"}
 	}
 
 	fn(photo)

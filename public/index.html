@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link type="application/atom+xml" rel="alternate" href="/feeds/" />
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="bower_components/bootswatch/united/bootstrap.min.css">
+    <link rel="stylesheet" href="bower_components/bootswatch/cerulean/bootstrap.min.css">
     <link rel="stylesheet" href="css/app.css" />
 </head>
 
@@ -24,17 +24,17 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="#"><span class="glyphicon glyphicon-globe"></span> Photoshare</a>
+                <a class="navbar-brand" href="#"><span class="glyphicon glyphicon-camera"></span> Photoshare</a>
             </div>
             <div class="collapse navbar-collapse" id="navbar-links">
                 <ul class="nav navbar-nav navbar-left">
-                    <li ng-class="{active: isActive('/popular')}"><a href="#/popular">Popular</a>
+                    <li ng-class="{active: isActive('/popular')}"><a href="#/popular"><span class="glyphicon glyphicon-fire"></span> Popular</a>
                     </li>
-                    <li ng-class="{active: isActive('/latest')}"><a href="#/latest">Latest</a>
+                    <li ng-class="{active: isActive('/latest')}"><a href="#/latest"><span class="glyphicon glyphicon-time"></span> Latest</a>
                     </li>
-                    <li ng-class="{active: isActive('/tags')}"><a href="#/tags">Tags</a>
+                    <li ng-class="{active: isActive('/tags')}"><a href="#/tags"><span class="glyphicon glyphicon-tasks"></span> Tags</a>
                     </li>
-                    <li ng-class="{active: isActive('/upload')}"><a href="#/upload">Upload photo</a>
+                    <li ng-class="{active: isActive('/upload')}"><a href="#/upload"><span class="glyphicon glyphicon-upload"></span> Upload</a>
                     </li>
                 </ul>
                 <form class="navbar-form navbar-left" role="search" name="searchForm" novalidate>
@@ -46,14 +46,14 @@
                 </form>
 
                 <ul class="nav navbar-nav navbar-right" ng-show="!session.loggedIn">
-                    <li ng-class="{active: isActive('/login')}"><a ng-click="login()">Login</a>
+                    <li ng-class="{active: isActive('/login')}"><a ng-click="login()"><span class="glyphicon glyphicon-log-in"></span> Login</a>
                     </li>
-                    <li ng-class="{active: isActive('/signup')}"><a href="#/signup">Signup</a>
+                    <li ng-class="{active: isActive('/signup')}"><a href="#/signup"><span class="glyphicon glyphicon-user"></span> Signup</a>
                     </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right" ng-show="session.loggedIn">
                     <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown">{{session.name}} <span class="caret"></span></a>
+                        <a class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span> {{session.name}} <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                             <li ng-class="{active: isActive('/owner/'+session.id+'/'+session.name)}"><a href="#/owner/{{session.id}}/{{session.name}}">My photos</a>
                             </li>

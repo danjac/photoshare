@@ -3,13 +3,23 @@
 (function() {
     'use strict';
     angular.module('photoshare.directives', []).
-    directive('errSrc', function() {
+    directive('errSrc', function($interval, $http) {
         return {
             link: function(scope, element, attrs) {
                 element.bind('error', function() {
+                    var imageFound = false,
+                        originalSrc = attrs.src;
                     if (attrs.src != attrs.errSrc) {
                         attrs.$set('src', attrs.errSrc);
                     };
+                    $interval(function() {
+                        if (imageFound) return;
+                        $http.get(originalSrc).success(function(response) {
+                            attrs.$set('src', originalSrc);
+                            imageFound = true;
+                        });
+                    }, 1000, 100);
+
                 });
             }
         }

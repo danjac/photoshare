@@ -198,6 +198,9 @@
                 $scope.photo.taglist = $scope.photo.tags ? $scope.photo.tags.join(" ") : "";
                 $scope.pageLoaded = true;
                 calcScore();
+            }, function() {
+                Alert.danger("This photo no longer exists, or cannot be found");
+                $window.history.back();
             });
 
             $scope.voteUp = function() {

@@ -176,6 +176,10 @@
                     Session.redirectToLogin();
                     return;
                 }
+                if (status == 404) {
+                    // handle locally
+                    return;
+                }
                 if (status == 403) {
                     msg = "Sorry, you're not allowed to do this";
                 }
@@ -188,7 +192,9 @@
                 if (response.data && typeof(response.data) === 'string') {
                     msg = response.data;
                 }
-                Alert.danger(msg);
+                if (msg) {
+                    Alert.danger(msg);
+                }
                 return rejection;
             }
         };

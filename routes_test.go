@@ -45,14 +45,14 @@ func (m *mockSessionManager) writeToken(w http.ResponseWriter, userID int64) err
 	return nil
 }
 
-type mockPhotoDataManager struct {
+type mockDataStore struct {
 }
 
-func (m *mockPhotoDataManager) get(photoID int64) (*photo, error) {
+func (m *mockDataStore) getPhoto(photoID int64) (*photo, error) {
 	return nil, sql.ErrNoRows
 }
 
-func (m *mockPhotoDataManager) getDetail(photoID int64, user *user) (*photoDetail, error) {
+func (m *mockDataStore) getPhotoDetail(photoID int64, user *user) (*photoDetail, error) {
 	canEdit := user.ID == 1
 	photo := &photoDetail{
 		photo: photo{
@@ -68,7 +68,7 @@ func (m *mockPhotoDataManager) getDetail(photoID int64, user *user) (*photoDetai
 	return photo, nil
 }
 
-func (m *mockPhotoDataManager) all(page *page, orderBy string) (*photoList, error) {
+func (m *mockDataStore) getPhotos(page *page, orderBy string) (*photoList, error) {
 	item := &photo{
 		ID:      1,
 		Title:   "test",
@@ -78,48 +78,56 @@ func (m *mockPhotoDataManager) all(page *page, orderBy string) (*photoList, erro
 	return newPhotoList(photos, 1, 1), nil
 }
 
-func (m *mockPhotoDataManager) byOwnerID(page *page, ownerID int64) (*photoList, error) {
+func (m *mockDataStore) getPhotosByOwnerID(page *page, ownerID int64) (*photoList, error) {
 	return &photoList{}, nil
 }
 
-func (m *mockPhotoDataManager) search(page *page, q string) (*photoList, error) {
+func (m *mockDataStore) searchPhotos(page *page, q string) (*photoList, error) {
 	return &photoList{}, nil
 }
 
-func (m *mockPhotoDataManager) updateTags(photo *photo) error {
-	return nil
-}
-
-func (m *mockPhotoDataManager) updateVotes(photo *photo, user *user) error {
-	return nil
-}
-
-func (m *mockPhotoDataManager) getTagCounts() ([]tagCount, error) {
+func (m *mockDataStore) getTagCounts() ([]tagCount, error) {
 	return []tagCount{}, nil
 }
 
-func (m *mockPhotoDataManager) remove(photo *photo) error {
-	return nil
+func (m *mockDataStore) getActiveUser(userID int64) (*user, error) {
+	return &user{}, nil
 }
 
-func (m *mockPhotoDataManager) create(photo *photo) error {
-	return nil
+func (m *mockDataStore) getUserByEmail(email string) (*user, error) {
+	return &user{}, nil
 }
 
-func (m *mockPhotoDataManager) update(photo *photo) error {
-	return nil
+func (m *mockDataStore) isUserNameAvailable(user *user) (bool, error) {
+	return true, nil
 }
 
-type emptyPhotoDataManager struct {
-	mockPhotoDataManager
+func (m *mockDataStore) isUserEmailAvailable(user *user) (bool, error) {
+	return true, nil
 }
 
-func (m *emptyPhotoDataManager) all(page *page, orderBy string) (*photoList, error) {
+func (m *mockDataStore) getUserByNameOrEmail(identifier string) (*user, error) {
+	return &user{}, nil
+}
+
+func (m *mockDataStore) getUserByRecoveryCode(code string) (*user, error) {
+	return &user{}, nil
+}
+
+func (m *mockDataStore) begin() (transaction, error) {
+	return nil, nil
+}
+
+type emptyDataStore struct {
+	mockDataStore
+}
+
+func (m *emptyDataStore) getPhotos(page *page, orderBy string) (*photoList, error) {
 	var photos []photo
 	return &photoList{photos, 0, 1, 0}, nil
 }
 
-func (m *emptyPhotoDataManager) getDetail(photoID int64, user *user) (*photoDetail, error) {
+func (m *emptyDataStore) getPhotoDetail(photoID int64, user *user) (*photoDetail, error) {
 	return nil, sql.ErrNoRows
 }
 
@@ -130,8 +138,8 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 	p := &params{make(map[string]string)}
 
 	a := &appContext{
-		session:   &mockSessionManager{},
-		datastore: &dataStore{photos: &emptyPhotoDataManager{}},
+		session: &mockSessionManager{},
+		ds:      &emptyDataStore{},
 	}
 
 	err := getPhotoDetail(a, res, req, p)
@@ -148,8 +156,8 @@ func TestGetPhotoDetail(t *testing.T) {
 	p.vars["id"] = "1"
 
 	a := &appContext{
-		session:   &mockSessionManager{},
-		datastore: &dataStore{photos: &mockPhotoDataManager{}},
+		session: &mockSessionManager{},
+		ds:      &mockDataStore{},
 	}
 
 	getPhotoDetail(a, res, req, p)
@@ -173,8 +181,8 @@ func TestGetPhotos(t *testing.T) {
 	p := &params{}
 
 	a := &appContext{
-		datastore: &dataStore{photos: &mockPhotoDataManager{}},
-		cache:     &mockCache{},
+		ds:    &mockDataStore{},
+		cache: &mockCache{},
 	}
 
 	getPhotos(a, res, req, p)

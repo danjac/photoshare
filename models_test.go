@@ -15,17 +15,19 @@ func TestGetIfNotNone(t *testing.T) {
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
 
-	if err := ds.users.create(user); err != nil {
+	tx, _ := ds.begin()
+	if err := tx.createUser(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := ds.photos.create(photo); err != nil {
+	if err := tx.createPhoto(photo); err != nil {
 		t.Error(err)
 		return
 	}
+	tx.commit()
 
-	photo, err := ds.photos.get(photo.ID)
+	photo, err := ds.getPhoto(photo.ID)
 	if err != nil {
 		t.Error(err)
 		return
@@ -40,7 +42,7 @@ func TestGetIfNone(t *testing.T) {
 
 	ds := newDataStore(tdb.dbMap)
 
-	_, err := ds.photos.get(1)
+	_, err := ds.getPhoto(1)
 	if err != sql.ErrNoRows {
 		t.Error(err)
 		return
@@ -56,16 +58,19 @@ func TestSearchPhotos(t *testing.T) {
 	ds := newDataStore(tdb.dbMap)
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	if err := ds.users.create(user); err != nil {
+	tx, _ := ds.begin()
+	if err := tx.createUser(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := ds.photos.create(photo); err != nil {
+	if err := tx.createPhoto(photo); err != nil {
 		t.Error(err)
 		return
 	}
-	result, err := ds.photos.search(newPage(1), "test")
+	tx.commit()
+
+	result, err := ds.searchPhotos(newPage(1), "test")
 	if err != nil {
 		t.Error(err)
 		return
@@ -81,18 +86,21 @@ func TestAllPhotos(t *testing.T) {
 	defer tdb.clean()
 
 	ds := newDataStore(tdb.dbMap)
+	tx, _ := ds.begin()
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	if err := ds.users.create(user); err != nil {
+	if err := tx.createUser(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := ds.photos.create(photo); err != nil {
+	if err := tx.createPhoto(photo); err != nil {
 		t.Error(err)
 		return
 	}
-	result, err := ds.photos.all(newPage(1), "")
+	tx.commit()
+
+	result, err := ds.getPhotos(newPage(1), "")
 	if err != nil {
 		t.Error(err)
 		return

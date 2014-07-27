@@ -63,7 +63,7 @@ func login(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) err
 		return invalidLogin
 	}
 
-	user, err := c.datastore.users.getByNameOrEmail(s.Identifier)
+	user, err := c.ds.getUserByNameOrEmail(s.Identifier)
 	if err != nil {
 		if isErrSqlNoRows(err) {
 			return invalidLogin
@@ -106,7 +106,15 @@ func signup(c *appContext, w http.ResponseWriter, r *http.Request, p *params) er
 		return err
 	}
 
-	if err := c.datastore.users.create(user); err != nil {
+	tx, err := c.ds.begin()
+	if err != nil {
+		return err
+	}
+
+	if err := tx.createUser(user); err != nil {
+		return err
+	}
+	if err := tx.commit(); err != nil {
 		return err
 	}
 
@@ -147,7 +155,7 @@ func changePassword(c *appContext, w http.ResponseWriter, r *http.Request, p *pa
 			return err
 		}
 	} else {
-		if user, err = c.datastore.users.getByRecoveryCode(s.RecoveryCode); err != nil {
+		if user, err = c.ds.getUserByRecoveryCode(s.RecoveryCode); err != nil {
 			return err
 		}
 		user.resetRecoveryCode()
@@ -157,7 +165,14 @@ func changePassword(c *appContext, w http.ResponseWriter, r *http.Request, p *pa
 		return err
 	}
 
-	if err = c.datastore.users.update(user); err != nil {
+	tx, err := c.ds.begin()
+	if err != nil {
+		return err
+	}
+	if err := tx.updateUser(user); err != nil {
+		return err
+	}
+	if err := tx.commit(); err != nil {
 		return err
 	}
 
@@ -176,7 +191,7 @@ func recoverPassword(c *appContext, w http.ResponseWriter, r *http.Request, _ *p
 	if s.Email == "" {
 		return httpError{http.StatusBadRequest, "Missing email address"}
 	}
-	user, err := c.datastore.users.getByEmail(s.Email)
+	user, err := c.ds.getUserByEmail(s.Email)
 	if err != nil {
 		if isErrSqlNoRows(err) {
 			return httpError{http.StatusBadRequest, "Email address not found"}
@@ -189,7 +204,15 @@ func recoverPassword(c *appContext, w http.ResponseWriter, r *http.Request, _ *p
 		return err
 	}
 
-	if err := c.datastore.users.update(user); err != nil {
+	tx, err := c.ds.begin()
+	if err != nil {
+		return err
+	}
+
+	if err := tx.updateUser(user); err != nil {
+		return err
+	}
+	if err := tx.commit(); err != nil {
 		return err
 	}
 

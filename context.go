@@ -19,12 +19,12 @@ func (p *params) getInt(name string) int64 {
 type handlerFunc func(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error
 
 type appContext struct {
-	config    *appConfig
-	datastore *dataStore
-	mailer    *mailer
-	filestore fileStorage
-	session   sessionManager
-	cache     cache
+	config  *appConfig
+	mailer  *mailer
+	ds      dataStore
+	fs      fileStorage
+	session sessionManager
+	cache   cache
 }
 
 func (c *appContext) appHandler(h handlerFunc) http.HandlerFunc {
@@ -63,7 +63,7 @@ func (c *appContext) getUser(r *http.Request, required bool) (*user, error) {
 	if userID == 0 {
 		return user, invalidLogin
 	}
-	user, err = c.datastore.users.getActive(userID)
+	user, err = c.ds.getActiveUser(userID)
 	if err != nil {
 		if isErrSqlNoRows(err) {
 			return user, invalidLogin
@@ -88,12 +88,12 @@ func newContext(config *appConfig, dbMap *gorp.DbMap) (*appContext, error) {
 	}
 
 	c := &appContext{
-		config:    config,
-		datastore: ds,
-		filestore: fs,
-		session:   sessionMgr,
-		mailer:    mailer,
-		cache:     cache,
+		config:  config,
+		ds:      ds,
+		fs:      fs,
+		session: sessionMgr,
+		mailer:  mailer,
+		cache:   cache,
 	}
 	return c, nil
 }

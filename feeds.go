@@ -45,7 +45,7 @@ func photoFeed(w http.ResponseWriter,
 
 func latestFeed(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
 
-	photos, err := c.datastore.photos.all(newPage(1), "")
+	photos, err := c.ds.getPhotos(newPage(1), "")
 
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func latestFeed(c *appContext, w http.ResponseWriter, r *http.Request, _ *params
 
 func popularFeed(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
 
-	photos, err := c.datastore.photos.all(newPage(1), "votes")
+	photos, err := c.ds.getPhotos(newPage(1), "votes")
 
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func popularFeed(c *appContext, w http.ResponseWriter, r *http.Request, _ *param
 
 func ownerFeed(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
 	ownerID := p.getInt("owner")
-	owner, err := c.datastore.users.getActive(ownerID)
+	owner, err := c.ds.getActiveUser(ownerID)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func ownerFeed(c *appContext, w http.ResponseWriter, r *http.Request, p *params)
 	description := "List of feeds for " + owner.Name
 	link := fmt.Sprintf("/owner/%d/%s", ownerID, owner.Name)
 
-	photos, err := c.datastore.photos.byOwnerID(newPage(1), ownerID)
+	photos, err := c.ds.getPhotosByOwnerID(newPage(1), ownerID)
 
 	if err != nil {
 		return err

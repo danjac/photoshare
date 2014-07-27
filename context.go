@@ -2,17 +2,21 @@ package photoshare
 
 import (
 	"github.com/coopernurse/gorp"
-	"github.com/zenazn/goji/web"
+	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 )
 
-type handlerFunc func(c *appContext, w http.ResponseWriter, r *request) error
-
-type appHandler struct {
-	*appContext
-	handler       handlerFunc
-	loginRequired bool
+type params struct {
+	vars map[string]string
 }
+
+func (p *params) getInt(name string) int64 {
+	value, _ := strconv.ParseInt(p.vars[name], 10, 0)
+	return value
+}
+
+type handlerFunc func(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error
 
 type appContext struct {
 	config    *appConfig
@@ -23,22 +27,12 @@ type appContext struct {
 	cache     cache
 }
 
-func (h *appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.ServeHTTPC(web.C{}, w, r)
-}
+func (c *appContext) appHandler(h handlerFunc) http.HandlerFunc {
 
-func (h *appHandler) ServeHTTPC(c web.C, w http.ResponseWriter, r *http.Request) {
-	req := newRequest(c, r)
-	if h.loginRequired {
-		if _, err := h.authenticate(req, true); err != nil {
-			handleError(w, r, err)
-		}
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := &params{mux.Vars(r)}
+		handleError(w, r, h(c, w, r, p))
 	}
-	handleError(w, r, h.handler(h.appContext, w, req))
-}
-
-func (c *appContext) makeAppHandler(h handlerFunc, loginRequired bool) *appHandler {
-	return &appHandler{c, h, loginRequired}
 }
 
 func (c *appContext) validate(v validator) error {
@@ -52,7 +46,7 @@ func (c *appContext) validate(v validator) error {
 	return nil
 }
 
-func (c *appContext) authenticate(r *request, required bool) (*user, error) {
+func (c *appContext) getUser(r *http.Request, required bool) (*user, error) {
 
 	var invalidLogin error
 
@@ -60,29 +54,26 @@ func (c *appContext) authenticate(r *request, required bool) (*user, error) {
 		invalidLogin = httpError{http.StatusUnauthorized, "You must be logged in"}
 	}
 
-	if r.user != nil {
-		return r.user, nil
-	}
-	r.user = &user{}
+	user := &user{}
 
 	userID, err := c.session.readToken(r)
 	if err != nil {
-		return r.user, err
+		return user, err
 	}
 	if userID == 0 {
-		return r.user, invalidLogin
+		return user, invalidLogin
 	}
-	user, err := c.datastore.users.getActive(userID)
+	user, err = c.datastore.users.getActive(userID)
 	if err != nil {
 		if isErrSqlNoRows(err) {
-			return r.user, invalidLogin
+			return user, invalidLogin
 		}
-		return r.user, err
+		return user, err
 	}
-	r.user = user
-	r.user.IsAuthenticated = true
+	user = user
+	user.IsAuthenticated = true
 
-	return r.user, nil
+	return user, nil
 }
 
 func newContext(config *appConfig, dbMap *gorp.DbMap) (*appContext, error) {

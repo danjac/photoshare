@@ -3,7 +3,6 @@ package photoshare
 import (
 	"database/sql"
 	"encoding/json"
-	"github.com/zenazn/goji/web"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -38,7 +37,7 @@ func (m *mockCache) render(w http.ResponseWriter, status int, key string, fn fun
 type mockSessionManager struct {
 }
 
-func (m *mockSessionManager) readToken(r *request) (int64, error) {
+func (m *mockSessionManager) readToken(r *http.Request) (int64, error) {
 	return 0, nil
 }
 
@@ -122,18 +121,16 @@ func (m *emptyPhotoDataManager) getDetail(photoID int64, user *user) (*photoDeta
 
 // should return a 404
 func TestGetPhotoDetailIfNone(t *testing.T) {
+	req := &http.Request{}
 	res := httptest.NewRecorder()
-	c := web.C{}
-	c.Env = make(map[string]interface{})
+	p := &params{make(map[string]string)}
 
 	a := &appContext{
 		session:   &mockSessionManager{},
 		datastore: &dataStore{photos: &emptyPhotoDataManager{}},
 	}
 
-	req := &request{&http.Request{}, c, nil}
-
-	err := getPhotoDetail(a, res, req)
+	err := getPhotoDetail(a, res, req, p)
 	if err != sql.ErrNoRows {
 		t.Fail()
 	}
@@ -141,23 +138,17 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 
 func TestGetPhotoDetail(t *testing.T) {
 
-	r, _ := http.NewRequest("GET", "http://localhost/api/photos/1", nil)
+	req, _ := http.NewRequest("GET", "http://localhost/api/photos/1", nil)
 	res := httptest.NewRecorder()
-	c := web.C{}
-
-	c.Env = make(map[string]interface{})
-	c.URLParams = make(map[string]string)
-	c.URLParams["id"] = "1"
-	c.Env["user"] = &user{}
+	p := &params{make(map[string]string)}
+	p.vars["id"] = "1"
 
 	a := &appContext{
 		session:   &mockSessionManager{},
 		datastore: &dataStore{photos: &mockPhotoDataManager{}},
 	}
 
-	req := &request{r, c, nil}
-
-	getPhotoDetail(a, res, req)
+	getPhotoDetail(a, res, req, p)
 	value := &photoDetail{}
 	parseJSONBody(res, value)
 	if res.Code != 200 {
@@ -173,15 +164,16 @@ func TestGetPhotoDetail(t *testing.T) {
 
 func TestGetPhotos(t *testing.T) {
 
+	req := &http.Request{}
 	res := httptest.NewRecorder()
+	p := &params{}
 
 	a := &appContext{
 		datastore: &dataStore{photos: &mockPhotoDataManager{}},
 		cache:     &mockCache{},
 	}
 
-	req := &request{&http.Request{}, web.C{}, nil}
-	getPhotos(a, res, req)
+	getPhotos(a, res, req, p)
 	value := &photoList{}
 	parseJSONBody(res, value)
 	if value.Total != 1 {

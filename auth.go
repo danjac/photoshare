@@ -21,20 +21,24 @@ func newSessionInfo(user *user) *sessionInfo {
 	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
-func logout(c *appContext, w http.ResponseWriter, r *request) error {
+func logout(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
 
+	u, err := c.getUser(r, true)
+	if err != nil {
+		return err
+	}
 	if err := c.session.writeToken(w, 0); err != nil {
 		return err
 	}
 
-	sendMessage(&socketMessage{r.user.Name, "", 0, "logout"})
+	sendMessage(&socketMessage{u.Name, "", 0, "logout"})
 	return renderJSON(w, newSessionInfo(&user{}), http.StatusOK)
 
 }
 
-func getSessionInfo(c *appContext, w http.ResponseWriter, r *request) error {
+func getSessionInfo(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
 
-	user, err := c.authenticate(r, false)
+	user, err := c.getUser(r, false)
 	if err != nil {
 		return err
 	}
@@ -42,7 +46,7 @@ func getSessionInfo(c *appContext, w http.ResponseWriter, r *request) error {
 	return renderJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
-func login(c *appContext, w http.ResponseWriter, r *request) error {
+func login(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
 
 	s := &struct {
 		Identifier string `json:"identifier"`
@@ -51,7 +55,7 @@ func login(c *appContext, w http.ResponseWriter, r *request) error {
 
 	var invalidLogin = httpError{http.StatusBadRequest, "Invalid email or password"}
 
-	if err := r.decodeJSON(s); err != nil {
+	if err := decodeJSON(r, s); err != nil {
 		return err
 	}
 
@@ -80,7 +84,7 @@ func login(c *appContext, w http.ResponseWriter, r *request) error {
 	return renderJSON(w, newSessionInfo(user), http.StatusCreated)
 }
 
-func signup(c *appContext, w http.ResponseWriter, r *request) error {
+func signup(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
 
 	s := &struct {
 		Name     string `json:"name"`
@@ -88,7 +92,7 @@ func signup(c *appContext, w http.ResponseWriter, r *request) error {
 		Password string `json:"password"`
 	}{}
 
-	if err := r.decodeJSON(s); err != nil {
+	if err := decodeJSON(r, s); err != nil {
 		return err
 	}
 
@@ -122,7 +126,7 @@ func signup(c *appContext, w http.ResponseWriter, r *request) error {
 
 }
 
-func changePassword(c *appContext, w http.ResponseWriter, r *request) error {
+func changePassword(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
 
 	var (
 		user *user
@@ -134,12 +138,12 @@ func changePassword(c *appContext, w http.ResponseWriter, r *request) error {
 		RecoveryCode string `json:"code"`
 	}{}
 
-	if err = r.decodeJSON(s); err != nil {
+	if err = decodeJSON(r, s); err != nil {
 		return err
 	}
 
 	if s.RecoveryCode == "" {
-		if user, err = c.authenticate(r, true); err != nil {
+		if user, err = c.getUser(r, true); err != nil {
 			return err
 		}
 	} else {
@@ -160,13 +164,13 @@ func changePassword(c *appContext, w http.ResponseWriter, r *request) error {
 	return renderString(w, http.StatusOK, "Password changed")
 }
 
-func recoverPassword(c *appContext, w http.ResponseWriter, r *request) error {
+func recoverPassword(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
 
 	s := &struct {
 		Email string `json:"email"`
 	}{}
 
-	if err := r.decodeJSON(s); err != nil {
+	if err := decodeJSON(r, s); err != nil {
 		return err
 	}
 	if s.Email == "" {

@@ -8,14 +8,19 @@ import (
 	"strings"
 )
 
-func deletePhoto(c *appContext, w http.ResponseWriter, r *request) error {
+func deletePhoto(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
 
-	photo, err := c.datastore.photos.get(r.getIntParam("id"))
+	user, err := c.getUser(r, true)
 	if err != nil {
 		return err
 	}
 
-	if !photo.canDelete(r.user) {
+	photo, err := c.datastore.photos.get(p.getInt("id"))
+	if err != nil {
+		return err
+	}
+
+	if !photo.canDelete(user) {
 		return httpError{http.StatusForbidden, "You're not allowed to delete this photo"}
 	}
 	if err := c.datastore.photos.remove(photo); err != nil {
@@ -32,18 +37,18 @@ func deletePhoto(c *appContext, w http.ResponseWriter, r *request) error {
 		return err
 	}
 
-	sendMessage(&socketMessage{r.user.Name, "", photo.ID, "photo_deleted"})
+	sendMessage(&socketMessage{user.Name, "", photo.ID, "photo_deleted"})
 	return renderString(w, http.StatusOK, "Photo deleted")
 }
 
-func getPhotoDetail(c *appContext, w http.ResponseWriter, r *request) error {
+func getPhotoDetail(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
 
-	user, err := c.authenticate(r, false)
+	user, err := c.getUser(r, false)
 	if err != nil {
 		return err
 	}
 
-	photo, err := c.datastore.photos.getDetail(r.getIntParam("id"), user)
+	photo, err := c.datastore.photos.getDetail(p.getInt("id"), user)
 	if err != nil {
 		return err
 	}
@@ -51,26 +56,26 @@ func getPhotoDetail(c *appContext, w http.ResponseWriter, r *request) error {
 
 }
 
-func getPhotoToEdit(c *appContext, w http.ResponseWriter, r *request) (*photo, error) {
-	user, err := c.authenticate(r, true)
+func getPhotoToEdit(c *appContext, w http.ResponseWriter, r *http.Request, p *params) (*photo, *user, error) {
+	user, err := c.getUser(r, true)
 	if err != nil {
-		return nil, err
+		return nil, user, err
 	}
 
-	photo, err := c.datastore.photos.get(r.getIntParam("id"))
+	photo, err := c.datastore.photos.get(p.getInt("id"))
 	if err != nil {
-		return photo, err
+		return photo, user, err
 	}
 
 	if !photo.canEdit(user) {
-		return photo, httpError{http.StatusForbidden, "You're not allowed to edit this photo"}
+		return photo, user, httpError{http.StatusForbidden, "You're not allowed to edit this photo"}
 	}
-	return photo, nil
+	return photo, user, nil
 }
 
-func editPhotoTitle(c *appContext, w http.ResponseWriter, r *request) error {
+func editPhotoTitle(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
 
-	photo, err := getPhotoToEdit(c, w, r)
+	photo, user, err := getPhotoToEdit(c, w, r, p)
 
 	if err != nil {
 		return err
@@ -80,7 +85,7 @@ func editPhotoTitle(c *appContext, w http.ResponseWriter, r *request) error {
 		Title string `json:"title"`
 	}{}
 
-	if err := r.decodeJSON(s); err != nil {
+	if err := decodeJSON(r, s); err != nil {
 		return err
 	}
 
@@ -94,13 +99,13 @@ func editPhotoTitle(c *appContext, w http.ResponseWriter, r *request) error {
 	if err := c.datastore.photos.update(photo); err != nil {
 		return err
 	}
-	sendMessage(&socketMessage{r.user.Name, "", photo.ID, "photo_updated"})
+	sendMessage(&socketMessage{user.Name, "", photo.ID, "photo_updated"})
 	return renderString(w, http.StatusOK, "Photo updated")
 }
 
-func editPhotoTags(c *appContext, w http.ResponseWriter, r *request) error {
+func editPhotoTags(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
 
-	photo, err := getPhotoToEdit(c, w, r)
+	photo, user, err := getPhotoToEdit(c, w, r, p)
 	if err != nil {
 		return err
 	}
@@ -109,7 +114,7 @@ func editPhotoTags(c *appContext, w http.ResponseWriter, r *request) error {
 		Tags []string `json:"tags"`
 	}{}
 
-	if err := r.decodeJSON(s); err != nil {
+	if err := decodeJSON(r, s); err != nil {
 		return err
 	}
 
@@ -118,12 +123,17 @@ func editPhotoTags(c *appContext, w http.ResponseWriter, r *request) error {
 	if err := c.datastore.photos.updateTags(photo); err != nil {
 		return err
 	}
-	sendMessage(&socketMessage{r.user.Name, "", photo.ID, "photo_updated"})
+	sendMessage(&socketMessage{user.Name, "", photo.ID, "photo_updated"})
 	return renderString(w, http.StatusOK, "Photo updated")
 
 }
 
-func upload(c *appContext, w http.ResponseWriter, r *request) error {
+func upload(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+
+	user, err := c.getUser(r, true)
+	if err != nil {
+		return err
+	}
 
 	title := r.FormValue("title")
 	taglist := r.FormValue("taglist")
@@ -150,7 +160,7 @@ func upload(c *appContext, w http.ResponseWriter, r *request) error {
 	}
 
 	photo := &photo{Title: title,
-		OwnerID:  r.user.ID,
+		OwnerID:  user.ID,
 		Filename: filename,
 		Tags:     tags,
 	}
@@ -167,13 +177,13 @@ func upload(c *appContext, w http.ResponseWriter, r *request) error {
 		return err
 	}
 
-	sendMessage(&socketMessage{r.user.Name, "", photo.ID, "photo_uploaded"})
+	sendMessage(&socketMessage{user.Name, "", photo.ID, "photo_uploaded"})
 	return renderJSON(w, photo, http.StatusCreated)
 }
 
-func searchPhotos(c *appContext, w http.ResponseWriter, r *request) error {
+func searchPhotos(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
 
-	page := r.getPage()
+	page := getPage(r)
 	q := r.FormValue("q")
 	qKey := base64.StdEncoding.EncodeToString([]byte(q))
 	cacheKey := fmt.Sprintf("photos:search:%s:page:%d", qKey, page.index)
@@ -188,10 +198,10 @@ func searchPhotos(c *appContext, w http.ResponseWriter, r *request) error {
 
 }
 
-func photosByOwnerID(c *appContext, w http.ResponseWriter, r *request) error {
+func photosByOwnerID(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
 
-	page := r.getPage()
-	ownerID := r.getIntParam("ownerID")
+	page := getPage(r)
+	ownerID := p.getInt("ownerID")
 	cacheKey := fmt.Sprintf("photos:ownerID:%d:page:%d", ownerID, page.index)
 
 	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
@@ -203,9 +213,9 @@ func photosByOwnerID(c *appContext, w http.ResponseWriter, r *request) error {
 	})
 }
 
-func getPhotos(c *appContext, w http.ResponseWriter, r *request) error {
+func getPhotos(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
 
-	page := r.getPage()
+	page := getPage(r)
 	orderBy := r.FormValue("orderBy")
 	cacheKey := fmt.Sprintf("photos:%s:page:%d", orderBy, page.index)
 
@@ -218,7 +228,7 @@ func getPhotos(c *appContext, w http.ResponseWriter, r *request) error {
 	})
 }
 
-func getTags(c *appContext, w http.ResponseWriter, r *request) error {
+func getTags(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
 	return c.cache.render(w, http.StatusOK, "tags", func() (interface{}, error) {
 		tags, err := c.datastore.photos.getTagCounts()
 		if err != nil {
@@ -229,25 +239,26 @@ func getTags(c *appContext, w http.ResponseWriter, r *request) error {
 
 }
 
-func voteDown(c *appContext, w http.ResponseWriter, r *request) error {
-	return vote(c, w, r, func(photo *photo) { photo.DownVotes++ })
+func voteDown(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+	return vote(c, w, r, p, func(photo *photo) { photo.DownVotes++ })
 }
 
-func voteUp(c *appContext, w http.ResponseWriter, r *request) error {
-	return vote(c, w, r, func(photo *photo) { photo.UpVotes++ })
+func voteUp(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+	return vote(c, w, r, p, func(photo *photo) { photo.UpVotes++ })
 }
 
-func vote(c *appContext, w http.ResponseWriter, r *request, fn func(photo *photo)) error {
-	var (
-		photo *photo
-		err   error
-	)
-	photo, err = c.datastore.photos.get(r.getIntParam("id"))
+func vote(c *appContext, w http.ResponseWriter, r *http.Request, p *params, fn func(photo *photo)) error {
+	user, err := c.getUser(r, true)
 	if err != nil {
 		return err
 	}
 
-	if !photo.canVote(r.user) {
+	photo, err := c.datastore.photos.get(p.getInt("id"))
+	if err != nil {
+		return err
+	}
+
+	if !photo.canVote(user) {
 		return httpError{http.StatusForbidden, "You're not allowed to vote on this photo"}
 	}
 
@@ -257,9 +268,9 @@ func vote(c *appContext, w http.ResponseWriter, r *request, fn func(photo *photo
 		return err
 	}
 
-	r.user.registerVote(photo.ID)
+	user.registerVote(photo.ID)
 
-	if err = c.datastore.users.update(r.user); err != nil {
+	if err = c.datastore.users.update(user); err != nil {
 		return err
 	}
 	return renderString(w, http.StatusOK, "Voting successful")

@@ -114,8 +114,32 @@ func (m *mockDataStore) getUserByRecoveryCode(code string) (*user, error) {
 	return &user{}, nil
 }
 
-func (m *mockDataStore) begin() (transaction, error) {
-	return nil, nil
+func (m *mockDataStore) createPhoto(_ *photo) error {
+	return nil
+}
+
+func (m *mockDataStore) removePhoto(_ *photo) error {
+	return nil
+}
+
+func (m *mockDataStore) updatePhoto(_ *photo) error {
+	return nil
+}
+
+func (m *mockDataStore) updateTags(_ *photo) error {
+	return nil
+}
+
+func (m *mockDataStore) createUser(_ *user) error {
+	return nil
+}
+
+func (m *mockDataStore) updateUser(_ *user) error {
+	return nil
+}
+
+func (m *mockDataStore) updateMany(items ...interface{}) error {
+	return nil
 }
 
 type emptyDataStore struct {

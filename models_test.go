@@ -15,17 +15,15 @@ func TestGetIfNotNone(t *testing.T) {
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
 
-	tx, _ := ds.begin()
-	if err := tx.createUser(user); err != nil {
+	if err := ds.createUser(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := tx.createPhoto(photo); err != nil {
+	if err := ds.createPhoto(photo); err != nil {
 		t.Error(err)
 		return
 	}
-	tx.commit()
 
 	photo, err := ds.getPhoto(photo.ID)
 	if err != nil {
@@ -58,17 +56,15 @@ func TestSearchPhotos(t *testing.T) {
 	ds := newDataStore(tdb.dbMap)
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	tx, _ := ds.begin()
-	if err := tx.createUser(user); err != nil {
+	if err := ds.createUser(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := tx.createPhoto(photo); err != nil {
+	if err := ds.createPhoto(photo); err != nil {
 		t.Error(err)
 		return
 	}
-	tx.commit()
 
 	result, err := ds.searchPhotos(newPage(1), "test")
 	if err != nil {
@@ -86,19 +82,17 @@ func TestAllPhotos(t *testing.T) {
 	defer tdb.clean()
 
 	ds := newDataStore(tdb.dbMap)
-	tx, _ := ds.begin()
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	if err := tx.createUser(user); err != nil {
+	if err := ds.createUser(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := tx.createPhoto(photo); err != nil {
+	if err := ds.createPhoto(photo); err != nil {
 		t.Error(err)
 		return
 	}
-	tx.commit()
 
 	result, err := ds.getPhotos(newPage(1), "")
 	if err != nil {

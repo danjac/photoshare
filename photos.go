@@ -22,15 +22,7 @@ func deletePhoto(c *appContext, w http.ResponseWriter, r *http.Request, p *param
 	if !photo.canDelete(user) {
 		return httpError{http.StatusForbidden, "You're not allowed to delete this photo"}
 	}
-	tx, err := c.ds.begin()
-
-	if err != nil {
-		return err
-	}
-	if err := tx.removePhoto(photo); err != nil {
-		return err
-	}
-	if err := tx.commit(); err != nil {
+	if err := c.ds.removePhoto(photo); err != nil {
 		return err
 	}
 
@@ -103,14 +95,7 @@ func editPhotoTitle(c *appContext, w http.ResponseWriter, r *http.Request, p *pa
 
 	}
 
-	tx, err := c.ds.begin()
-	if err != nil {
-		return err
-	}
-	if err := tx.updatePhoto(photo); err != nil {
-		return err
-	}
-	if err := tx.commit(); err != nil {
+	if err := c.ds.updatePhoto(photo); err != nil {
 		return err
 	}
 
@@ -134,18 +119,7 @@ func editPhotoTags(c *appContext, w http.ResponseWriter, r *http.Request, p *par
 	}
 
 	photo.Tags = s.Tags
-
-	tx, err := c.ds.begin()
-	if err != nil {
-		return err
-	}
-	if err := tx.updatePhoto(photo); err != nil {
-		return err
-	}
-	if err := tx.updateTags(photo); err != nil {
-		return tx.rollback()
-	}
-	if err := tx.commit(); err != nil {
+	if err := c.ds.updateTags(photo); err != nil {
 		return err
 	}
 
@@ -194,18 +168,9 @@ func upload(c *appContext, w http.ResponseWriter, r *http.Request, p *params) er
 	if err := c.validate(photo); err != nil {
 		return err
 	}
-	tx, err := c.ds.begin()
-	if err != nil {
+	if err := c.ds.createPhoto(photo); err != nil {
 		return err
 	}
-
-	if err := tx.createPhoto(photo); err != nil {
-		return err
-	}
-	if err := tx.commit(); err != nil {
-		return err
-	}
-
 	if err := c.cache.clear(); err != nil {
 		return err
 	}
@@ -296,19 +261,9 @@ func vote(c *appContext, w http.ResponseWriter, r *http.Request, p *params, fn f
 
 	fn(photo)
 
-	tx, err := c.ds.begin()
-	if err != nil {
-		return err
-	}
-	if err := tx.updatePhoto(photo); err != nil {
-		return err
-	}
 	user.registerVote(photo.ID)
 
-	if err := tx.updateUser(user); err != nil {
-		return tx.rollback()
-	}
-	if err := tx.commit(); err != nil {
+	if err := c.ds.updateMany(photo, user); err != nil {
 		return err
 	}
 

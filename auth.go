@@ -106,18 +106,9 @@ func signup(c *appContext, w http.ResponseWriter, r *http.Request, p *params) er
 		return err
 	}
 
-	tx, err := c.ds.begin()
-	if err != nil {
+	if err := c.ds.createUser(user); err != nil {
 		return err
 	}
-
-	if err := tx.createUser(user); err != nil {
-		return err
-	}
-	if err := tx.commit(); err != nil {
-		return err
-	}
-
 	if err := c.session.writeToken(w, user.ID); err != nil {
 		return err
 	}
@@ -164,15 +155,7 @@ func changePassword(c *appContext, w http.ResponseWriter, r *http.Request, p *pa
 	if err = user.changePassword(s.Password); err != nil {
 		return err
 	}
-
-	tx, err := c.ds.begin()
-	if err != nil {
-		return err
-	}
-	if err := tx.updateUser(user); err != nil {
-		return err
-	}
-	if err := tx.commit(); err != nil {
+	if err := c.ds.updateUser(user); err != nil {
 		return err
 	}
 
@@ -200,19 +183,7 @@ func recoverPassword(c *appContext, w http.ResponseWriter, r *http.Request, _ *p
 	}
 	code, err := user.generateRecoveryCode()
 
-	if err != nil {
-		return err
-	}
-
-	tx, err := c.ds.begin()
-	if err != nil {
-		return err
-	}
-
-	if err := tx.updateUser(user); err != nil {
-		return err
-	}
-	if err := tx.commit(); err != nil {
+	if err := c.ds.updateUser(user); err != nil {
 		return err
 	}
 

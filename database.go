@@ -26,7 +26,15 @@ func initDB(db *sql.DB, logSql bool) (*gorp.DbMap, error) {
 }
 
 type dataStore interface {
-	begin() (transaction, error)
+	createPhoto(*photo) error
+	removePhoto(*photo) error
+	updatePhoto(*photo) error
+	updateTags(*photo) error
+
+	createUser(*user) error
+	updateUser(*user) error
+
+	updateMany(...interface{}) error
 
 	getPhoto(int64) (*photo, error)
 	getPhotoDetail(int64, *user) (*photoDetail, error)
@@ -43,79 +51,15 @@ type dataStore interface {
 	getUserByNameOrEmail(identifier string) (*user, error)
 }
 
-type transaction interface {
-	commit() error
-	rollback() error
-
-	createPhoto(*photo) error
-	updatePhoto(*photo) error
-	removePhoto(*photo) error
-
-	updateTags(*photo) error
-
-	createUser(user *user) error
-	updateUser(user *user) error
-}
-
 type defaultDataStore struct {
 	*gorp.DbMap
 }
 
-type defaultTransaction struct {
+type transaction struct {
 	*gorp.Transaction
 }
 
-func newDataStore(dbMap *gorp.DbMap) dataStore {
-	return &defaultDataStore{dbMap}
-}
-
-func (ds *defaultDataStore) begin() (transaction, error) {
-	tx, err := ds.Begin()
-	if err != nil {
-		return nil, err
-	}
-	return &defaultTransaction{tx}, nil
-}
-
-func (t *defaultTransaction) commit() error {
-	return errgo.Mask(t.Commit())
-}
-
-func (t *defaultTransaction) rollback() error {
-	return errgo.Mask(t.Rollback())
-}
-
-func (t *defaultTransaction) createUser(user *user) error {
-	return errgo.Mask(t.Insert(user))
-}
-
-func (t *defaultTransaction) updateUser(user *user) error {
-	_, err := t.Update(user)
-	return errgo.Mask(err)
-}
-
-func (t *defaultTransaction) removePhoto(photo *photo) error {
-	_, err := t.Delete(photo)
-	return errgo.Mask(err)
-}
-
-func (t *defaultTransaction) updatePhoto(photo *photo) error {
-	_, err := t.Update(photo)
-	return errgo.Mask(err)
-}
-
-func (t *defaultTransaction) createPhoto(photo *photo) error {
-	if err := t.Insert(photo); err != nil {
-		return errgo.Mask(err)
-	}
-	if err := t.updateTags(photo); err != nil {
-		t.Rollback()
-		return errgo.Mask(err)
-	}
-	return nil
-}
-
-func (t *defaultTransaction) updateTags(photo *photo) error {
+func (t *transaction) updateTags(photo *photo) error {
 
 	var (
 		args    = []string{"$1"}
@@ -140,6 +84,84 @@ func (t *defaultTransaction) updateTags(photo *photo) error {
 	}
 	return nil
 
+}
+
+func newDataStore(dbMap *gorp.DbMap) dataStore {
+	return &defaultDataStore{dbMap}
+}
+
+func (ds *defaultDataStore) begin() (*transaction, error) {
+	tx, err := ds.Begin()
+	if err != nil {
+		return nil, err
+	}
+	return &transaction{tx}, nil
+}
+
+func (ds *defaultDataStore) createPhoto(photo *photo) error {
+	t, err := ds.begin()
+	if err != nil {
+		return errgo.Mask(err)
+	}
+	if err := t.Insert(photo); err != nil {
+		return errgo.Mask(err)
+	}
+	if err := t.updateTags(photo); err != nil {
+		t.Rollback()
+		return errgo.Mask(err)
+	}
+	return errgo.Mask(t.Commit())
+}
+
+func (ds *defaultDataStore) createUser(user *user) error {
+	return errgo.Mask(ds.Insert(user))
+}
+
+func (ds *defaultDataStore) updatePhoto(photo *photo) error {
+	if _, err := ds.Update(photo); err != nil {
+		return errgo.Mask(err)
+	}
+	return nil
+}
+
+func (ds *defaultDataStore) updateUser(user *user) error {
+	if _, err := ds.Update(user); err != nil {
+		return errgo.Mask(err)
+	}
+	return nil
+}
+
+func (ds *defaultDataStore) removePhoto(photo *photo) error {
+	if _, err := ds.Delete(photo); err != nil {
+		return errgo.Mask(err)
+	}
+	return nil
+}
+
+func (ds *defaultDataStore) updateTags(photo *photo) error {
+	tx, err := ds.begin()
+	if err != nil {
+		return errgo.Mask(err)
+	}
+	if err := tx.updateTags(photo); err != nil {
+		tx.Rollback()
+		return err
+	}
+	return errgo.Mask(tx.Commit())
+}
+
+func (ds *defaultDataStore) updateMany(items ...interface{}) error {
+	tx, err := ds.begin()
+	if err != nil {
+		return errgo.Mask(err)
+	}
+	for _, item := range items {
+		if _, err := tx.Update(item); err != nil {
+			tx.Rollback()
+			return errgo.Mask(err)
+		}
+	}
+	return errgo.Mask(tx.Commit())
 }
 
 func (ds *defaultDataStore) getPhoto(photoID int64) (*photo, error) {

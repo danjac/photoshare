@@ -71,13 +71,14 @@ func (m *defaultPhotoDataManager) create(photo *photo) error {
 	if err != nil {
 		return errgo.Mask(err)
 	}
-	if err := m.dbMap.Insert(photo); err != nil {
+	if err := t.Insert(photo); err != nil {
+		t.Rollback()
 		return errgo.Mask(err)
 	}
-	if err := m.updateTags(photo); err != nil {
-		return errgo.Mask(err)
+	if err := m.txUpdateTags(t, photo); err != nil {
+		return err
 	}
-	return t.Commit()
+	return errgo.Mask(t.Commit())
 }
 
 func (m *defaultPhotoDataManager) updateVotes(photo *photo, user *user) error {
@@ -88,20 +89,35 @@ func (m *defaultPhotoDataManager) updateVotes(photo *photo, user *user) error {
 	}
 
 	if _, err = t.Update(photo); err != nil {
+		t.Rollback()
 		return errgo.Mask(err)
 	}
 
 	user.registerVote(photo.ID)
 
 	if _, err = t.Update(user); err != nil {
+		t.Rollback()
 		return errgo.Mask(err)
 	}
 
-	return t.Commit()
+	return errgo.Mask(t.Commit())
 
 }
 
 func (m *defaultPhotoDataManager) updateTags(photo *photo) error {
+	t, err := m.dbMap.Begin()
+	if err != nil {
+		return err
+	}
+
+	if err := m.txUpdateTags(t, photo); err != nil {
+		return err
+	}
+	return errgo.Mask(t.Commit())
+}
+
+// handles delete/update of tags within a transaction
+func (m *defaultPhotoDataManager) txUpdateTags(t *gorp.Transaction, photo *photo) error {
 
 	var (
 		args    = []string{"$1"}
@@ -116,12 +132,17 @@ func (m *defaultPhotoDataManager) updateTags(photo *photo) error {
 			isEmpty = false
 		}
 	}
+
 	if isEmpty && photo.ID != 0 {
-		_, err := m.dbMap.Exec("delete FROM photo_tags WHERE photo_id=$1", photo.ID)
+		_, err := t.Exec("delete FROM photo_tags WHERE photo_id=$1", photo.ID)
+		t.Rollback()
 		return errgo.Mask(err)
 	}
-	_, err := m.dbMap.Exec(fmt.Sprintf("SELECT add_tags(%s)", strings.Join(args, ",")), params...)
-	return errgo.Mask(err)
+	if _, err := t.Exec(fmt.Sprintf("SELECT add_tags(%s)", strings.Join(args, ",")), params...); err != nil {
+		t.Rollback()
+		return errgo.Mask(err)
+	}
+	return nil
 
 }
 

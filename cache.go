@@ -58,6 +58,7 @@ func (m *memcacheCache) get(key string, fn func() (interface{}, error)) (interfa
 	return obj, nil
 }
 
+// fetches or catches result of fn as JSON, and renders JSON to response
 func (m *memcacheCache) render(w http.ResponseWriter, status int, key string, fn func() (interface{}, error)) error {
 
 	var write = func(value []byte) error {

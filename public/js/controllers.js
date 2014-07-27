@@ -321,7 +321,7 @@
                     $scope.newPhoto.tags = taglist.trim().split(" ");
                 }
                 $scope.newPhoto.$save(
-                    function() {
+                    function(response) {
                         $scope.newPhoto = new Photo();
                         Alert.success('Your photo has been uploaded');
                         if (addAnother) {
@@ -329,7 +329,7 @@
                             $scope.formDisabled = false;
                             $window.document.getElementById('photo_input').value = '';
                         } else {
-                            $location.path("/latest");
+                            $location.path("/detail/" + response.id);
                         }
                     },
                     function(result) {

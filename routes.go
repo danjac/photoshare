@@ -35,7 +35,7 @@ func getRouter(config *appConfig, c *appContext) (*mux.Router, error) {
 	auth.HandleFunc("/changepass", c.appHandler(changePassword)).Methods("PUT")
 
 	api.HandleFunc("/tags/", c.appHandler(getTags)).Methods("GET")
-	api.Handle("/messages/*", messageHandler)
+	api.Handle(`/messages/{rest:[a-zA-Z0-9=\-\/]+}`, messageHandler)
 
 	feeds := r.PathPrefix("/feeds/").Subrouter()
 

@@ -43,6 +43,9 @@ func (m *memcacheCache) set(key string, obj interface{}) ([]byte, error) {
 }
 
 func (m *memcacheCache) get(key string, fn func() (interface{}, error)) (interface{}, error) {
+
+	key = makeCacheKey(key)
+
 	it, err := m.mc.Get(key)
 	if err == nil {
 		var obj interface{}
@@ -69,6 +72,8 @@ func (m *memcacheCache) render(w http.ResponseWriter, status int, key string, fn
 	var write = func(value []byte) error {
 		return writeBody(w, value, status, "application/json")
 	}
+
+	key = makeCacheKey(key)
 
 	it, err := m.mc.Get(key)
 	if err == nil {

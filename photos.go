@@ -1,7 +1,6 @@
 package photoshare
 
 import (
-	"encoding/base64"
 	"fmt"
 	"log"
 	"net/http"
@@ -185,8 +184,7 @@ func searchPhotos(c *appContext, w http.ResponseWriter, r *http.Request, _ *para
 
 	page := getPage(r)
 	q := r.FormValue("q")
-	qKey := base64.StdEncoding.EncodeToString([]byte(q))
-	cacheKey := fmt.Sprintf("photos:search:%s:page:%d", qKey, page.index)
+	cacheKey := makeCacheKey(fmt.Sprintf("photos:search:%s:page:%d", q, page.index))
 
 	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
 		photos, err := c.datastore.photos.search(page, q)
@@ -202,7 +200,7 @@ func photosByOwnerID(c *appContext, w http.ResponseWriter, r *http.Request, p *p
 
 	page := getPage(r)
 	ownerID := p.getInt("ownerID")
-	cacheKey := fmt.Sprintf("photos:ownerID:%d:page:%d", ownerID, page.index)
+	cacheKey := makeCacheKey(fmt.Sprintf("photos:ownerID:%d:page:%d", ownerID, page.index))
 
 	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
 		photos, err := c.datastore.photos.byOwnerID(page, ownerID)
@@ -217,7 +215,7 @@ func getPhotos(c *appContext, w http.ResponseWriter, r *http.Request, _ *params)
 
 	page := getPage(r)
 	orderBy := r.FormValue("orderBy")
-	cacheKey := fmt.Sprintf("photos:%s:page:%d", orderBy, page.index)
+	cacheKey := makeCacheKey(fmt.Sprintf("photos:%s:page:%d", orderBy, page.index))
 
 	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
 		photos, err := c.datastore.photos.all(page, orderBy)
@@ -229,7 +227,7 @@ func getPhotos(c *appContext, w http.ResponseWriter, r *http.Request, _ *params)
 }
 
 func getTags(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
-	return c.cache.render(w, http.StatusOK, "tags", func() (interface{}, error) {
+	return c.cache.render(w, http.StatusOK, makeCacheKey("tags"), func() (interface{}, error) {
 		tags, err := c.datastore.photos.getTagCounts()
 		if err != nil {
 			return tags, err

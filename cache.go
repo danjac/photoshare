@@ -1,6 +1,7 @@
 package photoshare
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/juju/errgo"
@@ -15,6 +16,10 @@ type cache interface {
 	get(string, func() (interface{}, error)) (interface{}, error)
 	clear() error
 	render(http.ResponseWriter, int, string, func() (interface{}, error)) error
+}
+
+func makeCacheKey(s string) string {
+	return base64.StdEncoding.EncodeToString([]byte(s))
 }
 
 type memcacheCache struct {

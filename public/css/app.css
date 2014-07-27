@@ -65,3 +65,8 @@ body { padding-top: 70px; }
 .tag-control-box {
     padding-bottom: 10px;
 }
+
+// fix for firefox file inputs
+input.form-control[type="file"] {
+    height: auto;
+}

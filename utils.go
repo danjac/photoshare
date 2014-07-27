@@ -51,7 +51,7 @@ func pgArrToIntSlice(pgArr string) []int64 {
 	s := strings.TrimRight(strings.TrimLeft(pgArr, "{"), "}")
 
 	for _, value := range strings.Split(s, ",") {
-		if item, err := strconv.Atoi(value); err == nil {
+		if item, err := strconv.Atoi(strings.Trim(value, " ")); err == nil {
 			items = append(items, int64(item))
 		}
 	}

@@ -70,7 +70,6 @@ func (c *appContext) getUser(r *http.Request, required bool) (*user, error) {
 		}
 		return user, err
 	}
-	user = user
 	user.IsAuthenticated = true
 
 	return user, nil

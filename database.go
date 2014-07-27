@@ -48,6 +48,7 @@ type photoDataManager interface {
 	all(*page, string) (*photoList, error)
 	byOwnerID(*page, int64) (*photoList, error)
 	search(*page, string) (*photoList, error)
+	updateVotes(*photo, *user) error
 	updateTags(*photo) error
 }
 
@@ -55,31 +56,52 @@ type defaultPhotoDataManager struct {
 	dbMap *gorp.DbMap
 }
 
-func (ds *defaultPhotoDataManager) remove(photo *photo) error {
-	_, err := ds.dbMap.Delete(photo)
+func (m *defaultPhotoDataManager) remove(photo *photo) error {
+	_, err := m.dbMap.Delete(photo)
 	return errgo.Mask(err)
 }
 
-func (ds *defaultPhotoDataManager) update(photo *photo) error {
-	_, err := ds.dbMap.Update(photo)
+func (m *defaultPhotoDataManager) update(photo *photo) error {
+	_, err := m.dbMap.Update(photo)
 	return errgo.Mask(err)
 }
 
-func (ds *defaultPhotoDataManager) create(photo *photo) error {
-	t, err := ds.dbMap.Begin()
+func (m *defaultPhotoDataManager) create(photo *photo) error {
+	t, err := m.dbMap.Begin()
 	if err != nil {
 		return errgo.Mask(err)
 	}
-	if err := ds.dbMap.Insert(photo); err != nil {
+	if err := m.dbMap.Insert(photo); err != nil {
 		return errgo.Mask(err)
 	}
-	if err := ds.updateTags(photo); err != nil {
+	if err := m.updateTags(photo); err != nil {
 		return errgo.Mask(err)
 	}
 	return t.Commit()
 }
 
-func (ds *defaultPhotoDataManager) updateTags(photo *photo) error {
+func (m *defaultPhotoDataManager) updateVotes(photo *photo, user *user) error {
+
+	t, err := m.dbMap.Begin()
+	if err != nil {
+		return err
+	}
+
+	if _, err = t.Update(photo); err != nil {
+		return errgo.Mask(err)
+	}
+
+	user.registerVote(photo.ID)
+
+	if _, err = t.Update(user); err != nil {
+		return errgo.Mask(err)
+	}
+
+	return t.Commit()
+
+}
+
+func (m *defaultPhotoDataManager) updateTags(photo *photo) error {
 
 	var (
 		args    = []string{"$1"}
@@ -95,15 +117,15 @@ func (ds *defaultPhotoDataManager) updateTags(photo *photo) error {
 		}
 	}
 	if isEmpty && photo.ID != 0 {
-		_, err := ds.dbMap.Exec("delete FROM photo_tags WHERE photo_id=$1", photo.ID)
+		_, err := m.dbMap.Exec("delete FROM photo_tags WHERE photo_id=$1", photo.ID)
 		return errgo.Mask(err)
 	}
-	_, err := ds.dbMap.Exec(fmt.Sprintf("SELECT add_tags(%s)", strings.Join(args, ",")), params...)
+	_, err := m.dbMap.Exec(fmt.Sprintf("SELECT add_tags(%s)", strings.Join(args, ",")), params...)
 	return errgo.Mask(err)
 
 }
 
-func (ds *defaultPhotoDataManager) get(photoID int64) (*photo, error) {
+func (m *defaultPhotoDataManager) get(photoID int64) (*photo, error) {
 
 	p := &photo{}
 
@@ -111,7 +133,7 @@ func (ds *defaultPhotoDataManager) get(photoID int64) (*photo, error) {
 		return p, sql.ErrNoRows
 	}
 
-	obj, err := ds.dbMap.Get(p, photoID)
+	obj, err := m.dbMap.Get(p, photoID)
 	if err != nil {
 		return p, errgo.Mask(err)
 	}
@@ -121,7 +143,7 @@ func (ds *defaultPhotoDataManager) get(photoID int64) (*photo, error) {
 	return obj.(*photo), nil
 }
 
-func (ds *defaultPhotoDataManager) getDetail(photoID int64, user *user) (*photoDetail, error) {
+func (m *defaultPhotoDataManager) getDetail(photoID int64, user *user) (*photoDetail, error) {
 
 	photo := &photoDetail{}
 
@@ -133,13 +155,13 @@ func (ds *defaultPhotoDataManager) getDetail(photoID int64, user *user) (*photoD
 		"FROM photos p JOIN users u ON u.id = p.owner_id " +
 		"WHERE p.id=$1"
 
-	if err := ds.dbMap.SelectOne(photo, q, photoID); err != nil {
+	if err := m.dbMap.SelectOne(photo, q, photoID); err != nil {
 		return photo, errgo.Mask(err)
 	}
 
 	var tags []tag
 
-	if _, err := ds.dbMap.Select(&tags,
+	if _, err := m.dbMap.Select(&tags,
 		"SELECT t.* FROM tags t JOIN photo_tags pt ON pt.tag_id=t.id "+
 			"WHERE pt.photo_id=$1", photo.ID); err != nil {
 		return photo, errgo.Mask(err)
@@ -157,7 +179,7 @@ func (ds *defaultPhotoDataManager) getDetail(photoID int64, user *user) (*photoD
 
 }
 
-func (ds *defaultPhotoDataManager) byOwnerID(page *page, ownerID int64) (*photoList, error) {
+func (m *defaultPhotoDataManager) byOwnerID(page *page, ownerID int64) (*photoList, error) {
 	var (
 		photos []photo
 		err    error
@@ -167,11 +189,11 @@ func (ds *defaultPhotoDataManager) byOwnerID(page *page, ownerID int64) (*photoL
 	if ownerID == 0 {
 		return nil, sql.ErrNoRows
 	}
-	if total, err = ds.dbMap.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {
+	if total, err = m.dbMap.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {
 		return nil, errgo.Mask(err)
 	}
 
-	if _, err = ds.dbMap.Select(&photos,
+	if _, err = m.dbMap.Select(&photos,
 		"SELECT * FROM photos WHERE owner_id = $1"+
 			"ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $2 OFFSET $3",
 		ownerID, page.size, page.offset); err != nil {
@@ -181,7 +203,7 @@ func (ds *defaultPhotoDataManager) byOwnerID(page *page, ownerID int64) (*photoL
 
 }
 
-func (ds *defaultPhotoDataManager) search(page *page, q string) (*photoList, error) {
+func (m *defaultPhotoDataManager) search(page *page, q string) (*photoList, error) {
 
 	var (
 		clauses []string
@@ -235,7 +257,7 @@ func (ds *defaultPhotoDataManager) search(page *page, q string) (*photoList, err
 
 	countSql := fmt.Sprintf("SELECT COUNT(id) FROM (%s) q", clausesSql)
 
-	if total, err = ds.dbMap.SelectInt(countSql, params...); err != nil {
+	if total, err = m.dbMap.SelectInt(countSql, params...); err != nil {
 		return nil, errgo.Mask(err)
 	}
 
@@ -247,13 +269,13 @@ func (ds *defaultPhotoDataManager) search(page *page, q string) (*photoList, err
 	params = append(params, interface{}(page.size))
 	params = append(params, interface{}(page.offset))
 
-	if _, err = ds.dbMap.Select(&photos, sql, params...); err != nil {
+	if _, err = m.dbMap.Select(&photos, sql, params...); err != nil {
 		return nil, errgo.Mask(err)
 	}
 	return newPhotoList(photos, total, page.index), nil
 }
 
-func (ds *defaultPhotoDataManager) all(page *page, orderBy string) (*photoList, error) {
+func (m *defaultPhotoDataManager) all(page *page, orderBy string) (*photoList, error) {
 
 	var (
 		total  int64
@@ -266,11 +288,11 @@ func (ds *defaultPhotoDataManager) all(page *page, orderBy string) (*photoList, 
 		orderBy = "created_at"
 	}
 
-	if total, err = ds.dbMap.SelectInt("SELECT COUNT(id) FROM photos"); err != nil {
+	if total, err = m.dbMap.SelectInt("SELECT COUNT(id) FROM photos"); err != nil {
 		return nil, errgo.Mask(err)
 	}
 
-	if _, err = ds.dbMap.Select(&photos,
+	if _, err = m.dbMap.Select(&photos,
 		"SELECT * FROM photos "+
 			"ORDER BY "+orderBy+" DESC LIMIT $1 OFFSET $2", page.size, page.offset); err != nil {
 		return nil, errgo.Mask(err)
@@ -278,9 +300,9 @@ func (ds *defaultPhotoDataManager) all(page *page, orderBy string) (*photoList, 
 	return newPhotoList(photos, total, page.index), nil
 }
 
-func (ds *defaultPhotoDataManager) getTagCounts() ([]tagCount, error) {
+func (m *defaultPhotoDataManager) getTagCounts() ([]tagCount, error) {
 	var tags []tagCount
-	if _, err := ds.dbMap.Select(&tags, "SELECT name, photo, num_photos FROM tag_counts"); err != nil {
+	if _, err := m.dbMap.Select(&tags, "SELECT name, photo, num_photos FROM tag_counts"); err != nil {
 		return tags, errgo.Mask(err)
 	}
 	return tags, nil
@@ -301,26 +323,26 @@ type defaultUserDataManager struct {
 	dbMap *gorp.DbMap
 }
 
-func (ds *defaultUserDataManager) create(user *user) error {
-	return errgo.Mask(ds.dbMap.Insert(user))
+func (m *defaultUserDataManager) create(user *user) error {
+	return errgo.Mask(m.dbMap.Insert(user))
 }
 
-func (ds *defaultUserDataManager) update(user *user) error {
-	_, err := ds.dbMap.Update(user)
+func (m *defaultUserDataManager) update(user *user) error {
+	_, err := m.dbMap.Update(user)
 	return errgo.Mask(err)
 }
 
-func (ds *defaultUserDataManager) isNameAvailable(user *user) (bool, error) {
+func (m *defaultUserDataManager) isNameAvailable(user *user) (bool, error) {
 	var (
 		num int64
 		err error
 	)
 	q := "SELECT COUNT(id) FROM users WHERE name=$1"
 	if user.ID == 0 {
-		num, err = ds.dbMap.SelectInt(q, user.Name)
+		num, err = m.dbMap.SelectInt(q, user.Name)
 	} else {
 		q += " AND id != $2"
-		num, err = ds.dbMap.SelectInt(q, user.Name, user.ID)
+		num, err = m.dbMap.SelectInt(q, user.Name, user.ID)
 	}
 	if err != nil {
 		return false, errgo.Mask(err)
@@ -328,17 +350,17 @@ func (ds *defaultUserDataManager) isNameAvailable(user *user) (bool, error) {
 	return num == 0, nil
 }
 
-func (ds *defaultUserDataManager) isEmailAvailable(user *user) (bool, error) {
+func (m *defaultUserDataManager) isEmailAvailable(user *user) (bool, error) {
 	var (
 		num int64
 		err error
 	)
 	q := "SELECT COUNT(id) FROM users WHERE email=$1"
 	if user.ID == 0 {
-		num, err = ds.dbMap.SelectInt(q, user.Email)
+		num, err = m.dbMap.SelectInt(q, user.Email)
 	} else {
 		q += " AND id != $2"
-		num, err = ds.dbMap.SelectInt(q, user.Email, user.ID)
+		num, err = m.dbMap.SelectInt(q, user.Email, user.ID)
 	}
 	if err != nil {
 		return false, errgo.Mask(err)
@@ -346,40 +368,40 @@ func (ds *defaultUserDataManager) isEmailAvailable(user *user) (bool, error) {
 	return num == 0, nil
 }
 
-func (ds *defaultUserDataManager) getActive(userID int64) (*user, error) {
+func (m *defaultUserDataManager) getActive(userID int64) (*user, error) {
 
 	user := &user{}
-	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
+	if err := m.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
 		return user, errgo.Mask(err)
 	}
 	return user, nil
 
 }
 
-func (ds *defaultUserDataManager) getByRecoveryCode(code string) (*user, error) {
+func (m *defaultUserDataManager) getByRecoveryCode(code string) (*user, error) {
 
 	user := &user{}
 	if code == "" {
 		return user, sql.ErrNoRows
 	}
-	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND recovery_code=$2", true, code); err != nil {
+	if err := m.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND recovery_code=$2", true, code); err != nil {
 		return user, errgo.Mask(err)
 	}
 	return user, nil
 
 }
-func (ds *defaultUserDataManager) getByEmail(email string) (*user, error) {
+func (m *defaultUserDataManager) getByEmail(email string) (*user, error) {
 	user := &user{}
-	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
+	if err := m.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
 		return user, errgo.Mask(err)
 	}
 	return user, nil
 }
 
-func (ds *defaultUserDataManager) getByNameOrEmail(identifier string) (*user, error) {
+func (m *defaultUserDataManager) getByNameOrEmail(identifier string) (*user, error) {
 	user := &user{}
 
-	if err := ds.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
+	if err := m.dbMap.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
 		return user, errgo.Mask(err)
 	}
 

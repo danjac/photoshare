@@ -90,6 +90,10 @@ func (m *mockPhotoDataManager) updateTags(photo *photo) error {
 	return nil
 }
 
+func (m *mockPhotoDataManager) updateVotes(photo *photo, user *user) error {
+	return nil
+}
+
 func (m *mockPhotoDataManager) getTagCounts() ([]tagCount, error) {
 	return []tagCount{}, nil
 }

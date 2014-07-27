@@ -262,14 +262,9 @@ func vote(c *appContext, w http.ResponseWriter, r *http.Request, p *params, fn f
 
 	fn(photo)
 
-	if err = c.datastore.photos.update(photo); err != nil {
+	if err := c.datastore.photos.updateVotes(photo, user); err != nil {
 		return err
 	}
 
-	user.registerVote(photo.ID)
-
-	if err = c.datastore.users.update(user); err != nil {
-		return err
-	}
 	return renderString(w, http.StatusOK, "Voting successful")
 }

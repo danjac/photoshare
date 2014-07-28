@@ -41,8 +41,8 @@ func (m *mockSessionManager) readToken(r *http.Request) (int64, error) {
 	return 0, nil
 }
 
-func (m *mockSessionManager) writeToken(w http.ResponseWriter, userID int64) error {
-	return nil
+func (m *mockSessionManager) writeToken(w http.ResponseWriter, userID int64) (string, error) {
+	return "token", nil
 }
 
 type mockDataStore struct {

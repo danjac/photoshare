@@ -163,6 +163,7 @@ func (user *user) validate(c *appContext, errors map[string]string) error {
 
 	}
 
+	// tbd: we need flag user is third-party
 	if user.Password == "" {
 		errors["password"] = "Password is missing"
 	}
@@ -202,6 +203,9 @@ func (user *user) changePassword(password string) error {
 }
 
 func (user *user) encryptPassword() error {
+	if user.Password == "" {
+		return nil
+	}
 	hashed, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err

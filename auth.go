@@ -33,7 +33,7 @@ func getAuthRedirectURL(c *appContext, w http.ResponseWriter, r *http.Request, p
 
 func authCallback(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
 
-	user, err := c.getAuthUser(r, p.get("provider"))
+	user, _, err := c.getAuthUser(r, p.get("provider"))
 	if err != nil {
 		return err
 	}

@@ -112,10 +112,10 @@ func (c *appContext) getAuthRedirectURL(r *http.Request, providerName string) (s
 	return url, nil
 }
 
-func (c *appContext) getAuthUser(r *http.Request, providerName string) (*user, error) {
+func (c *appContext) getAuthUser(r *http.Request, providerName string) (*user, bool, error) {
 	provider, err := c.getAuthProvider(r, providerName)
 	if err != nil {
-		return nil, errgo.Mask(err)
+		return nil, false, errgo.Mask(err)
 	}
 	m := make(objx.Map)
 	if r.Form == nil {
@@ -126,13 +126,28 @@ func (c *appContext) getAuthUser(r *http.Request, providerName string) (*user, e
 	}
 	creds, err := provider.CompleteAuth(m)
 	if err != nil {
-		return nil, errgo.Mask(err)
+		return nil, false, errgo.Mask(err)
 	}
 	authUser, err := provider.GetUser(creds)
 	if err != nil {
-		return nil, errgo.Mask(err)
+		return nil, false, errgo.Mask(err)
 	}
-	return c.ds.getUserByEmail(authUser.Email())
+	u, err := c.ds.getUserByEmail(authUser.Email())
+	if err == nil {
+		return u, false, nil
+	}
+	if !isErrSqlNoRows(err) {
+		return u, false, nil
+	}
+	// make a new user
+	u = &user{
+		Name:  authUser.Name(),
+		Email: authUser.Email(),
+	}
+	if err := c.ds.createUser(u); err != nil {
+		return u, false, nil
+	}
+	return u, true, nil
 
 }
 

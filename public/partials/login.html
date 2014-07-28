@@ -10,5 +10,9 @@
     <button class="btn btn-primary" ng-click="login()" ng-disabled="form.$invalid">Login</button>
 </form>
 
-<a href="#/recoverpass">Forgot your password?</a> or
-<button class="btn btn-default btn-sm" ng-click="oauth2Login('google')">Login with Google</button>
+<a href="#/recoverpass">Forgot your password?</a> 
+<div>
+    <a ng-click="oauth2Login('google')">
+        <img src="img/google-login.png" title="Login with your G+ account">
+    </a>
+</div>

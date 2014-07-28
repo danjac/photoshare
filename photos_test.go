@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 )
 
@@ -41,8 +42,12 @@ func (m *mockSessionManager) readToken(r *http.Request) (int64, error) {
 	return 0, nil
 }
 
-func (m *mockSessionManager) writeToken(w http.ResponseWriter, userID int64) (string, error) {
-	return "token", nil
+func (m *mockSessionManager) createToken(userID int64) (string, error) {
+	return strconv.FormatInt(userID, 10), nil
+}
+
+func (m *mockSessionManager) writeToken(w http.ResponseWriter, userID int64) error {
+	return nil
 }
 
 type mockDataStore struct {

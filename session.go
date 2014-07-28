@@ -16,7 +16,24 @@ const (
 
 type sessionManager interface {
 	readToken(*http.Request) (int64, error)
-	writeToken(http.ResponseWriter, int64) (string, error)
+	createToken(int64) (string, error)
+	writeToken(http.ResponseWriter, int64) error
+}
+
+// Basic user session info
+type sessionInfo struct {
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	IsAdmin  bool   `json:"isAdmin"`
+	LoggedIn bool   `json:"loggedIn"`
+}
+
+func newSessionInfo(user *user) *sessionInfo {
+	if user == nil || user.ID == 0 || !user.IsAuthenticated {
+		return &sessionInfo{}
+	}
+
+	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
 func newSessionManager(config *appConfig) (sessionManager, error) {
@@ -63,7 +80,7 @@ func (m *defaultSessionManager) readToken(r *http.Request) (int64, error) {
 	}
 }
 
-func (m *defaultSessionManager) writeToken(w http.ResponseWriter, userID int64) (string, error) {
+func (m *defaultSessionManager) createToken(userID int64) (string, error) {
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 	token.Claims["uid"] = strconv.FormatInt(userID, 10)
 	token.Claims["exp"] = time.Now().Add(time.Minute * expiry).Unix()
@@ -71,6 +88,14 @@ func (m *defaultSessionManager) writeToken(w http.ResponseWriter, userID int64) 
 	if err != nil {
 		return tokenString, errgo.Mask(err)
 	}
+	return tokenString, nil
+}
+
+func (m *defaultSessionManager) writeToken(w http.ResponseWriter, userID int64) error {
+	tokenString, err := m.createToken(userID)
+	if err != nil {
+		return err
+	}
 	w.Header().Set(tokenHeader, tokenString)
-	return tokenString, err
+	return nil
 }

@@ -6,22 +6,6 @@ import (
 	"time"
 )
 
-// Basic user session info
-type sessionInfo struct {
-	ID       int64  `json:"id"`
-	Name     string `json:"name"`
-	IsAdmin  bool   `json:"isAdmin"`
-	LoggedIn bool   `json:"loggedIn"`
-}
-
-func newSessionInfo(user *user) *sessionInfo {
-	if user == nil || user.ID == 0 || !user.IsAuthenticated {
-		return &sessionInfo{}
-	}
-
-	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
-}
-
 func getAuthRedirectURL(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
 
 	url, err := c.auth.getRedirectURL(r, p.get("provider"))
@@ -44,7 +28,8 @@ func authCallback(c *appContext, w http.ResponseWriter, r *http.Request, p *para
 		return err
 	}
 
-	authToken, err := c.session.writeToken(w, user.ID)
+	authToken, err := c.session.createToken(user.ID)
+
 	if err != nil {
 		return err
 	}
@@ -66,7 +51,7 @@ func logout(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) er
 	if err != nil {
 		return err
 	}
-	if _, err := c.session.writeToken(w, 0); err != nil {
+	if err := c.session.writeToken(w, 0); err != nil {
 		return err
 	}
 
@@ -112,7 +97,7 @@ func login(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) err
 		return invalidLogin
 	}
 
-	if _, err := c.session.writeToken(w, user.ID); err != nil {
+	if err := c.session.writeToken(w, user.ID); err != nil {
 		return err
 	}
 
@@ -147,7 +132,7 @@ func signup(c *appContext, w http.ResponseWriter, r *http.Request, p *params) er
 	if err := c.ds.createUser(user); err != nil {
 		return err
 	}
-	if _, err := c.session.writeToken(w, user.ID); err != nil {
+	if err := c.session.writeToken(w, user.ID); err != nil {
 		return err
 	}
 

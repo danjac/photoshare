@@ -155,6 +155,9 @@ func changePassword(c *appContext, w http.ResponseWriter, r *http.Request, p *pa
 	if err = user.changePassword(s.Password); err != nil {
 		return err
 	}
+	if err := c.validate(user); err != nil {
+		return err
+	}
 	if err := c.ds.updateUser(user); err != nil {
 		return err
 	}

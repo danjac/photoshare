@@ -24,7 +24,7 @@ func newSessionInfo(user *user) *sessionInfo {
 
 func getAuthRedirectURL(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
 
-	url, err := c.getAuthRedirectURL(r, p.get("provider"))
+	url, err := c.auth.getRedirectURL(r, p.get("provider"))
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,13 @@ func getAuthRedirectURL(c *appContext, w http.ResponseWriter, r *http.Request, p
 
 func authCallback(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
 
-	user, _, err := c.getAuthUser(r, p.get("provider"))
+	info, err := c.auth.getUserInfo(r, p.get("provider"))
+	if err != nil {
+		return err
+	}
+
+	// tbd: handle new users
+	user, err := c.ds.getUserByEmail(info.email)
 	if err != nil {
 		return err
 	}

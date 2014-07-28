@@ -39,7 +39,7 @@ func Serve() {
 		log.Fatal(err)
 	}
 
-	context, err := newContext(config, dbMap)
+	context, err := newAppContext(config, dbMap)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -3,7 +3,7 @@ package photoshare
 import (
 	"database/sql"
 	"fmt"
-	"github.com/zenazn/goji/graceful"
+	"github.com/codegangsta/negroni"
 	"log"
 	"runtime"
 )
@@ -49,9 +49,8 @@ func Serve() {
 		log.Fatal(err)
 	}
 
-	if err := graceful.ListenAndServe(fmt.Sprintf(":%d", config.ServerPort), router); err != nil {
-		log.Fatal(err)
-	}
+	n := negroni.Classic()
+	n.UseHandler(router)
+	n.Run(fmt.Sprintf(":%d", config.ServerPort))
 
-	graceful.Wait()
 }

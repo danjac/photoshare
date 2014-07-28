@@ -30,6 +30,8 @@ func getRouter(config *appConfig, c *appContext) (*mux.Router, error) {
 	auth.HandleFunc("/", c.appHandler(getSessionInfo)).Methods("GET")
 	auth.HandleFunc("/", c.appHandler(login)).Methods("POST")
 	auth.HandleFunc("/", c.appHandler(logout)).Methods("DELETE")
+	auth.HandleFunc("/oauth2/{provider}/url", c.appHandler(getAuthRedirectURL)).Methods("GET")
+	auth.HandleFunc("/oauth2/{provider}/callback/", c.appHandler(authCallback)).Methods("GET")
 	auth.HandleFunc("/signup", c.appHandler(signup)).Methods("POST")
 	auth.HandleFunc("/recoverpass", c.appHandler(recoverPassword)).Methods("PUT")
 	auth.HandleFunc("/changepass", c.appHandler(changePassword)).Methods("PUT")

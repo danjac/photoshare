@@ -3,6 +3,7 @@ package photoshare
 import (
 	"net/http"
 	"strings"
+	"time"
 )
 
 // Basic user session info
@@ -21,13 +22,45 @@ func newSessionInfo(user *user) *sessionInfo {
 	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
 }
 
+func getAuthRedirectURL(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+
+	url, err := c.getAuthRedirectURL(r, p.get("provider"))
+	if err != nil {
+		return err
+	}
+	return renderString(w, http.StatusOK, url)
+}
+
+func authCallback(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+
+	user, err := c.getAuthUser(r, p.get("provider"))
+	if err != nil {
+		return err
+	}
+
+	authToken, err := c.session.writeToken(w, user.ID)
+	if err != nil {
+		return err
+	}
+
+	cookie := &http.Cookie{
+		Name:    "authToken",
+		Value:   authToken,
+		Path:    "/",
+		Expires: time.Now().AddDate(0, 0, 1),
+	}
+	http.SetCookie(w, cookie)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+	return nil
+}
+
 func logout(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
 
 	u, err := c.getUser(r, true)
 	if err != nil {
 		return err
 	}
-	if err := c.session.writeToken(w, 0); err != nil {
+	if _, err := c.session.writeToken(w, 0); err != nil {
 		return err
 	}
 
@@ -42,7 +75,6 @@ func getSessionInfo(c *appContext, w http.ResponseWriter, r *http.Request, _ *pa
 	if err != nil {
 		return err
 	}
-
 	return renderJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
@@ -74,7 +106,7 @@ func login(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) err
 		return invalidLogin
 	}
 
-	if err := c.session.writeToken(w, user.ID); err != nil {
+	if _, err := c.session.writeToken(w, user.ID); err != nil {
 		return err
 	}
 
@@ -109,7 +141,7 @@ func signup(c *appContext, w http.ResponseWriter, r *http.Request, p *params) er
 	if err := c.ds.createUser(user); err != nil {
 		return err
 	}
-	if err := c.session.writeToken(w, user.ID); err != nil {
+	if _, err := c.session.writeToken(w, user.ID); err != nil {
 		return err
 	}
 

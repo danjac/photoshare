@@ -349,17 +349,27 @@
 
     .controller('LoginCtrl', ['$scope',
         '$location',
+        '$window',
+        '$http',
         'Session',
         'Auth',
         'Alert',
         'authTokenHeader',
         function($scope,
             $location,
+            $window,
+            $http,
             Session,
             Auth,
             Alert,
             authTokenHeader) {
 
+            // tbd wrap in service
+            $scope.oauth2Login = function(provider) {
+                $http.get('/api/auth/oauth2/' + provider + '/url').success(function(response) {
+                    $window.location.href = response;
+                });
+            };
             $scope.formData = new Auth();
             $scope.login = function() {
                 $scope.formData.$save(function(result, headers) {

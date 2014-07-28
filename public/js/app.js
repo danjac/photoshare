@@ -5,6 +5,7 @@
         'ngRoute',
         'ngResource',
         'ngSanitize',
+        'ngCookies',
         'photoshare.filters',
         'photoshare.services',
         'photoshare.directives',
@@ -147,12 +148,20 @@
             });
 
         }
-    ]).factory('AuthInterceptor', function($window, authTokenHeader, authTokenStorageKey) {
+    ]).factory('AuthInterceptor', function($window, $cookies, authTokenHeader, authTokenStorageKey) {
 
         return {
             request: function(config) {
                 config.headers = config.headers || {};
                 var token = $window.localStorage.getItem(authTokenStorageKey);
+                // in the case of oaauth logins, we might store the token temporarily in a cookie.
+                // extract and store the token and remove the cookie.
+                if (!token || token === 'undefined') {
+                    token = $cookies.authToken;
+                    $window.localStorage.setItem(authTokenStorageKey, token);
+                    delete $cookies.authToken;
+                }
+
                 if (token) {
                     config.headers[authTokenHeader] = token;
                 }

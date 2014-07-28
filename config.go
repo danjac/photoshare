@@ -38,6 +38,9 @@ type appConfig struct {
 
 	MemcacheHost string `env:"key=MEMCACHE_HOST default=0.0.0.0:11211"`
 
+	GoogleAuthKey    string `env:"key=GOOGLE_AUTH_KEY"`
+	GoogleAuthSecret string `env:"key=GOOGLE_AUTH_SECRET"`
+
 	ServerPort int `env:"key=PORT default=5000"`
 }
 

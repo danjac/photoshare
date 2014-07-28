@@ -16,7 +16,7 @@ const (
 
 type sessionManager interface {
 	readToken(*http.Request) (int64, error)
-	writeToken(http.ResponseWriter, int64) error
+	writeToken(http.ResponseWriter, int64) (string, error)
 }
 
 func newSessionManager(config *appConfig) (sessionManager, error) {
@@ -63,14 +63,14 @@ func (m *defaultSessionManager) readToken(r *http.Request) (int64, error) {
 	}
 }
 
-func (m *defaultSessionManager) writeToken(w http.ResponseWriter, userID int64) error {
+func (m *defaultSessionManager) writeToken(w http.ResponseWriter, userID int64) (string, error) {
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 	token.Claims["uid"] = strconv.FormatInt(userID, 10)
 	token.Claims["exp"] = time.Now().Add(time.Minute * expiry).Unix()
 	tokenString, err := token.SignedString(m.signKey)
 	if err != nil {
-		return errgo.Mask(err)
+		return tokenString, errgo.Mask(err)
 	}
 	w.Header().Set(tokenHeader, tokenString)
-	return nil
+	return tokenString, err
 }

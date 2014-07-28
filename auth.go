@@ -1,238 +1,85 @@
 package photoshare
 
 import (
+	"github.com/juju/errgo"
+	"github.com/stretchr/gomniauth"
+	"github.com/stretchr/gomniauth/common"
+	"github.com/stretchr/gomniauth/providers/google"
+	"github.com/stretchr/objx"
+	"github.com/stretchr/signature"
 	"net/http"
-	"strings"
-	"time"
 )
 
-// Basic user session info
-type sessionInfo struct {
-	ID       int64  `json:"id"`
-	Name     string `json:"name"`
-	IsAdmin  bool   `json:"isAdmin"`
-	LoggedIn bool   `json:"loggedIn"`
+type authInfo struct {
+	name, email string
 }
 
-func newSessionInfo(user *user) *sessionInfo {
-	if user == nil || user.ID == 0 || !user.IsAuthenticated {
-		return &sessionInfo{}
-	}
-
-	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
+type authenticator interface {
+	getRedirectURL(*http.Request, string) (string, error)
+	getUserInfo(*http.Request, string) (*authInfo, error)
 }
 
-func getAuthRedirectURL(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
-
-	url, err := c.auth.getRedirectURL(r, p.get("provider"))
-	if err != nil {
-		return err
-	}
-	return renderString(w, http.StatusOK, url)
+func newAuthenticator(config *appConfig) authenticator {
+	gomniauth.SetSecurityKey(signature.RandomKey(64))
+	a := &defaultAuthenticator{config}
+	return a
 }
 
-func authCallback(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
-
-	info, err := c.auth.getUserInfo(r, p.get("provider"))
-	if err != nil {
-		return err
-	}
-
-	// tbd: handle new users
-	user, err := c.ds.getUserByEmail(info.email)
-	if err != nil {
-		return err
-	}
-
-	authToken, err := c.session.writeToken(w, user.ID)
-	if err != nil {
-		return err
-	}
-
-	cookie := &http.Cookie{
-		Name:    "authToken",
-		Value:   authToken,
-		Path:    "/",
-		Expires: time.Now().AddDate(0, 0, 1),
-	}
-	http.SetCookie(w, cookie)
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-	return nil
+type defaultAuthenticator struct {
+	config *appConfig
 }
 
-func logout(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
-
-	u, err := c.getUser(r, true)
-	if err != nil {
-		return err
-	}
-	if _, err := c.session.writeToken(w, 0); err != nil {
-		return err
-	}
-
-	sendMessage(&socketMessage{u.Name, "", 0, "logout"})
-	return renderJSON(w, newSessionInfo(&user{}), http.StatusOK)
-
-}
-
-func getSessionInfo(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
-
-	user, err := c.getUser(r, false)
-	if err != nil {
-		return err
-	}
-	return renderJSON(w, newSessionInfo(user), http.StatusOK)
-}
-
-func login(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
-
-	s := &struct {
-		Identifier string `json:"identifier"`
-		Password   string `json:"password"`
-	}{}
-
-	var invalidLogin = httpError{http.StatusBadRequest, "Invalid email or password"}
-
-	if err := decodeJSON(r, s); err != nil {
-		return err
-	}
-
-	if s.Identifier == "" || s.Password == "" {
-		return invalidLogin
-	}
-
-	user, err := c.ds.getUserByNameOrEmail(s.Identifier)
-	if err != nil {
-		if isErrSqlNoRows(err) {
-			return invalidLogin
-		}
-		return err
-	}
-	if !user.checkPassword(s.Password) {
-		return invalidLogin
-	}
-
-	if _, err := c.session.writeToken(w, user.ID); err != nil {
-		return err
-	}
-
-	user.IsAuthenticated = true
-
-	sendMessage(&socketMessage{user.Name, "", 0, "login"})
-	return renderJSON(w, newSessionInfo(user), http.StatusCreated)
-}
-
-func signup(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
-
-	s := &struct {
-		Name     string `json:"name"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}{}
-
-	if err := decodeJSON(r, s); err != nil {
-		return err
-	}
-
-	user := &user{
-		Name:     s.Name,
-		Email:    strings.ToLower(s.Email),
-		Password: s.Password,
-	}
-
-	if err := c.validate(user); err != nil {
-		return err
-	}
-
-	if err := c.ds.createUser(user); err != nil {
-		return err
-	}
-	if _, err := c.session.writeToken(w, user.ID); err != nil {
-		return err
-	}
-
-	user.IsAuthenticated = true
-
-	go func() {
-		if err := c.mailer.sendWelcomeMail(user); err != nil {
-			logError(err)
-		}
-	}()
-
-	return renderJSON(w, newSessionInfo(user), http.StatusCreated)
-
-}
-
-func changePassword(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
-
-	var (
-		user *user
-		err  error
+func (a *defaultAuthenticator) getAuthProvider(r *http.Request, providerName string) (common.Provider, error) {
+	gomniauth.WithProviders(
+		google.New(a.config.GoogleAuthKey,
+			a.config.GoogleAuthSecret,
+			getBaseURL(r)+"/api/auth/oauth2/google/callback/",
+		),
 	)
-
-	s := &struct {
-		Password     string `json:"password"`
-		RecoveryCode string `json:"code"`
-	}{}
-
-	if err = decodeJSON(r, s); err != nil {
-		return err
+	provider, err := gomniauth.Provider(providerName)
+	if err != nil {
+		return provider, errgo.Mask(err)
 	}
-
-	if s.RecoveryCode == "" {
-		if user, err = c.getUser(r, true); err != nil {
-			return err
-		}
-	} else {
-		if user, err = c.ds.getUserByRecoveryCode(s.RecoveryCode); err != nil {
-			return err
-		}
-		user.resetRecoveryCode()
-	}
-
-	if err = user.changePassword(s.Password); err != nil {
-		return err
-	}
-	if err := c.validate(user); err != nil {
-		return err
-	}
-	if err := c.ds.updateUser(user); err != nil {
-		return err
-	}
-
-	return renderString(w, http.StatusOK, "Password changed")
+	return provider, nil
 }
 
-func recoverPassword(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
-
-	s := &struct {
-		Email string `json:"email"`
-	}{}
-
-	if err := decodeJSON(r, s); err != nil {
-		return err
-	}
-	if s.Email == "" {
-		return httpError{http.StatusBadRequest, "Missing email address"}
-	}
-	user, err := c.ds.getUserByEmail(s.Email)
+func (a *defaultAuthenticator) getRedirectURL(r *http.Request, providerName string) (string, error) {
+	provider, err := a.getAuthProvider(r, providerName)
 	if err != nil {
-		if isErrSqlNoRows(err) {
-			return httpError{http.StatusBadRequest, "Email address not found"}
-		}
-		return err
+		return "", errgo.Mask(err)
 	}
-	code, err := user.generateRecoveryCode()
+	state := gomniauth.NewState("after", "success")
+	url, err := provider.GetBeginAuthURL(state, nil)
+	if err != nil {
+		return url, errgo.Mask(err)
+	}
+	return url, nil
+}
 
-	if err := c.ds.updateUser(user); err != nil {
-		return err
+func (a *defaultAuthenticator) getUserInfo(r *http.Request, providerName string) (*authInfo, error) {
+	provider, err := a.getAuthProvider(r, providerName)
+	if err != nil {
+		return nil, errgo.Mask(err)
+	}
+	m := make(objx.Map)
+	if r.Form == nil {
+		r.ParseForm()
+	}
+	for k, v := range r.Form {
+		m.Set(k, v)
+	}
+	creds, err := provider.CompleteAuth(m)
+	if err != nil {
+		return nil, errgo.Mask(err)
+	}
+	user, err := provider.GetUser(creds)
+	if err != nil {
+		return nil, errgo.Mask(err)
+	}
+	info := &authInfo{
+		name:  user.Name(),
+		email: user.Email(),
 	}
 
-	go func() {
-		if err := c.mailer.sendResetPasswordMail(user, code, r); err != nil {
-			logError(err)
-		}
-	}()
-
-	return renderString(w, http.StatusOK, "Password reset")
+	return info, nil
 }

@@ -24,6 +24,7 @@ type sessionManager interface {
 type sessionInfo struct {
 	ID       int64  `json:"id"`
 	Name     string `json:"name"`
+	Email    string `json:"email"`
 	IsAdmin  bool   `json:"isAdmin"`
 	LoggedIn bool   `json:"loggedIn"`
 }
@@ -33,7 +34,7 @@ func newSessionInfo(user *user) *sessionInfo {
 		return &sessionInfo{}
 	}
 
-	return &sessionInfo{user.ID, user.Name, user.IsAdmin, true}
+	return &sessionInfo{user.ID, user.Name, user.Email, user.IsAdmin, true}
 }
 
 func newSessionManager(config *appConfig) (sessionManager, error) {

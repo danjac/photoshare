@@ -146,6 +146,7 @@
                 Session.prototype.clear = function() {
                     this.loggedIn = false;
                     this.name = null;
+                    this.email = null;
                     this.id = null;
                     this.isAdmin = false;
                 };
@@ -153,6 +154,7 @@
                 Session.prototype.set = function(session) {
                     this.loggedIn = session.loggedIn;
                     this.name = session.name;
+                    this.email = session.email;
                     this.id = session.id;
                     this.isAdmin = session.isAdmin;
                 };

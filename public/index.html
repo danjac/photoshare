@@ -54,7 +54,9 @@
                 </ul>
                 <ul class="nav navbar-nav navbar-right" ng-show="session.loggedIn">
                     <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span> {{session.name}} <span class="caret"></span></a>
+                        <a class="dropdown-toggle" data-toggle="dropdown">
+                            <img gravatar-src="session.email" gravatar-size="20" />&nbsp;{{session.name}} <span class="caret"></span>
+                        </a>
                         <ul class="dropdown-menu" role="menu">
                             <li ng-class="{active: isActive('/owner/'+session.id+'/'+session.name)}"><a href="#/owner/{{session.id}}/{{session.name}}">My photos</a>
                             </li>
@@ -87,6 +89,8 @@
     <script src="bower_components/angular-route/angular-route.js"></script>
     <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
     <script src="bower_components/angular-resource/angular-resource.js"></script>
+    <script src="bower_components/angular-gravatar/build/md5.js"></script>
+    <script src="bower_components/angular-gravatar/build/angular-gravatar.js"></script>
     <script src="js/app.js"></script>
     <script src="js/services.js"></script>
     <script src="js/controllers.js"></script>

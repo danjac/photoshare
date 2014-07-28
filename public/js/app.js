@@ -6,6 +6,7 @@
         'ngResource',
         'ngSanitize',
         'ngCookies',
+        'ui.gravatar',
         'photoshare.filters',
         'photoshare.services',
         'photoshare.directives',
@@ -152,15 +153,17 @@
 
         return {
             request: function(config) {
-                config.headers = config.headers || {};
-                var token = $window.localStorage.getItem(authTokenStorageKey);
-                // in the case of oaauth logins, we might store the token temporarily in a cookie.
-                // extract and store the token and remove the cookie.
-                if (!token || token === 'undefined') {
-                    token = $cookies.authToken;
-                    $window.localStorage.setItem(authTokenStorageKey, token);
+
+                // oauth2 authentication sets token in cookie before redirect
+                // check the existence of cookie, add to local storage, and delete the cookie.
+                if ($cookies.authToken) {
+                    $window.localStorage.setItem(authTokenStorageKey, $cookies.authToken);
                     delete $cookies.authToken;
                 }
+
+                config.headers = config.headers || {};
+
+                var token = $window.localStorage.getItem(authTokenStorageKey);
 
                 if (token) {
                     config.headers[authTokenHeader] = token;

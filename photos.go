@@ -9,17 +9,12 @@ import (
 
 func deletePhoto(c *context, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := c.getUser(r, true)
-	if err != nil {
-		return err
-	}
-
 	photo, err := c.ds.getPhoto(c.params.getInt("id"))
 	if err != nil {
 		return err
 	}
 
-	if !photo.canDelete(user) {
+	if !photo.canDelete(c.user) {
 		return httpError{http.StatusForbidden, "You're not allowed to delete this photo"}
 	}
 	if err := c.ds.removePhoto(photo); err != nil {
@@ -36,7 +31,7 @@ func deletePhoto(c *context, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	sendMessage(&socketMessage{user.Name, "", photo.ID, "photo_deleted"})
+	sendMessage(&socketMessage{c.user.Name, "", photo.ID, "photo_deleted"})
 	return renderString(w, http.StatusOK, "Photo deleted")
 }
 
@@ -55,26 +50,22 @@ func getPhotoDetail(c *context, w http.ResponseWriter, r *http.Request) error {
 
 }
 
-func getPhotoToEdit(c *context, w http.ResponseWriter, r *http.Request) (*photo, *user, error) {
-	user, err := c.getUser(r, true)
-	if err != nil {
-		return nil, user, err
-	}
+func getPhotoToEdit(c *context, w http.ResponseWriter, r *http.Request) (*photo, error) {
 
 	photo, err := c.ds.getPhoto(c.params.getInt("id"))
 	if err != nil {
-		return photo, user, err
+		return photo, err
 	}
 
-	if !photo.canEdit(user) {
-		return photo, user, httpError{http.StatusForbidden, "You're not allowed to edit this photo"}
+	if !photo.canEdit(c.user) {
+		return photo, httpError{http.StatusForbidden, "You're not allowed to edit this photo"}
 	}
-	return photo, user, nil
+	return photo, nil
 }
 
 func editPhotoTitle(c *context, w http.ResponseWriter, r *http.Request) error {
 
-	photo, user, err := getPhotoToEdit(c, w, r)
+	photo, err := getPhotoToEdit(c, w, r)
 
 	if err != nil {
 		return err
@@ -99,13 +90,13 @@ func editPhotoTitle(c *context, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	sendMessage(&socketMessage{user.Name, "", photo.ID, "photo_updated"})
+	sendMessage(&socketMessage{c.user.Name, "", photo.ID, "photo_updated"})
 	return renderString(w, http.StatusOK, "Photo updated")
 }
 
 func editPhotoTags(c *context, w http.ResponseWriter, r *http.Request) error {
 
-	photo, user, err := getPhotoToEdit(c, w, r)
+	photo, err := getPhotoToEdit(c, w, r)
 	if err != nil {
 		return err
 	}
@@ -123,17 +114,12 @@ func editPhotoTags(c *context, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	sendMessage(&socketMessage{user.Name, "", photo.ID, "photo_updated"})
+	sendMessage(&socketMessage{c.user.Name, "", photo.ID, "photo_updated"})
 	return renderString(w, http.StatusOK, "Photo updated")
 
 }
 
 func upload(c *context, w http.ResponseWriter, r *http.Request) error {
-
-	user, err := c.getUser(r, true)
-	if err != nil {
-		return err
-	}
 
 	title := r.FormValue("title")
 	taglist := r.FormValue("taglist")
@@ -160,7 +146,7 @@ func upload(c *context, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	photo := &photo{Title: title,
-		OwnerID:  user.ID,
+		OwnerID:  c.user.ID,
 		Filename: filename,
 		Tags:     tags,
 	}
@@ -175,7 +161,7 @@ func upload(c *context, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	sendMessage(&socketMessage{user.Name, "", photo.ID, "photo_uploaded"})
+	sendMessage(&socketMessage{c.user.Name, "", photo.ID, "photo_uploaded"})
 	return renderJSON(w, photo, http.StatusCreated)
 }
 
@@ -245,25 +231,21 @@ func voteUp(c *context, w http.ResponseWriter, r *http.Request) error {
 }
 
 func vote(c *context, w http.ResponseWriter, r *http.Request, fn func(photo *photo)) error {
-	user, err := c.getUser(r, true)
-	if err != nil {
-		return err
-	}
 
 	photo, err := c.ds.getPhoto(c.params.getInt("id"))
 	if err != nil {
 		return err
 	}
 
-	if !photo.canVote(user) {
+	if !photo.canVote(c.user) {
 		return httpError{http.StatusForbidden, "You're not allowed to vote on this photo"}
 	}
 
 	fn(photo)
 
-	user.registerVote(photo.ID)
+	c.user.registerVote(photo.ID)
 
-	if err := c.ds.updateMany(photo, user); err != nil {
+	if err := c.ds.updateMany(photo, c.user); err != nil {
 		return err
 	}
 

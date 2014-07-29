@@ -31,8 +31,8 @@ type defaultAuthenticator struct {
 
 func (a *defaultAuthenticator) getAuthProvider(r *http.Request, providerName string) (common.Provider, error) {
 	gomniauth.WithProviders(
-		google.New(a.config.GoogleAuthKey,
-			a.config.GoogleAuthSecret,
+		google.New(a.config.GoogleClientID,
+			a.config.GoogleSecret,
 			getBaseURL(r)+"/api/auth/oauth2/google/callback/",
 		),
 	)

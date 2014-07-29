@@ -23,6 +23,7 @@ type handlerFunc func(c *context, w http.ResponseWriter, r *http.Request) error
 type context struct {
 	*appConfig
 	params *params
+	user   *user
 }
 
 func (c *context) validate(v validator) error {
@@ -38,29 +39,32 @@ func (c *context) validate(v validator) error {
 
 func (c *context) getUser(r *http.Request, required bool) (*user, error) {
 
+	if c.user != nil {
+		return c.user, nil
+	}
 	var invalidLogin error
 
 	if required {
 		invalidLogin = httpError{http.StatusUnauthorized, "You must be logged in"}
 	}
 
-	user := &user{}
+	c.user = &user{}
 
 	userID, err := c.session.readToken(r)
 	if err != nil {
-		return user, err
+		return c.user, err
 	}
 	if userID == 0 {
-		return user, invalidLogin
+		return c.user, invalidLogin
 	}
-	user, err = c.ds.getActiveUser(userID)
+	c.user, err = c.ds.getActiveUser(userID)
 	if err != nil {
 		if isErrSqlNoRows(err) {
-			return user, invalidLogin
+			return c.user, invalidLogin
 		}
-		return user, err
+		return c.user, err
 	}
-	user.IsAuthenticated = true
+	c.user.IsAuthenticated = true
 
-	return user, nil
+	return c.user, nil
 }

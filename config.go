@@ -43,8 +43,8 @@ type settings struct {
 
 	MemcacheHost string `env:"key=MEMCACHE_HOST default=0.0.0.0:11211"`
 
-	GoogleAuthKey    string `env:"key=GOOGLE_AUTH_KEY"`
-	GoogleAuthSecret string `env:"key=GOOGLE_AUTH_SECRET"`
+	GoogleClientID string `env:"key=GOOGLE_CLIENT_ID"`
+	GoogleSecret   string `env:"key=GOOGLE_SECRET"`
 
 	ServerPort int `env:"key=PORT default=5000"`
 }
@@ -152,17 +152,27 @@ func (config *appConfig) initDB() error {
 	return nil
 }
 
-func (config *appConfig) handler(h handlerFunc) http.HandlerFunc {
+func (config *appConfig) handler(h handlerFunc, loginRequired bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		handleError(w, r, h(config.makeContext(r), w, r))
+		c, err := config.makeContext(r, loginRequired)
+		if err != nil {
+			handleError(w, r, err)
+		}
+		handleError(w, r, h(c, w, r))
 	}
 }
 
-func (config *appConfig) makeContext(r *http.Request) *context {
+func (config *appConfig) makeContext(r *http.Request, loginRequired bool) (*context, error) {
 
 	c := &context{appConfig: config}
 	c.params = &params{mux.Vars(r)}
-	return c
+	if loginRequired {
+		_, err := c.getUser(r, true)
+		if err != nil {
+			return c, err
+		}
+	}
+	return c, nil
 }
 
 func (config *appConfig) getRouter() http.Handler {
@@ -173,37 +183,37 @@ func (config *appConfig) getRouter() http.Handler {
 
 	photos := api.PathPrefix("/photos/").Subrouter()
 
-	photos.HandleFunc("/", config.handler(getPhotos)).Methods("GET")
-	photos.HandleFunc("/", config.handler(upload)).Methods("POST")
-	photos.HandleFunc("/search", config.handler(searchPhotos)).Methods("GET")
-	photos.HandleFunc("/owner/{ownerID:[0-9]+}", config.handler(photosByOwnerID)).Methods("GET")
+	photos.HandleFunc("/", config.handler(getPhotos, false)).Methods("GET")
+	photos.HandleFunc("/", config.handler(upload, true)).Methods("POST")
+	photos.HandleFunc("/search", config.handler(searchPhotos, false)).Methods("GET")
+	photos.HandleFunc("/owner/{ownerID:[0-9]+}", config.handler(photosByOwnerID, false)).Methods("GET")
 
-	photos.HandleFunc("/{id:[0-9]+}", config.handler(getPhotoDetail)).Methods("GET")
-	photos.HandleFunc("/{id:[0-9]+}", config.handler(deletePhoto)).Methods("DELETE")
-	photos.HandleFunc("/{id:[0-9]+}/title", config.handler(editPhotoTitle)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/tags", config.handler(editPhotoTags)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/upvote", config.handler(voteUp)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/downvote", config.handler(voteDown)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}", config.handler(getPhotoDetail, false)).Methods("GET")
+	photos.HandleFunc("/{id:[0-9]+}", config.handler(deletePhoto, true)).Methods("DELETE")
+	photos.HandleFunc("/{id:[0-9]+}/title", config.handler(editPhotoTitle, true)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}/tags", config.handler(editPhotoTags, true)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}/upvote", config.handler(voteUp, true)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}/downvote", config.handler(voteDown, true)).Methods("PATCH")
 
 	auth := api.PathPrefix("/auth/").Subrouter()
 
-	auth.HandleFunc("/", config.handler(getSessionInfo)).Methods("GET")
-	auth.HandleFunc("/", config.handler(login)).Methods("POST")
-	auth.HandleFunc("/", config.handler(logout)).Methods("DELETE")
-	auth.HandleFunc("/oauth2/{provider}/url", config.handler(getAuthRedirectURL)).Methods("GET")
-	auth.HandleFunc("/oauth2/{provider}/callback/", config.handler(authCallback)).Methods("GET")
-	auth.HandleFunc("/signup", config.handler(signup)).Methods("POST")
-	auth.HandleFunc("/recoverpass", config.handler(recoverPassword)).Methods("PUT")
-	auth.HandleFunc("/changepass", config.handler(changePassword)).Methods("PUT")
+	auth.HandleFunc("/", config.handler(getSessionInfo, false)).Methods("GET")
+	auth.HandleFunc("/", config.handler(login, false)).Methods("POST")
+	auth.HandleFunc("/", config.handler(logout, true)).Methods("DELETE")
+	auth.HandleFunc("/oauth2/{provider}/url", config.handler(getAuthRedirectURL, false)).Methods("GET")
+	auth.HandleFunc("/oauth2/{provider}/callback/", config.handler(authCallback, false)).Methods("GET")
+	auth.HandleFunc("/signup", config.handler(signup, false)).Methods("POST")
+	auth.HandleFunc("/recoverpass", config.handler(recoverPassword, false)).Methods("PUT")
+	auth.HandleFunc("/changepass", config.handler(changePassword, false)).Methods("PUT")
 
-	api.HandleFunc("/tags/", config.handler(getTags)).Methods("GET")
+	api.HandleFunc("/tags/", config.handler(getTags, false)).Methods("GET")
 	api.Handle("/messages/{path:.*}", messageHandler)
 
 	feeds := r.PathPrefix("/feeds/").Subrouter()
 
-	feeds.HandleFunc("", config.handler(latestFeed)).Methods("GET")
-	feeds.HandleFunc("popular/", config.handler(popularFeed)).Methods("GET")
-	feeds.HandleFunc("owner/{ownerID:[0-9]+}", config.handler(ownerFeed)).Methods("GET")
+	feeds.HandleFunc("", config.handler(latestFeed, false)).Methods("GET")
+	feeds.HandleFunc("popular/", config.handler(popularFeed, false)).Methods("GET")
+	feeds.HandleFunc("owner/{ownerID:[0-9]+}", config.handler(ownerFeed, false)).Methods("GET")
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir(config.PublicDir)))
 

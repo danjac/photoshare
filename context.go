@@ -32,8 +32,7 @@ type appContext struct {
 	cache   cache
 }
 
-func (c *appContext) appHandler(h handlerFunc) http.HandlerFunc {
-
+func (c *appContext) handler(h handlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		p := &params{mux.Vars(r)}
 		handleError(w, r, h(c, w, r, p))

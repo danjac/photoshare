@@ -164,14 +164,18 @@ func (m *emptyDataStore) getPhotoDetail(photoID int64, user *user) (*photoDetail
 func TestGetPhotoDetailIfNone(t *testing.T) {
 	req := &http.Request{}
 	res := httptest.NewRecorder()
-	p := &params{make(map[string]string)}
 
-	a := &appContext{
+	config := &appConfig{
 		session: &mockSessionManager{},
 		ds:      &emptyDataStore{},
 	}
 
-	err := getPhotoDetail(a, res, req, p)
+	c := &context{
+		appConfig: config,
+		params:    &params{make(map[string]string)},
+	}
+
+	err := getPhotoDetail(c, res, req)
 	if err != sql.ErrNoRows {
 		t.Fail()
 	}
@@ -184,12 +188,17 @@ func TestGetPhotoDetail(t *testing.T) {
 	p := &params{make(map[string]string)}
 	p.vars["id"] = "1"
 
-	a := &appContext{
+	config := &appConfig{
 		session: &mockSessionManager{},
 		ds:      &mockDataStore{},
 	}
 
-	getPhotoDetail(a, res, req, p)
+	c := &context{
+		appConfig: config,
+		params:    p,
+	}
+
+	getPhotoDetail(c, res, req)
 	value := &photoDetail{}
 	parseJSONBody(res, value)
 	if res.Code != 200 {
@@ -207,14 +216,18 @@ func TestGetPhotos(t *testing.T) {
 
 	req := &http.Request{}
 	res := httptest.NewRecorder()
-	p := &params{}
 
-	a := &appContext{
+	config := &appConfig{
 		ds:    &mockDataStore{},
 		cache: &mockCache{},
 	}
 
-	getPhotos(a, res, req, p)
+	c := &context{
+		appConfig: config,
+		params:    &params{},
+	}
+
+	getPhotos(c, res, req)
 	value := &photoList{}
 	parseJSONBody(res, value)
 	if value.Total != 1 {

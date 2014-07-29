@@ -7,14 +7,14 @@ import (
 	"strings"
 )
 
-func deletePhoto(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+func deletePhoto(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	user, err := c.getUser(r, true)
 	if err != nil {
 		return err
 	}
 
-	photo, err := c.ds.getPhoto(p.getInt("id"))
+	photo, err := c.ds.getPhoto(c.params.getInt("id"))
 	if err != nil {
 		return err
 	}
@@ -40,14 +40,14 @@ func deletePhoto(c *appContext, w http.ResponseWriter, r *http.Request, p *param
 	return renderString(w, http.StatusOK, "Photo deleted")
 }
 
-func getPhotoDetail(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+func getPhotoDetail(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	user, err := c.getUser(r, false)
 	if err != nil {
 		return err
 	}
 
-	photo, err := c.ds.getPhotoDetail(p.getInt("id"), user)
+	photo, err := c.ds.getPhotoDetail(c.params.getInt("id"), user)
 	if err != nil {
 		return err
 	}
@@ -55,13 +55,13 @@ func getPhotoDetail(c *appContext, w http.ResponseWriter, r *http.Request, p *pa
 
 }
 
-func getPhotoToEdit(c *appContext, w http.ResponseWriter, r *http.Request, p *params) (*photo, *user, error) {
+func getPhotoToEdit(c *context, w http.ResponseWriter, r *http.Request) (*photo, *user, error) {
 	user, err := c.getUser(r, true)
 	if err != nil {
 		return nil, user, err
 	}
 
-	photo, err := c.ds.getPhoto(p.getInt("id"))
+	photo, err := c.ds.getPhoto(c.params.getInt("id"))
 	if err != nil {
 		return photo, user, err
 	}
@@ -72,9 +72,9 @@ func getPhotoToEdit(c *appContext, w http.ResponseWriter, r *http.Request, p *pa
 	return photo, user, nil
 }
 
-func editPhotoTitle(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+func editPhotoTitle(c *context, w http.ResponseWriter, r *http.Request) error {
 
-	photo, user, err := getPhotoToEdit(c, w, r, p)
+	photo, user, err := getPhotoToEdit(c, w, r)
 
 	if err != nil {
 		return err
@@ -103,9 +103,9 @@ func editPhotoTitle(c *appContext, w http.ResponseWriter, r *http.Request, p *pa
 	return renderString(w, http.StatusOK, "Photo updated")
 }
 
-func editPhotoTags(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+func editPhotoTags(c *context, w http.ResponseWriter, r *http.Request) error {
 
-	photo, user, err := getPhotoToEdit(c, w, r, p)
+	photo, user, err := getPhotoToEdit(c, w, r)
 	if err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func editPhotoTags(c *appContext, w http.ResponseWriter, r *http.Request, p *par
 
 }
 
-func upload(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+func upload(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	user, err := c.getUser(r, true)
 	if err != nil {
@@ -179,7 +179,7 @@ func upload(c *appContext, w http.ResponseWriter, r *http.Request, p *params) er
 	return renderJSON(w, photo, http.StatusCreated)
 }
 
-func searchPhotos(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
+func searchPhotos(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	page := getPage(r)
 	q := r.FormValue("q")
@@ -195,10 +195,10 @@ func searchPhotos(c *appContext, w http.ResponseWriter, r *http.Request, _ *para
 
 }
 
-func photosByOwnerID(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+func photosByOwnerID(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	page := getPage(r)
-	ownerID := p.getInt("ownerID")
+	ownerID := c.params.getInt("ownerID")
 	cacheKey := fmt.Sprintf("photos:ownerID:%d:page:%d", ownerID, page.index)
 
 	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
@@ -210,7 +210,7 @@ func photosByOwnerID(c *appContext, w http.ResponseWriter, r *http.Request, p *p
 	})
 }
 
-func getPhotos(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
+func getPhotos(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	page := getPage(r)
 	orderBy := r.FormValue("orderBy")
@@ -225,7 +225,7 @@ func getPhotos(c *appContext, w http.ResponseWriter, r *http.Request, _ *params)
 	})
 }
 
-func getTags(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
+func getTags(c *context, w http.ResponseWriter, r *http.Request) error {
 	return c.cache.render(w, http.StatusOK, "tags", func() (interface{}, error) {
 		tags, err := c.ds.getTagCounts()
 		if err != nil {
@@ -236,21 +236,21 @@ func getTags(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) e
 
 }
 
-func voteDown(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
-	return vote(c, w, r, p, func(photo *photo) { photo.DownVotes++ })
+func voteDown(c *context, w http.ResponseWriter, r *http.Request) error {
+	return vote(c, w, r, func(photo *photo) { photo.DownVotes++ })
 }
 
-func voteUp(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
-	return vote(c, w, r, p, func(photo *photo) { photo.UpVotes++ })
+func voteUp(c *context, w http.ResponseWriter, r *http.Request) error {
+	return vote(c, w, r, func(photo *photo) { photo.UpVotes++ })
 }
 
-func vote(c *appContext, w http.ResponseWriter, r *http.Request, p *params, fn func(photo *photo)) error {
+func vote(c *context, w http.ResponseWriter, r *http.Request, fn func(photo *photo)) error {
 	user, err := c.getUser(r, true)
 	if err != nil {
 		return err
 	}
 
-	photo, err := c.ds.getPhoto(p.getInt("id"))
+	photo, err := c.ds.getPhoto(c.params.getInt("id"))
 	if err != nil {
 		return err
 	}

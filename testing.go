@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/coopernurse/gorp"
-	"github.com/zenazn/goji/web"
 	"net/http/httptest"
 )
 
@@ -13,13 +12,6 @@ import (
 
 func parseJSONBody(res *httptest.ResponseRecorder, value interface{}) error {
 	return json.Unmarshal([]byte(res.Body.String()), value)
-}
-
-func newWebContext() web.C {
-	c := web.C{}
-	c.Env = make(map[string]interface{})
-	c.URLParams = make(map[string]string)
-	return c
 }
 
 type testDB struct {

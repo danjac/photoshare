@@ -6,18 +6,18 @@ import (
 	"time"
 )
 
-func getAuthRedirectURL(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+func getAuthRedirectURL(c *context, w http.ResponseWriter, r *http.Request) error {
 
-	url, err := c.auth.getRedirectURL(r, p.get("provider"))
+	url, err := c.auth.getRedirectURL(r, c.params.get("provider"))
 	if err != nil {
 		return err
 	}
 	return renderString(w, http.StatusOK, url)
 }
 
-func authCallback(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+func authCallback(c *context, w http.ResponseWriter, r *http.Request) error {
 
-	info, err := c.auth.getUserInfo(r, p.get("provider"))
+	info, err := c.auth.getUserInfo(r, c.params.get("provider"))
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func authCallback(c *appContext, w http.ResponseWriter, r *http.Request, p *para
 	return nil
 }
 
-func logout(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
+func logout(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	u, err := c.getUser(r, true)
 	if err != nil {
@@ -60,7 +60,7 @@ func logout(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) er
 
 }
 
-func getSessionInfo(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
+func getSessionInfo(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	user, err := c.getUser(r, false)
 	if err != nil {
@@ -69,7 +69,7 @@ func getSessionInfo(c *appContext, w http.ResponseWriter, r *http.Request, _ *pa
 	return renderJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
-func login(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
+func login(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	s := &struct {
 		Identifier string `json:"identifier"`
@@ -107,7 +107,7 @@ func login(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) err
 	return renderJSON(w, newSessionInfo(user), http.StatusCreated)
 }
 
-func signup(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+func signup(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	s := &struct {
 		Name     string `json:"name"`
@@ -148,7 +148,7 @@ func signup(c *appContext, w http.ResponseWriter, r *http.Request, p *params) er
 
 }
 
-func changePassword(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
+func changePassword(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	var (
 		user *user
@@ -188,7 +188,7 @@ func changePassword(c *appContext, w http.ResponseWriter, r *http.Request, p *pa
 	return renderString(w, http.StatusOK, "Password changed")
 }
 
-func recoverPassword(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
+func recoverPassword(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	s := &struct {
 		Email string `json:"email"`

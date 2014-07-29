@@ -1,13 +1,18 @@
 package photoshare
 
 import (
+	"database/sql"
 	"errors"
+	"fmt"
+	"github.com/coopernurse/gorp"
 	"github.com/danryan/env"
+	"github.com/gorilla/mux"
+	"net/http"
 	"os"
 	"path"
 )
 
-type appConfig struct {
+type settings struct {
 	DBName     string `env:"key=DB_NAME required=true"`
 	DBUser     string `env:"key=DB_USER required=true"`
 	DBPassword string `env:"key=DB_PASS required=true"`
@@ -44,13 +49,26 @@ type appConfig struct {
 	ServerPort int `env:"key=PORT default=5000"`
 }
 
+type appConfig struct {
+	*settings
+	dbMap   *gorp.DbMap
+	mailer  *mailer
+	ds      dataStore
+	fs      fileStorage
+	session sessionManager
+	auth    authenticator
+	cache   cache
+}
+
 func newAppConfig() (*appConfig, error) {
 
-	config := &appConfig{}
+	settings := &settings{}
 
-	if err := env.Process(config); err != nil {
+	if err := env.Process(settings); err != nil {
 		return nil, err
 	}
+
+	config := &appConfig{settings: settings}
 
 	if config.TestDBName == "" {
 		config.TestDBName = config.DBName + "_test"
@@ -92,7 +110,105 @@ func newAppConfig() (*appConfig, error) {
 		config.TemplatesDir = path.Join(config.BaseDir, "templates")
 	}
 
+	if err := config.initDB(); err != nil {
+		return config, err
+	}
+
+	if err := config.initDB(); err != nil {
+		return config, err
+	}
+
+	config.ds = newDataStore(config.dbMap)
+	config.fs = newFileStorage(config)
+	config.mailer = newMailer(config)
+	config.cache = newCache(config)
+	config.auth = newAuthenticator(config)
+
+	config.session, _ = newSessionManager(config)
+
 	return config, nil
+}
+
+func (config *appConfig) close() {
+	config.dbMap.Db.Close()
+}
+
+func (config *appConfig) initDB() error {
+
+	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
+		config.DBUser,
+		config.DBName,
+		config.DBPassword,
+		config.DBHost,
+	))
+	if err != nil {
+		return err
+	}
+
+	config.dbMap, err = initDB(db, config.LogSql)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (config *appConfig) handler(h handlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		handleError(w, r, h(config.makeContext(r), w, r))
+	}
+}
+
+func (config *appConfig) makeContext(r *http.Request) *context {
+
+	c := &context{appConfig: config}
+	c.params = &params{mux.Vars(r)}
+	return c
+}
+
+func (config *appConfig) getRouter() http.Handler {
+
+	r := mux.NewRouter()
+
+	api := r.PathPrefix("/api/").Subrouter()
+
+	photos := api.PathPrefix("/photos/").Subrouter()
+
+	photos.HandleFunc("/", config.handler(getPhotos)).Methods("GET")
+	photos.HandleFunc("/", config.handler(upload)).Methods("POST")
+	photos.HandleFunc("/search", config.handler(searchPhotos)).Methods("GET")
+	photos.HandleFunc("/owner/{ownerID:[0-9]+}", config.handler(photosByOwnerID)).Methods("GET")
+
+	photos.HandleFunc("/{id:[0-9]+}", config.handler(getPhotoDetail)).Methods("GET")
+	photos.HandleFunc("/{id:[0-9]+}", config.handler(deletePhoto)).Methods("DELETE")
+	photos.HandleFunc("/{id:[0-9]+}/title", config.handler(editPhotoTitle)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}/tags", config.handler(editPhotoTags)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}/upvote", config.handler(voteUp)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}/downvote", config.handler(voteDown)).Methods("PATCH")
+
+	auth := api.PathPrefix("/auth/").Subrouter()
+
+	auth.HandleFunc("/", config.handler(getSessionInfo)).Methods("GET")
+	auth.HandleFunc("/", config.handler(login)).Methods("POST")
+	auth.HandleFunc("/", config.handler(logout)).Methods("DELETE")
+	auth.HandleFunc("/oauth2/{provider}/url", config.handler(getAuthRedirectURL)).Methods("GET")
+	auth.HandleFunc("/oauth2/{provider}/callback/", config.handler(authCallback)).Methods("GET")
+	auth.HandleFunc("/signup", config.handler(signup)).Methods("POST")
+	auth.HandleFunc("/recoverpass", config.handler(recoverPassword)).Methods("PUT")
+	auth.HandleFunc("/changepass", config.handler(changePassword)).Methods("PUT")
+
+	api.HandleFunc("/tags/", config.handler(getTags)).Methods("GET")
+	api.Handle("/messages/{path:.*}", messageHandler)
+
+	feeds := r.PathPrefix("/feeds/").Subrouter()
+
+	feeds.HandleFunc("", config.handler(latestFeed)).Methods("GET")
+	feeds.HandleFunc("popular/", config.handler(popularFeed)).Methods("GET")
+	feeds.HandleFunc("owner/{ownerID:[0-9]+}", config.handler(ownerFeed)).Methods("GET")
+
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir(config.PublicDir)))
+
+	return r
+
 }
 
 func getDefaultBaseDir() string {

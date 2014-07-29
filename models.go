@@ -61,7 +61,7 @@ func (photo *photo) PreInsert(s gorp.SqlExecutor) error {
 	return nil
 }
 
-func (photo *photo) validate(c *appContext, errors map[string]string) error {
+func (photo *photo) validate(c *context, errors map[string]string) error {
 	if photo.OwnerID == 0 {
 		errors["ownerID"] = "Owner ID is missing"
 	}
@@ -134,7 +134,7 @@ func (user *user) PreInsert(s gorp.SqlExecutor) error {
 	return nil
 }
 
-func (user *user) validate(c *appContext, errors map[string]string) error {
+func (user *user) validate(c *context, errors map[string]string) error {
 
 	if user.Name == "" {
 		errors["name"] = "Name is missing"

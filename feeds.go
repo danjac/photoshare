@@ -43,7 +43,7 @@ func photoFeed(w http.ResponseWriter,
 	return nil
 }
 
-func latestFeed(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
+func latestFeed(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	photos, err := c.ds.getPhotos(newPage(1), "")
 
@@ -54,7 +54,7 @@ func latestFeed(c *appContext, w http.ResponseWriter, r *http.Request, _ *params
 	return photoFeed(w, r, "Latest photos", "Most recent photos", "/latest", photos)
 }
 
-func popularFeed(c *appContext, w http.ResponseWriter, r *http.Request, _ *params) error {
+func popularFeed(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	photos, err := c.ds.getPhotos(newPage(1), "votes")
 
@@ -65,8 +65,8 @@ func popularFeed(c *appContext, w http.ResponseWriter, r *http.Request, _ *param
 	return photoFeed(w, r, "Popular photos", "Most upvoted photos", "/popular", photos)
 }
 
-func ownerFeed(c *appContext, w http.ResponseWriter, r *http.Request, p *params) error {
-	ownerID := p.getInt("owner")
+func ownerFeed(c *context, w http.ResponseWriter, r *http.Request) error {
+	ownerID := c.params.getInt("owner")
 	owner, err := c.ds.getActiveUser(ownerID)
 	if err != nil {
 		return err

@@ -276,16 +276,28 @@
 
     .controller('TagsCtrl', ['$scope',
         '$location',
+        '$filter',
         'Tag',
-        function($scope, $location, Tag) {
+        function($scope, $location, $filter, Tag) {
             $scope.tags = [];
             $scope.orderField = '-numPhotos';
             $scope.pageLoaded = false;
 
-            Tag.query().$promise.then(function(tags) {
-                $scope.tags = tags;
+            Tag.query().$promise.then(function(response) {
+                $scope.tags = response;
                 $scope.pageLoaded = true;
+                $scope.filteredTags = $scope.tags;
             });
+
+            $scope.filterTags = function() {
+                $scope.filteredTags = $filter('filter')($scope.tags, {
+                    name: $scope.tagFilter.name
+                });
+
+                if ($scope.filteredTags.length === 1) {
+                    $scope.doSearch($scope.filteredTags[0].name);
+                }
+            };
 
             $scope.doSearch = function(tag) {
                 $location.path("/tag/" + tag);

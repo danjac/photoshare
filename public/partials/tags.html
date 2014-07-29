@@ -1,7 +1,7 @@
 <div class="tag-control-box" ng-show="pageLoaded">
     <form class="form-inline">
         <div class="form-group">
-            <input class="form-control" type="text" placeholder="Find a tag" ng-model="tagFilter.name">
+            <input class="form-control" type="text" placeholder="Find a tag" ng-model="tagFilter.name" ng-change="filterTags()">
             <button class="btn" ng-class="{'btn-primary active': orderField=='-numPhotos'}" ng-click="orderTags('-numPhotos')"><span class="glyphicon glyphicon-sort-by-alphabet"></span>
             </button>
             <button class="btn" ng-class="{'btn-primary active': orderField=='name'}" ng-click="orderTags('name')"><span class="glyphicon glyphicon-sort-by-attributes"></span>
@@ -13,7 +13,7 @@
 <div class="spinner " ng-show="!pageLoaded "></div>
 
 <div ng-show="tags.length && pageLoaded ">
-    <div ng-repeat="tag in tags|filter:tagFilter|orderBy:orderField " class="col-xs-6 col-md-3 ">
+    <div ng-repeat="tag in filteredTags|orderBy:orderField" class="col-xs-6 col-md-3 ">
         <div class="thumbnail " ng-click="doSearch(tag.name) ">
             <img alt="{{tag.name}} " class="img-responsive " ng-src="uploads/thumbnails/{{tag.photo}} " />
             <div class="caption ">

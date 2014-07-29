@@ -3,14 +3,13 @@ package photoshare
 import (
 	"database/sql"
 	"fmt"
-	"github.com/coopernurse/gorp"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 type appConfig struct {
 	*settings
-	dbMap   *gorp.DbMap
+	db      *sql.DB
 	mailer  *mailer
 	ds      dataStore
 	fs      fileStorage
@@ -20,6 +19,8 @@ type appConfig struct {
 }
 
 func newAppConfig() (*appConfig, error) {
+
+	var err error
 
 	settings, err := newSettings()
 	if err != nil {
@@ -31,19 +32,25 @@ func newAppConfig() (*appConfig, error) {
 		return config, err
 	}
 
-	config.ds = newDataStore(config.dbMap)
+	config.ds, err = newDataStore(config.db, config.LogSql)
+	if err != nil {
+		return config, err
+	}
 	config.fs = newFileStorage(config)
 	config.mailer = newMailer(config)
 	config.cache = newCache(config)
 	config.auth = newAuthenticator(config)
 
-	config.session, _ = newSessionManager(config)
+	config.session, err = newSessionManager(config)
+	if err != nil {
+		return config, err
+	}
 
 	return config, nil
 }
 
 func (config *appConfig) close() {
-	config.dbMap.Db.Close()
+	config.db.Close()
 }
 
 func (config *appConfig) initDB() error {
@@ -58,10 +65,7 @@ func (config *appConfig) initDB() error {
 		return err
 	}
 
-	config.dbMap, err = initDB(db, config.LogSql)
-	if err != nil {
-		return err
-	}
+	config.db = db
 	return nil
 }
 

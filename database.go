@@ -86,8 +86,12 @@ func (t *transaction) updateTags(photo *photo) error {
 
 }
 
-func newDataStore(dbMap *gorp.DbMap) dataStore {
-	return &defaultDataStore{dbMap}
+func newDataStore(db *sql.DB, logSql bool) (dataStore, error) {
+	dbMap, err := initDB(db, logSql)
+	if err != nil {
+		return nil, err
+	}
+	return &defaultDataStore{dbMap}, nil
 }
 
 func (ds *defaultDataStore) begin() (*transaction, error) {

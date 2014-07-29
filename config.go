@@ -71,25 +71,15 @@ func (config *appConfig) initDB() error {
 
 func (config *appConfig) handler(h handlerFunc, loginRequired bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		c, err := config.makeContext(r, loginRequired)
-		if err != nil {
-			handleError(w, r, err)
+		c := newContext(config, r)
+		if loginRequired {
+			_, err := c.getUser(r, true)
+			if err != nil {
+				handleError(w, r, err)
+			}
 		}
 		handleError(w, r, h(c, w, r))
 	}
-}
-
-func (config *appConfig) makeContext(r *http.Request, loginRequired bool) (*context, error) {
-
-	c := &context{appConfig: config}
-	c.params = &params{mux.Vars(r)}
-	if loginRequired {
-		_, err := c.getUser(r, true)
-		if err != nil {
-			return c, err
-		}
-	}
-	return c, nil
 }
 
 func (config *appConfig) getRouter() http.Handler {

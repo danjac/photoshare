@@ -1,6 +1,7 @@
 package photoshare
 
 import (
+	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 )
@@ -67,4 +68,10 @@ func (c *context) getUser(r *http.Request, required bool) (*user, error) {
 	c.user.IsAuthenticated = true
 
 	return c.user, nil
+}
+
+func newContext(config *appConfig, r *http.Request) *context {
+	c := &context{appConfig: config}
+	c.params = &params{mux.Vars(r)}
+	return c
 }

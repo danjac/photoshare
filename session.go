@@ -37,7 +37,7 @@ func newSessionInfo(user *user) *sessionInfo {
 	return &sessionInfo{user.ID, user.Name, user.Email, user.IsAdmin, true}
 }
 
-func newSessionManager(cfg *appConfig) (sessionManager, error) {
+func newSessionManager(cfg *configurator) (sessionManager, error) {
 	mgr := &defaultSessionManager{}
 	var err error
 	mgr.signKey, err = ioutil.ReadFile(cfg.PrivateKey)

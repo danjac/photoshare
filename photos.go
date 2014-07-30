@@ -7,42 +7,42 @@ import (
 	"strings"
 )
 
-func deletePhoto(c *context, w http.ResponseWriter, r *http.Request) error {
+func deletePhoto(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
-	photo, err := c.ds.getPhoto(c.params.getInt("id"))
+	photo, err := ctx.datamapper.getPhoto(ctx.params.getInt("id"))
 	if err != nil {
 		return err
 	}
 
-	if !photo.canDelete(c.user) {
+	if !photo.canDelete(ctx.user) {
 		return httpError{http.StatusForbidden, "You're not allowed to delete this photo"}
 	}
-	if err := c.ds.removePhoto(photo); err != nil {
+	if err := ctx.datamapper.removePhoto(photo); err != nil {
 		return err
 	}
 
 	go func() {
-		if err := c.fs.clean(photo.Filename); err != nil {
+		if err := ctx.filestore.clean(photo.Filename); err != nil {
 			log.Println(err)
 		}
 	}()
 
-	if err := c.cache.clear(); err != nil {
+	if err := ctx.cache.clear(); err != nil {
 		return err
 	}
 
-	sendMessage(&socketMessage{c.user.Name, "", photo.ID, "photo_deleted"})
+	sendMessage(&socketMessage{ctx.user.Name, "", photo.ID, "photo_deleted"})
 	return renderString(w, http.StatusOK, "Photo deleted")
 }
 
-func getPhotoDetail(c *context, w http.ResponseWriter, r *http.Request) error {
+func getPhotoDetail(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := c.getUser(r, false)
+	user, err := ctx.getUser(r, false)
 	if err != nil {
 		return err
 	}
 
-	photo, err := c.ds.getPhotoDetail(c.params.getInt("id"), user)
+	photo, err := ctx.datamapper.getPhotoDetail(ctx.params.getInt("id"), user)
 	if err != nil {
 		return err
 	}
@@ -50,22 +50,22 @@ func getPhotoDetail(c *context, w http.ResponseWriter, r *http.Request) error {
 
 }
 
-func getPhotoToEdit(c *context, w http.ResponseWriter, r *http.Request) (*photo, error) {
+func getPhotoToEdit(ctx *context, w http.ResponseWriter, r *http.Request) (*photo, error) {
 
-	photo, err := c.ds.getPhoto(c.params.getInt("id"))
+	photo, err := ctx.datamapper.getPhoto(ctx.params.getInt("id"))
 	if err != nil {
 		return photo, err
 	}
 
-	if !photo.canEdit(c.user) {
+	if !photo.canEdit(ctx.user) {
 		return photo, httpError{http.StatusForbidden, "You're not allowed to edit this photo"}
 	}
 	return photo, nil
 }
 
-func editPhotoTitle(c *context, w http.ResponseWriter, r *http.Request) error {
+func editPhotoTitle(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
-	photo, err := getPhotoToEdit(c, w, r)
+	photo, err := getPhotoToEdit(ctx, w, r)
 
 	if err != nil {
 		return err
@@ -81,22 +81,22 @@ func editPhotoTitle(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	photo.Title = s.Title
 
-	if err := c.validate(photo); err != nil {
+	if err := ctx.validate(photo, r); err != nil {
 		return err
 
 	}
 
-	if err := c.ds.updatePhoto(photo); err != nil {
+	if err := ctx.datamapper.updatePhoto(photo); err != nil {
 		return err
 	}
 
-	sendMessage(&socketMessage{c.user.Name, "", photo.ID, "photo_updated"})
+	sendMessage(&socketMessage{ctx.user.Name, "", photo.ID, "photo_updated"})
 	return renderString(w, http.StatusOK, "Photo updated")
 }
 
-func editPhotoTags(c *context, w http.ResponseWriter, r *http.Request) error {
+func editPhotoTags(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
-	photo, err := getPhotoToEdit(c, w, r)
+	photo, err := getPhotoToEdit(ctx, w, r)
 	if err != nil {
 		return err
 	}
@@ -110,16 +110,16 @@ func editPhotoTags(c *context, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	photo.Tags = s.Tags
-	if err := c.ds.updateTags(photo); err != nil {
+	if err := ctx.datamapper.updateTags(photo); err != nil {
 		return err
 	}
 
-	sendMessage(&socketMessage{c.user.Name, "", photo.ID, "photo_updated"})
+	sendMessage(&socketMessage{ctx.user.Name, "", photo.ID, "photo_updated"})
 	return renderString(w, http.StatusOK, "Photo updated")
 
 }
 
-func upload(c *context, w http.ResponseWriter, r *http.Request) error {
+func upload(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
 	title := r.FormValue("title")
 	taglist := r.FormValue("taglist")
@@ -136,7 +136,7 @@ func upload(c *context, w http.ResponseWriter, r *http.Request) error {
 
 	contentType := hdr.Header["Content-Type"][0]
 
-	filename, err := c.fs.store(src, contentType)
+	filename, err := ctx.filestore.store(src, contentType)
 
 	if err != nil {
 		if err == errInvalidContentType {
@@ -146,33 +146,33 @@ func upload(c *context, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	photo := &photo{Title: title,
-		OwnerID:  c.user.ID,
+		OwnerID:  ctx.user.ID,
 		Filename: filename,
 		Tags:     tags,
 	}
 
-	if err := c.validate(photo); err != nil {
+	if err := ctx.validate(photo, r); err != nil {
 		return err
 	}
-	if err := c.ds.createPhoto(photo); err != nil {
+	if err := ctx.datamapper.createPhoto(photo); err != nil {
 		return err
 	}
-	if err := c.cache.clear(); err != nil {
+	if err := ctx.cache.clear(); err != nil {
 		return err
 	}
 
-	sendMessage(&socketMessage{c.user.Name, "", photo.ID, "photo_uploaded"})
+	sendMessage(&socketMessage{ctx.user.Name, "", photo.ID, "photo_uploaded"})
 	return renderJSON(w, photo, http.StatusCreated)
 }
 
-func searchPhotos(c *context, w http.ResponseWriter, r *http.Request) error {
+func searchPhotos(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
 	page := getPage(r)
 	q := r.FormValue("q")
 	cacheKey := fmt.Sprintf("photos:search:%s:page:%d", q, page.index)
 
-	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
-		photos, err := c.ds.searchPhotos(page, q)
+	return ctx.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
+		photos, err := ctx.datamapper.searchPhotos(page, q)
 		if err != nil {
 			return photos, err
 		}
@@ -181,14 +181,14 @@ func searchPhotos(c *context, w http.ResponseWriter, r *http.Request) error {
 
 }
 
-func photosByOwnerID(c *context, w http.ResponseWriter, r *http.Request) error {
+func photosByOwnerID(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
 	page := getPage(r)
-	ownerID := c.params.getInt("ownerID")
+	ownerID := ctx.params.getInt("ownerID")
 	cacheKey := fmt.Sprintf("photos:ownerID:%d:page:%d", ownerID, page.index)
 
-	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
-		photos, err := c.ds.getPhotosByOwnerID(page, ownerID)
+	return ctx.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
+		photos, err := ctx.datamapper.getPhotosByOwnerID(page, ownerID)
 		if err != nil {
 			return photos, err
 		}
@@ -196,14 +196,14 @@ func photosByOwnerID(c *context, w http.ResponseWriter, r *http.Request) error {
 	})
 }
 
-func getPhotos(c *context, w http.ResponseWriter, r *http.Request) error {
+func getPhotos(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
 	page := getPage(r)
 	orderBy := r.FormValue("orderBy")
 	cacheKey := fmt.Sprintf("photos:%s:page:%d", orderBy, page.index)
 
-	return c.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
-		photos, err := c.ds.getPhotos(page, orderBy)
+	return ctx.cache.render(w, http.StatusOK, cacheKey, func() (interface{}, error) {
+		photos, err := ctx.datamapper.getPhotos(page, orderBy)
 		if err != nil {
 			return photos, err
 		}
@@ -211,9 +211,9 @@ func getPhotos(c *context, w http.ResponseWriter, r *http.Request) error {
 	})
 }
 
-func getTags(c *context, w http.ResponseWriter, r *http.Request) error {
-	return c.cache.render(w, http.StatusOK, "tags", func() (interface{}, error) {
-		tags, err := c.ds.getTagCounts()
+func getTags(ctx *context, w http.ResponseWriter, r *http.Request) error {
+	return ctx.cache.render(w, http.StatusOK, "tags", func() (interface{}, error) {
+		tags, err := ctx.datamapper.getTagCounts()
 		if err != nil {
 			return tags, err
 		}
@@ -222,30 +222,30 @@ func getTags(c *context, w http.ResponseWriter, r *http.Request) error {
 
 }
 
-func voteDown(c *context, w http.ResponseWriter, r *http.Request) error {
-	return vote(c, w, r, func(photo *photo) { photo.DownVotes++ })
+func voteDown(ctx *context, w http.ResponseWriter, r *http.Request) error {
+	return vote(ctx, w, r, func(photo *photo) { photo.DownVotes++ })
 }
 
-func voteUp(c *context, w http.ResponseWriter, r *http.Request) error {
-	return vote(c, w, r, func(photo *photo) { photo.UpVotes++ })
+func voteUp(ctx *context, w http.ResponseWriter, r *http.Request) error {
+	return vote(ctx, w, r, func(photo *photo) { photo.UpVotes++ })
 }
 
-func vote(c *context, w http.ResponseWriter, r *http.Request, fn func(photo *photo)) error {
+func vote(ctx *context, w http.ResponseWriter, r *http.Request, fn func(photo *photo)) error {
 
-	photo, err := c.ds.getPhoto(c.params.getInt("id"))
+	photo, err := ctx.datamapper.getPhoto(ctx.params.getInt("id"))
 	if err != nil {
 		return err
 	}
 
-	if !photo.canVote(c.user) {
+	if !photo.canVote(ctx.user) {
 		return httpError{http.StatusForbidden, "You're not allowed to vote on this photo"}
 	}
 
 	fn(photo)
 
-	c.user.registerVote(photo.ID)
+	ctx.user.registerVote(photo.ID)
 
-	if err := c.ds.updateMany(photo, c.user); err != nil {
+	if err := ctx.datamapper.updateMany(photo, ctx.user); err != nil {
 		return err
 	}
 

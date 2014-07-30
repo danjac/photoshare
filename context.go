@@ -20,14 +20,14 @@ func (p *params) getInt(name string) int64 {
 }
 
 type context struct {
-	*appConfig
+	*configurator
 	params *params
 	user   *user
 }
 
-func (c *context) validate(v validator) error {
+func (ctx *context) validate(v validator, r *http.Request) error {
 	errors := make(map[string]string)
-	if err := v.validate(c, errors); err != nil {
+	if err := v.validate(ctx, r, errors); err != nil {
 		return err
 	}
 	if len(errors) > 0 {
@@ -36,10 +36,10 @@ func (c *context) validate(v validator) error {
 	return nil
 }
 
-func (c *context) getUser(r *http.Request, required bool) (*user, error) {
+func (ctx *context) getUser(r *http.Request, required bool) (*user, error) {
 
-	if c.user != nil {
-		return c.user, nil
+	if ctx.user != nil {
+		return ctx.user, nil
 	}
 	var invalidLogin error
 
@@ -47,29 +47,29 @@ func (c *context) getUser(r *http.Request, required bool) (*user, error) {
 		invalidLogin = httpError{http.StatusUnauthorized, "You must be logged in"}
 	}
 
-	c.user = &user{}
+	ctx.user = &user{}
 
-	userID, err := c.session.readToken(r)
+	userID, err := ctx.session.readToken(r)
 	if err != nil {
-		return c.user, err
+		return ctx.user, err
 	}
 	if userID == 0 {
-		return c.user, invalidLogin
+		return ctx.user, invalidLogin
 	}
-	c.user, err = c.ds.getActiveUser(userID)
+	ctx.user, err = ctx.datamapper.getActiveUser(userID)
 	if err != nil {
 		if isErrSqlNoRows(err) {
-			return c.user, invalidLogin
+			return ctx.user, invalidLogin
 		}
-		return c.user, err
+		return ctx.user, err
 	}
-	c.user.IsAuthenticated = true
+	ctx.user.IsAuthenticated = true
 
-	return c.user, nil
+	return ctx.user, nil
 }
 
-func newContext(cfg *appConfig, r *http.Request) *context {
-	c := &context{appConfig: cfg}
-	c.params = &params{mux.Vars(r)}
-	return c
+func newContext(cfg *configurator, r *http.Request) *context {
+	ctx := &context{configurator: cfg}
+	ctx.params = &params{mux.Vars(r)}
+	return ctx
 }

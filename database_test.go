@@ -7,25 +7,25 @@ import (
 
 func TestGetIfNotNone(t *testing.T) {
 
-	config, _ := newAppConfig()
-	tdb := makeTestDB(config)
+	cfg, _ := newConfigurator()
+	tdb := makeTestDB(cfg)
 	defer tdb.clean()
 
-	ds := newDataStore(tdb.dbMap)
+	datamapper, _ := newDataMapper(tdb.dbMap.Db, false)
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
 
-	if err := ds.createUser(user); err != nil {
+	if err := datamapper.createUser(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := ds.createPhoto(photo); err != nil {
+	if err := datamapper.createPhoto(photo); err != nil {
 		t.Error(err)
 		return
 	}
 
-	photo, err := ds.getPhoto(photo.ID)
+	photo, err := datamapper.getPhoto(photo.ID)
 	if err != nil {
 		t.Error(err)
 		return
@@ -34,13 +34,13 @@ func TestGetIfNotNone(t *testing.T) {
 
 func TestGetIfNone(t *testing.T) {
 
-	config, _ := newAppConfig()
-	tdb := makeTestDB(config)
+	cfg, _ := newConfigurator()
+	tdb := makeTestDB(cfg)
 	defer tdb.clean()
 
-	ds := newDataStore(tdb.dbMap)
+	datamapper, _ := newDataMapper(tdb.dbMap.Db, false)
 
-	_, err := ds.getPhoto(1)
+	_, err := datamapper.getPhoto(1)
 	if err != sql.ErrNoRows {
 		t.Error(err)
 		return
@@ -49,24 +49,24 @@ func TestGetIfNone(t *testing.T) {
 }
 
 func TestSearchPhotos(t *testing.T) {
-	config, _ := newAppConfig()
-	tdb := makeTestDB(config)
+	cfg, _ := newConfigurator()
+	tdb := makeTestDB(cfg)
 	defer tdb.clean()
 
-	ds := newDataStore(tdb.dbMap)
+	datamapper, _ := newDataMapper(tdb.dbMap.Db, false)
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	if err := ds.createUser(user); err != nil {
+	if err := datamapper.createUser(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := ds.createPhoto(photo); err != nil {
+	if err := datamapper.createPhoto(photo); err != nil {
 		t.Error(err)
 		return
 	}
 
-	result, err := ds.searchPhotos(newPage(1), "test")
+	result, err := datamapper.searchPhotos(newPage(1), "test")
 	if err != nil {
 		t.Error(err)
 		return
@@ -77,24 +77,24 @@ func TestSearchPhotos(t *testing.T) {
 	}
 }
 func TestAllPhotos(t *testing.T) {
-	config, _ := newAppConfig()
-	tdb := makeTestDB(config)
+	cfg, _ := newConfigurator()
+	tdb := makeTestDB(cfg)
 	defer tdb.clean()
 
-	ds := newDataStore(tdb.dbMap)
+	datamapper, _ := newDataMapper(tdb.dbMap.Db, false)
 
 	user := &user{Name: "tester", Email: "tester@gmail.com", Password: "test"}
-	if err := ds.createUser(user); err != nil {
+	if err := datamapper.createUser(user); err != nil {
 		t.Error(err)
 		return
 	}
 	photo := &photo{Title: "test", OwnerID: user.ID, Filename: "test.jpg"}
-	if err := ds.createPhoto(photo); err != nil {
+	if err := datamapper.createPhoto(photo); err != nil {
 		t.Error(err)
 		return
 	}
 
-	result, err := ds.getPhotos(newPage(1), "")
+	result, err := datamapper.getPhotos(newPage(1), "")
 	if err != nil {
 		t.Error(err)
 		return

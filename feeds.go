@@ -43,9 +43,9 @@ func photoFeed(w http.ResponseWriter,
 	return nil
 }
 
-func latestFeed(c *context, w http.ResponseWriter, r *http.Request) error {
+func latestFeed(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
-	photos, err := c.ds.getPhotos(newPage(1), "")
+	photos, err := ctx.datamapper.getPhotos(newPage(1), "")
 
 	if err != nil {
 		return err
@@ -54,9 +54,9 @@ func latestFeed(c *context, w http.ResponseWriter, r *http.Request) error {
 	return photoFeed(w, r, "Latest photos", "Most recent photos", "/latest", photos)
 }
 
-func popularFeed(c *context, w http.ResponseWriter, r *http.Request) error {
+func popularFeed(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
-	photos, err := c.ds.getPhotos(newPage(1), "votes")
+	photos, err := ctx.datamapper.getPhotos(newPage(1), "votes")
 
 	if err != nil {
 		return err
@@ -65,9 +65,9 @@ func popularFeed(c *context, w http.ResponseWriter, r *http.Request) error {
 	return photoFeed(w, r, "Popular photos", "Most upvoted photos", "/popular", photos)
 }
 
-func ownerFeed(c *context, w http.ResponseWriter, r *http.Request) error {
-	ownerID := c.params.getInt("owner")
-	owner, err := c.ds.getActiveUser(ownerID)
+func ownerFeed(ctx *context, w http.ResponseWriter, r *http.Request) error {
+	ownerID := ctx.params.getInt("owner")
+	owner, err := ctx.datamapper.getActiveUser(ownerID)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func ownerFeed(c *context, w http.ResponseWriter, r *http.Request) error {
 	description := "List of feeds for " + owner.Name
 	link := fmt.Sprintf("/owner/%d/%s", ownerID, owner.Name)
 
-	photos, err := c.ds.getPhotosByOwnerID(newPage(1), ownerID)
+	photos, err := ctx.datamapper.getPhotosByOwnerID(newPage(1), ownerID)
 
 	if err != nil {
 		return err

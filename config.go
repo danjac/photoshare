@@ -7,18 +7,18 @@ import (
 	"net/http"
 )
 
-type appConfig struct {
+type configurator struct {
 	*settings
-	db      *sql.DB
-	mailer  *mailer
-	ds      dataStore
-	fs      fileStorage
-	session sessionManager
-	auth    authenticator
-	cache   cache
+	db         *sql.DB
+	mailer     *mailer
+	datamapper dataMapper
+	filestore  fileStorage
+	session    sessionManager
+	auth       authenticator
+	cache      cache
 }
 
-func newAppConfig() (*appConfig, error) {
+func newConfigurator() (*configurator, error) {
 
 	var err error
 
@@ -26,17 +26,17 @@ func newAppConfig() (*appConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg := &appConfig{settings: settings}
+	cfg := &configurator{settings: settings}
 
 	if err := cfg.initDB(); err != nil {
 		return cfg, err
 	}
 
-	cfg.ds, err = newDataStore(cfg.db, cfg.LogSql)
+	cfg.datamapper, err = newDataMapper(cfg.db, cfg.LogSql)
 	if err != nil {
 		return cfg, err
 	}
-	cfg.fs = newFileStorage(cfg)
+	cfg.filestore = newFileStorage(cfg)
 	cfg.mailer = newMailer(cfg)
 	cfg.cache = newCache(cfg)
 	cfg.auth = newAuthenticator(cfg)
@@ -49,11 +49,11 @@ func newAppConfig() (*appConfig, error) {
 	return cfg, nil
 }
 
-func (cfg *appConfig) close() {
+func (cfg *configurator) close() {
 	cfg.db.Close()
 }
 
-func (cfg *appConfig) initDB() error {
+func (cfg *configurator) initDB() error {
 
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
 		cfg.DBUser,
@@ -69,7 +69,7 @@ func (cfg *appConfig) initDB() error {
 	return nil
 }
 
-func (cfg *appConfig) handler(h handlerFunc, loginRequired bool) http.HandlerFunc {
+func (cfg *configurator) handler(h handlerFunc, loginRequired bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := newContext(cfg, r)
 		if loginRequired {
@@ -84,7 +84,7 @@ func (cfg *appConfig) handler(h handlerFunc, loginRequired bool) http.HandlerFun
 
 type handlerFunc func(c *context, w http.ResponseWriter, r *http.Request) error
 
-func (cfg *appConfig) getRouter() http.Handler {
+func (cfg *configurator) getRouter() http.Handler {
 
 	r := mux.NewRouter()
 

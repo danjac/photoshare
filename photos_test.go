@@ -50,14 +50,14 @@ func (m *mockSessionManager) writeToken(w http.ResponseWriter, userID int64) err
 	return nil
 }
 
-type mockDataStore struct {
+type mockDataMapper struct {
 }
 
-func (m *mockDataStore) getPhoto(photoID int64) (*photo, error) {
+func (m *mockDataMapper) getPhoto(photoID int64) (*photo, error) {
 	return nil, sql.ErrNoRows
 }
 
-func (m *mockDataStore) getPhotoDetail(photoID int64, user *user) (*photoDetail, error) {
+func (m *mockDataMapper) getPhotoDetail(photoID int64, user *user) (*photoDetail, error) {
 	canEdit := user.ID == 1
 	photo := &photoDetail{
 		photo: photo{
@@ -73,7 +73,7 @@ func (m *mockDataStore) getPhotoDetail(photoID int64, user *user) (*photoDetail,
 	return photo, nil
 }
 
-func (m *mockDataStore) getPhotos(page *page, orderBy string) (*photoList, error) {
+func (m *mockDataMapper) getPhotos(page *page, orderBy string) (*photoList, error) {
 	item := &photo{
 		ID:      1,
 		Title:   "test",
@@ -83,72 +83,72 @@ func (m *mockDataStore) getPhotos(page *page, orderBy string) (*photoList, error
 	return newPhotoList(photos, 1, 1), nil
 }
 
-func (m *mockDataStore) getPhotosByOwnerID(page *page, ownerID int64) (*photoList, error) {
+func (m *mockDataMapper) getPhotosByOwnerID(page *page, ownerID int64) (*photoList, error) {
 	return &photoList{}, nil
 }
 
-func (m *mockDataStore) searchPhotos(page *page, q string) (*photoList, error) {
+func (m *mockDataMapper) searchPhotos(page *page, q string) (*photoList, error) {
 	return &photoList{}, nil
 }
 
-func (m *mockDataStore) getTagCounts() ([]tagCount, error) {
+func (m *mockDataMapper) getTagCounts() ([]tagCount, error) {
 	return []tagCount{}, nil
 }
 
-func (m *mockDataStore) getActiveUser(userID int64) (*user, error) {
+func (m *mockDataMapper) getActiveUser(userID int64) (*user, error) {
 	return &user{}, nil
 }
 
-func (m *mockDataStore) getUserByEmail(email string) (*user, error) {
+func (m *mockDataMapper) getUserByEmail(email string) (*user, error) {
 	return &user{}, nil
 }
 
-func (m *mockDataStore) isUserNameAvailable(user *user) (bool, error) {
+func (m *mockDataMapper) isUserNameAvailable(user *user) (bool, error) {
 	return true, nil
 }
 
-func (m *mockDataStore) isUserEmailAvailable(user *user) (bool, error) {
+func (m *mockDataMapper) isUserEmailAvailable(user *user) (bool, error) {
 	return true, nil
 }
 
-func (m *mockDataStore) getUserByNameOrEmail(identifier string) (*user, error) {
+func (m *mockDataMapper) getUserByNameOrEmail(identifier string) (*user, error) {
 	return &user{}, nil
 }
 
-func (m *mockDataStore) getUserByRecoveryCode(code string) (*user, error) {
+func (m *mockDataMapper) getUserByRecoveryCode(code string) (*user, error) {
 	return &user{}, nil
 }
 
-func (m *mockDataStore) createPhoto(_ *photo) error {
+func (m *mockDataMapper) createPhoto(_ *photo) error {
 	return nil
 }
 
-func (m *mockDataStore) removePhoto(_ *photo) error {
+func (m *mockDataMapper) removePhoto(_ *photo) error {
 	return nil
 }
 
-func (m *mockDataStore) updatePhoto(_ *photo) error {
+func (m *mockDataMapper) updatePhoto(_ *photo) error {
 	return nil
 }
 
-func (m *mockDataStore) updateTags(_ *photo) error {
+func (m *mockDataMapper) updateTags(_ *photo) error {
 	return nil
 }
 
-func (m *mockDataStore) createUser(_ *user) error {
+func (m *mockDataMapper) createUser(_ *user) error {
 	return nil
 }
 
-func (m *mockDataStore) updateUser(_ *user) error {
+func (m *mockDataMapper) updateUser(_ *user) error {
 	return nil
 }
 
-func (m *mockDataStore) updateMany(items ...interface{}) error {
+func (m *mockDataMapper) updateMany(items ...interface{}) error {
 	return nil
 }
 
 type emptyDataStore struct {
-	mockDataStore
+	mockDataMapper
 }
 
 func (m *emptyDataStore) getPhotos(page *page, orderBy string) (*photoList, error) {
@@ -165,14 +165,14 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 	req := &http.Request{}
 	res := httptest.NewRecorder()
 
-	cfg := &appConfig{
-		session: &mockSessionManager{},
-		ds:      &emptyDataStore{},
+	cfg := &configurator{
+		session:    &mockSessionManager{},
+		datamapper: &emptyDataStore{},
 	}
 
 	c := &context{
-		appConfig: cfg,
-		params:    &params{make(map[string]string)},
+		configurator: cfg,
+		params:       &params{make(map[string]string)},
 	}
 
 	err := getPhotoDetail(c, res, req)
@@ -188,14 +188,14 @@ func TestGetPhotoDetail(t *testing.T) {
 	p := &params{make(map[string]string)}
 	p.vars["id"] = "1"
 
-	cfg := &appConfig{
-		session: &mockSessionManager{},
-		ds:      &mockDataStore{},
+	cfg := &configurator{
+		session:    &mockSessionManager{},
+		datamapper: &mockDataMapper{},
 	}
 
 	c := &context{
-		appConfig: cfg,
-		params:    p,
+		configurator: cfg,
+		params:       p,
 	}
 
 	getPhotoDetail(c, res, req)
@@ -217,14 +217,14 @@ func TestGetPhotos(t *testing.T) {
 	req := &http.Request{}
 	res := httptest.NewRecorder()
 
-	cfg := &appConfig{
-		ds:    &mockDataStore{},
-		cache: &mockCache{},
+	cfg := &configurator{
+		datamapper: &mockDataMapper{},
+		cache:      &mockCache{},
 	}
 
 	c := &context{
-		appConfig: cfg,
-		params:    &params{},
+		configurator: cfg,
+		params:       &params{},
 	}
 
 	getPhotos(c, res, req)

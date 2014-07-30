@@ -48,7 +48,7 @@ type fileStorage interface {
 	store(src multipart.File, contentType string) (string, error)
 }
 
-func newFileStorage(cfg *appConfig) fileStorage {
+func newFileStorage(cfg *configurator) fileStorage {
 	return &defaultFileStorage{
 		cfg.UploadsDir,
 		cfg.ThumbnailsDir,

@@ -10,16 +10,16 @@ import (
 // Serve runs the HTTP server
 func Serve() {
 
-	config, err := newAppConfig()
+	cfg, err := newConfigurator()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer config.close()
+	defer cfg.close()
 
 	runtime.GOMAXPROCS((runtime.NumCPU() * 2) + 1)
 
 	n := negroni.Classic()
-	n.UseHandler(config.getRouter())
-	n.Run(fmt.Sprintf(":%d", config.ServerPort))
+	n.UseHandler(cfg.getRouter())
+	n.Run(fmt.Sprintf(":%d", cfg.ServerPort))
 
 }

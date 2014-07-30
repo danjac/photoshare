@@ -1,6 +1,7 @@
 package photoshare
 
 import (
+	"net/http"
 	"regexp"
 )
 
@@ -15,7 +16,7 @@ func (f validationFailure) Error() string {
 }
 
 type validator interface {
-	validate(*context, map[string]string) error
+	validate(*context, *http.Request, map[string]string) error
 }
 
 func validateEmail(email string) bool {

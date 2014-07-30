@@ -6,29 +6,29 @@ import (
 	"time"
 )
 
-func getAuthRedirectURL(c *context, w http.ResponseWriter, r *http.Request) error {
+func getAuthRedirectURL(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
-	url, err := c.auth.getRedirectURL(r, c.params.get("provider"))
+	url, err := ctx.auth.getRedirectURL(r, ctx.params.get("provider"))
 	if err != nil {
 		return err
 	}
 	return renderString(w, http.StatusOK, url)
 }
 
-func authCallback(c *context, w http.ResponseWriter, r *http.Request) error {
+func authCallback(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
-	info, err := c.auth.getUserInfo(r, c.params.get("provider"))
+	info, err := ctx.auth.getUserInfo(r, ctx.params.get("provider"))
 	if err != nil {
 		return err
 	}
 
 	// tbd: handle new users
-	user, err := c.ds.getUserByEmail(info.email)
+	user, err := ctx.datamapper.getUserByEmail(info.email)
 	if err != nil {
 		return err
 	}
 
-	authToken, err := c.session.createToken(user.ID)
+	authToken, err := ctx.session.createToken(user.ID)
 
 	if err != nil {
 		return err
@@ -45,13 +45,13 @@ func authCallback(c *context, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func logout(c *context, w http.ResponseWriter, r *http.Request) error {
+func logout(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
-	u, err := c.getUser(r, true)
+	u, err := ctx.getUser(r, true)
 	if err != nil {
 		return err
 	}
-	if err := c.session.writeToken(w, 0); err != nil {
+	if err := ctx.session.writeToken(w, 0); err != nil {
 		return err
 	}
 
@@ -60,16 +60,16 @@ func logout(c *context, w http.ResponseWriter, r *http.Request) error {
 
 }
 
-func getSessionInfo(c *context, w http.ResponseWriter, r *http.Request) error {
+func getSessionInfo(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := c.getUser(r, false)
+	user, err := ctx.getUser(r, false)
 	if err != nil {
 		return err
 	}
 	return renderJSON(w, newSessionInfo(user), http.StatusOK)
 }
 
-func login(c *context, w http.ResponseWriter, r *http.Request) error {
+func login(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
 	s := &struct {
 		Identifier string `json:"identifier"`
@@ -86,7 +86,7 @@ func login(c *context, w http.ResponseWriter, r *http.Request) error {
 		return invalidLogin
 	}
 
-	user, err := c.ds.getUserByNameOrEmail(s.Identifier)
+	user, err := ctx.datamapper.getUserByNameOrEmail(s.Identifier)
 	if err != nil {
 		if isErrSqlNoRows(err) {
 			return invalidLogin
@@ -97,7 +97,7 @@ func login(c *context, w http.ResponseWriter, r *http.Request) error {
 		return invalidLogin
 	}
 
-	if err := c.session.writeToken(w, user.ID); err != nil {
+	if err := ctx.session.writeToken(w, user.ID); err != nil {
 		return err
 	}
 
@@ -107,7 +107,7 @@ func login(c *context, w http.ResponseWriter, r *http.Request) error {
 	return renderJSON(w, newSessionInfo(user), http.StatusCreated)
 }
 
-func signup(c *context, w http.ResponseWriter, r *http.Request) error {
+func signup(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
 	s := &struct {
 		Name     string `json:"name"`
@@ -125,21 +125,21 @@ func signup(c *context, w http.ResponseWriter, r *http.Request) error {
 		Password: s.Password,
 	}
 
-	if err := c.validate(user); err != nil {
+	if err := ctx.validate(user, r); err != nil {
 		return err
 	}
 
-	if err := c.ds.createUser(user); err != nil {
+	if err := ctx.datamapper.createUser(user); err != nil {
 		return err
 	}
-	if err := c.session.writeToken(w, user.ID); err != nil {
+	if err := ctx.session.writeToken(w, user.ID); err != nil {
 		return err
 	}
 
 	user.IsAuthenticated = true
 
 	go func() {
-		if err := c.mailer.sendWelcomeMail(user); err != nil {
+		if err := ctx.mailer.sendWelcomeMail(user); err != nil {
 			logError(err)
 		}
 	}()
@@ -148,7 +148,7 @@ func signup(c *context, w http.ResponseWriter, r *http.Request) error {
 
 }
 
-func changePassword(c *context, w http.ResponseWriter, r *http.Request) error {
+func changePassword(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
 	var (
 		user *user
@@ -165,11 +165,11 @@ func changePassword(c *context, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if s.RecoveryCode == "" {
-		if user, err = c.getUser(r, true); err != nil {
+		if user, err = ctx.getUser(r, true); err != nil {
 			return err
 		}
 	} else {
-		if user, err = c.ds.getUserByRecoveryCode(s.RecoveryCode); err != nil {
+		if user, err = ctx.datamapper.getUserByRecoveryCode(s.RecoveryCode); err != nil {
 			return err
 		}
 		user.resetRecoveryCode()
@@ -178,17 +178,17 @@ func changePassword(c *context, w http.ResponseWriter, r *http.Request) error {
 	if err = user.changePassword(s.Password); err != nil {
 		return err
 	}
-	if err := c.validate(user); err != nil {
+	if err := ctx.validate(user, r); err != nil {
 		return err
 	}
-	if err := c.ds.updateUser(user); err != nil {
+	if err := ctx.datamapper.updateUser(user); err != nil {
 		return err
 	}
 
 	return renderString(w, http.StatusOK, "Password changed")
 }
 
-func recoverPassword(c *context, w http.ResponseWriter, r *http.Request) error {
+func recoverPassword(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
 	s := &struct {
 		Email string `json:"email"`
@@ -200,7 +200,7 @@ func recoverPassword(c *context, w http.ResponseWriter, r *http.Request) error {
 	if s.Email == "" {
 		return httpError{http.StatusBadRequest, "Missing email address"}
 	}
-	user, err := c.ds.getUserByEmail(s.Email)
+	user, err := ctx.datamapper.getUserByEmail(s.Email)
 	if err != nil {
 		if isErrSqlNoRows(err) {
 			return httpError{http.StatusBadRequest, "Email address not found"}
@@ -209,12 +209,12 @@ func recoverPassword(c *context, w http.ResponseWriter, r *http.Request) error {
 	}
 	code, err := user.generateRecoveryCode()
 
-	if err := c.ds.updateUser(user); err != nil {
+	if err := ctx.datamapper.updateUser(user); err != nil {
 		return err
 	}
 
 	go func() {
-		if err := c.mailer.sendResetPasswordMail(user, code, r); err != nil {
+		if err := ctx.mailer.sendResetPasswordMail(user, code, r); err != nil {
 			logError(err)
 		}
 	}()

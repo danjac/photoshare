@@ -29,7 +29,7 @@ func (tdb *testDB) clean() {
 	defer tdb.DB.Close()
 }
 
-func makeTestDB(cfg *appConfig) (tdb *testDB) {
+func makeTestDB(cfg *configurator) (tdb *testDB) {
 	var err error
 
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",

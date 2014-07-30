@@ -25,7 +25,7 @@ func initDB(db *sql.DB, logSql bool) (*gorp.DbMap, error) {
 	return dbMap, nil
 }
 
-type dataStore interface {
+type dataMapper interface {
 	createPhoto(*photo) error
 	removePhoto(*photo) error
 	updatePhoto(*photo) error
@@ -51,7 +51,7 @@ type dataStore interface {
 	getUserByNameOrEmail(identifier string) (*user, error)
 }
 
-type defaultDataStore struct {
+type defaultDataMapper struct {
 	*gorp.DbMap
 }
 
@@ -86,24 +86,24 @@ func (t *transaction) updateTags(photo *photo) error {
 
 }
 
-func newDataStore(db *sql.DB, logSql bool) (dataStore, error) {
+func newDataMapper(db *sql.DB, logSql bool) (dataMapper, error) {
 	dbMap, err := initDB(db, logSql)
 	if err != nil {
 		return nil, err
 	}
-	return &defaultDataStore{dbMap}, nil
+	return &defaultDataMapper{dbMap}, nil
 }
 
-func (ds *defaultDataStore) begin() (*transaction, error) {
-	tx, err := ds.Begin()
+func (d *defaultDataMapper) begin() (*transaction, error) {
+	tx, err := d.Begin()
 	if err != nil {
 		return nil, err
 	}
 	return &transaction{tx}, nil
 }
 
-func (ds *defaultDataStore) createPhoto(photo *photo) error {
-	t, err := ds.begin()
+func (d *defaultDataMapper) createPhoto(photo *photo) error {
+	t, err := d.begin()
 	if err != nil {
 		return errgo.Mask(err)
 	}
@@ -117,33 +117,33 @@ func (ds *defaultDataStore) createPhoto(photo *photo) error {
 	return errgo.Mask(t.Commit())
 }
 
-func (ds *defaultDataStore) createUser(user *user) error {
-	return errgo.Mask(ds.Insert(user))
+func (d *defaultDataMapper) createUser(user *user) error {
+	return errgo.Mask(d.Insert(user))
 }
 
-func (ds *defaultDataStore) updatePhoto(photo *photo) error {
-	if _, err := ds.Update(photo); err != nil {
+func (d *defaultDataMapper) updatePhoto(photo *photo) error {
+	if _, err := d.Update(photo); err != nil {
 		return errgo.Mask(err)
 	}
 	return nil
 }
 
-func (ds *defaultDataStore) updateUser(user *user) error {
-	if _, err := ds.Update(user); err != nil {
+func (d *defaultDataMapper) updateUser(user *user) error {
+	if _, err := d.Update(user); err != nil {
 		return errgo.Mask(err)
 	}
 	return nil
 }
 
-func (ds *defaultDataStore) removePhoto(photo *photo) error {
-	if _, err := ds.Delete(photo); err != nil {
+func (d *defaultDataMapper) removePhoto(photo *photo) error {
+	if _, err := d.Delete(photo); err != nil {
 		return errgo.Mask(err)
 	}
 	return nil
 }
 
-func (ds *defaultDataStore) updateTags(photo *photo) error {
-	tx, err := ds.begin()
+func (d *defaultDataMapper) updateTags(photo *photo) error {
+	tx, err := d.begin()
 	if err != nil {
 		return errgo.Mask(err)
 	}
@@ -154,8 +154,8 @@ func (ds *defaultDataStore) updateTags(photo *photo) error {
 	return errgo.Mask(tx.Commit())
 }
 
-func (ds *defaultDataStore) updateMany(items ...interface{}) error {
-	tx, err := ds.begin()
+func (d *defaultDataMapper) updateMany(items ...interface{}) error {
+	tx, err := d.begin()
 	if err != nil {
 		return errgo.Mask(err)
 	}
@@ -168,7 +168,7 @@ func (ds *defaultDataStore) updateMany(items ...interface{}) error {
 	return errgo.Mask(tx.Commit())
 }
 
-func (ds *defaultDataStore) getPhoto(photoID int64) (*photo, error) {
+func (d *defaultDataMapper) getPhoto(photoID int64) (*photo, error) {
 
 	p := &photo{}
 
@@ -176,7 +176,7 @@ func (ds *defaultDataStore) getPhoto(photoID int64) (*photo, error) {
 		return p, sql.ErrNoRows
 	}
 
-	obj, err := ds.Get(p, photoID)
+	obj, err := d.Get(p, photoID)
 	if err != nil {
 		return p, errgo.Mask(err)
 	}
@@ -186,7 +186,7 @@ func (ds *defaultDataStore) getPhoto(photoID int64) (*photo, error) {
 	return obj.(*photo), nil
 }
 
-func (ds *defaultDataStore) getPhotoDetail(photoID int64, user *user) (*photoDetail, error) {
+func (d *defaultDataMapper) getPhotoDetail(photoID int64, user *user) (*photoDetail, error) {
 
 	photo := &photoDetail{}
 
@@ -198,13 +198,13 @@ func (ds *defaultDataStore) getPhotoDetail(photoID int64, user *user) (*photoDet
 		"FROM photos p JOIN users u ON u.id = p.owner_id " +
 		"WHERE p.id=$1"
 
-	if err := ds.SelectOne(photo, q, photoID); err != nil {
+	if err := d.SelectOne(photo, q, photoID); err != nil {
 		return photo, errgo.Mask(err)
 	}
 
 	var tags []tag
 
-	if _, err := ds.Select(&tags,
+	if _, err := d.Select(&tags,
 		"SELECT t.* FROM tags t JOIN photo_tags pt ON pt.tag_id=t.id "+
 			"WHERE pt.photo_id=$1", photo.ID); err != nil {
 		return photo, errgo.Mask(err)
@@ -222,7 +222,7 @@ func (ds *defaultDataStore) getPhotoDetail(photoID int64, user *user) (*photoDet
 
 }
 
-func (ds *defaultDataStore) getPhotosByOwnerID(page *page, ownerID int64) (*photoList, error) {
+func (d *defaultDataMapper) getPhotosByOwnerID(page *page, ownerID int64) (*photoList, error) {
 	var (
 		photos []photo
 		err    error
@@ -232,11 +232,11 @@ func (ds *defaultDataStore) getPhotosByOwnerID(page *page, ownerID int64) (*phot
 	if ownerID == 0 {
 		return nil, sql.ErrNoRows
 	}
-	if total, err = ds.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {
+	if total, err = d.SelectInt("SELECT COUNT(id) FROM photos WHERE owner_id=$1", ownerID); err != nil {
 		return nil, errgo.Mask(err)
 	}
 
-	if _, err = ds.Select(&photos,
+	if _, err = d.Select(&photos,
 		"SELECT * FROM photos WHERE owner_id = $1"+
 			"ORDER BY (up_votes - down_votes) DESC, created_at DESC LIMIT $2 OFFSET $3",
 		ownerID, page.size, page.offset); err != nil {
@@ -246,7 +246,7 @@ func (ds *defaultDataStore) getPhotosByOwnerID(page *page, ownerID int64) (*phot
 
 }
 
-func (ds *defaultDataStore) searchPhotos(page *page, q string) (*photoList, error) {
+func (d *defaultDataMapper) searchPhotos(page *page, q string) (*photoList, error) {
 
 	var (
 		clauses []string
@@ -300,7 +300,7 @@ func (ds *defaultDataStore) searchPhotos(page *page, q string) (*photoList, erro
 
 	countSql := fmt.Sprintf("SELECT COUNT(id) FROM (%s) q", clausesSql)
 
-	if total, err = ds.SelectInt(countSql, params...); err != nil {
+	if total, err = d.SelectInt(countSql, params...); err != nil {
 		return nil, errgo.Mask(err)
 	}
 
@@ -312,13 +312,13 @@ func (ds *defaultDataStore) searchPhotos(page *page, q string) (*photoList, erro
 	params = append(params, interface{}(page.size))
 	params = append(params, interface{}(page.offset))
 
-	if _, err = ds.Select(&photos, sql, params...); err != nil {
+	if _, err = d.Select(&photos, sql, params...); err != nil {
 		return nil, errgo.Mask(err)
 	}
 	return newPhotoList(photos, total, page.index), nil
 }
 
-func (ds *defaultDataStore) getPhotos(page *page, orderBy string) (*photoList, error) {
+func (d *defaultDataMapper) getPhotos(page *page, orderBy string) (*photoList, error) {
 
 	var (
 		total  int64
@@ -331,11 +331,11 @@ func (ds *defaultDataStore) getPhotos(page *page, orderBy string) (*photoList, e
 		orderBy = "created_at"
 	}
 
-	if total, err = ds.SelectInt("SELECT COUNT(id) FROM photos"); err != nil {
+	if total, err = d.SelectInt("SELECT COUNT(id) FROM photos"); err != nil {
 		return nil, errgo.Mask(err)
 	}
 
-	if _, err = ds.Select(&photos,
+	if _, err = d.Select(&photos,
 		"SELECT * FROM photos "+
 			"ORDER BY "+orderBy+" DESC LIMIT $1 OFFSET $2", page.size, page.offset); err != nil {
 		return nil, errgo.Mask(err)
@@ -343,25 +343,25 @@ func (ds *defaultDataStore) getPhotos(page *page, orderBy string) (*photoList, e
 	return newPhotoList(photos, total, page.index), nil
 }
 
-func (ds *defaultDataStore) getTagCounts() ([]tagCount, error) {
+func (d *defaultDataMapper) getTagCounts() ([]tagCount, error) {
 	var tags []tagCount
-	if _, err := ds.Select(&tags, "SELECT name, photo, num_photos FROM tag_counts"); err != nil {
+	if _, err := d.Select(&tags, "SELECT name, photo, num_photos FROM tag_counts"); err != nil {
 		return tags, errgo.Mask(err)
 	}
 	return tags, nil
 }
 
-func (ds *defaultDataStore) isUserNameAvailable(user *user) (bool, error) {
+func (d *defaultDataMapper) isUserNameAvailable(user *user) (bool, error) {
 	var (
 		num int64
 		err error
 	)
 	q := "SELECT COUNT(id) FROM users WHERE name=$1"
 	if user.ID == 0 {
-		num, err = ds.SelectInt(q, user.Name)
+		num, err = d.SelectInt(q, user.Name)
 	} else {
 		q += " AND id != $2"
-		num, err = ds.SelectInt(q, user.Name, user.ID)
+		num, err = d.SelectInt(q, user.Name, user.ID)
 	}
 	if err != nil {
 		return false, errgo.Mask(err)
@@ -369,17 +369,17 @@ func (ds *defaultDataStore) isUserNameAvailable(user *user) (bool, error) {
 	return num == 0, nil
 }
 
-func (ds *defaultDataStore) isUserEmailAvailable(user *user) (bool, error) {
+func (d *defaultDataMapper) isUserEmailAvailable(user *user) (bool, error) {
 	var (
 		num int64
 		err error
 	)
 	q := "SELECT COUNT(id) FROM users WHERE email=$1"
 	if user.ID == 0 {
-		num, err = ds.SelectInt(q, user.Email)
+		num, err = d.SelectInt(q, user.Email)
 	} else {
 		q += " AND id != $2"
-		num, err = ds.SelectInt(q, user.Email, user.ID)
+		num, err = d.SelectInt(q, user.Email, user.ID)
 	}
 	if err != nil {
 		return false, errgo.Mask(err)
@@ -387,40 +387,40 @@ func (ds *defaultDataStore) isUserEmailAvailable(user *user) (bool, error) {
 	return num == 0, nil
 }
 
-func (ds *defaultDataStore) getActiveUser(userID int64) (*user, error) {
+func (d *defaultDataMapper) getActiveUser(userID int64) (*user, error) {
 
 	user := &user{}
-	if err := ds.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
+	if err := d.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND id=$2", true, userID); err != nil {
 		return user, errgo.Mask(err)
 	}
 	return user, nil
 
 }
 
-func (ds *defaultDataStore) getUserByRecoveryCode(code string) (*user, error) {
+func (d *defaultDataMapper) getUserByRecoveryCode(code string) (*user, error) {
 
 	user := &user{}
 	if code == "" {
 		return user, sql.ErrNoRows
 	}
-	if err := ds.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND recovery_code=$2", true, code); err != nil {
+	if err := d.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND recovery_code=$2", true, code); err != nil {
 		return user, errgo.Mask(err)
 	}
 	return user, nil
 
 }
-func (ds *defaultDataStore) getUserByEmail(email string) (*user, error) {
+func (d *defaultDataMapper) getUserByEmail(email string) (*user, error) {
 	user := &user{}
-	if err := ds.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
+	if err := d.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND email=$2", true, email); err != nil {
 		return user, errgo.Mask(err)
 	}
 	return user, nil
 }
 
-func (ds *defaultDataStore) getUserByNameOrEmail(identifier string) (*user, error) {
+func (d *defaultDataMapper) getUserByNameOrEmail(identifier string) (*user, error) {
 	user := &user{}
 
-	if err := ds.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
+	if err := d.SelectOne(user, "SELECT * FROM users WHERE active=$1 AND (email=$2 OR name=$2)", true, identifier); err != nil {
 		return user, errgo.Mask(err)
 	}
 

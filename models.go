@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"github.com/coopernurse/gorp"
 	"math"
+	"net/http"
 	"time"
 )
 
@@ -61,7 +62,7 @@ func (photo *photo) PreInsert(s gorp.SqlExecutor) error {
 	return nil
 }
 
-func (photo *photo) validate(c *context, errors map[string]string) error {
+func (photo *photo) validate(ctx *context, r *http.Request, errors map[string]string) error {
 	if photo.OwnerID == 0 {
 		errors["ownerID"] = "Owner ID is missing"
 	}
@@ -134,12 +135,12 @@ func (user *user) PreInsert(s gorp.SqlExecutor) error {
 	return nil
 }
 
-func (user *user) validate(c *context, errors map[string]string) error {
+func (user *user) validate(ctx *context, r *http.Request, errors map[string]string) error {
 
 	if user.Name == "" {
 		errors["name"] = "Name is missing"
 	} else {
-		ok, err := c.ds.isUserNameAvailable(user)
+		ok, err := ctx.datamapper.isUserNameAvailable(user)
 		if err != nil {
 			return err
 		}
@@ -153,7 +154,7 @@ func (user *user) validate(c *context, errors map[string]string) error {
 	} else if !validateEmail(user.Email) {
 		errors["email"] = "Invalid email address"
 	} else {
-		ok, err := c.ds.isUserEmailAvailable(user)
+		ok, err := ctx.datamapper.isUserEmailAvailable(user)
 		if err != nil {
 			return err
 		}

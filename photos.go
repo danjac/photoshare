@@ -37,12 +37,7 @@ func deletePhoto(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
 func getPhotoDetail(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
-	user, err := ctx.getUser(r, false)
-	if err != nil {
-		return err
-	}
-
-	photo, err := ctx.datamapper.getPhotoDetail(ctx.params.getInt("id"), user)
+	photo, err := ctx.datamapper.getPhotoDetail(ctx.params.getInt("id"), ctx.user)
 	if err != nil {
 		return err
 	}

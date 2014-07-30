@@ -47,26 +47,17 @@ func authCallback(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
 func logout(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
-	u, err := ctx.getUser(r, true)
-	if err != nil {
-		return err
-	}
 	if err := ctx.session.writeToken(w, 0); err != nil {
 		return err
 	}
 
-	sendMessage(&socketMessage{u.Name, "", 0, "logout"})
+	sendMessage(&socketMessage{ctx.user.Name, "", 0, "logout"})
 	return renderJSON(w, newSessionInfo(&user{}), http.StatusOK)
 
 }
 
 func getSessionInfo(ctx *context, w http.ResponseWriter, r *http.Request) error {
-
-	user, err := ctx.getUser(r, false)
-	if err != nil {
-		return err
-	}
-	return renderJSON(w, newSessionInfo(user), http.StatusOK)
+	return renderJSON(w, newSessionInfo(ctx.user), http.StatusOK)
 }
 
 func login(ctx *context, w http.ResponseWriter, r *http.Request) error {
@@ -165,7 +156,7 @@ func changePassword(ctx *context, w http.ResponseWriter, r *http.Request) error 
 	}
 
 	if s.RecoveryCode == "" {
-		if user, err = ctx.getUser(r, true); err != nil {
+		if user, err = ctx.authenticate(r, userReq); err != nil {
 			return err
 		}
 	} else {

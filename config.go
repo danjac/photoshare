@@ -18,6 +18,8 @@ type config struct {
 	cache      cache
 }
 
+type handlerFunc func(c *context, w http.ResponseWriter, r *http.Request) error
+
 func newConfig() (*config, error) {
 
 	var err error
@@ -53,23 +55,6 @@ func (cfg *config) close() {
 	cfg.db.Close()
 }
 
-func dbConnect(user, pwd, name, host string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
-		user,
-		name,
-		pwd,
-		host,
-	))
-	if err != nil {
-		return nil, err
-	}
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	return db, nil
-}
-
 func (cfg *config) initDB() error {
 
 	db, err := dbConnect(cfg.DBUser,
@@ -85,18 +70,18 @@ func (cfg *config) initDB() error {
 
 func (cfg *config) handler(h handlerFunc, loginRequired bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		c := newContext(cfg, r)
-		if loginRequired {
-			_, err := c.getUser(r, true)
-			if err != nil {
-				handleError(w, r, err)
+		handleError(w, r, func() error {
+			ctx := newContext(cfg, r)
+			if loginRequired {
+				_, err := ctx.getUser(r, true)
+				if err != nil {
+					return err
+				}
 			}
-		}
-		handleError(w, r, h(c, w, r))
+			return h(ctx, w, r)
+		}())
 	}
 }
-
-type handlerFunc func(c *context, w http.ResponseWriter, r *http.Request) error
 
 func (cfg *config) getRouter() http.Handler {
 
@@ -142,4 +127,21 @@ func (cfg *config) getRouter() http.Handler {
 
 	return r
 
+}
+
+func dbConnect(user, pwd, name, host string) (*sql.DB, error) {
+	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
+		user,
+		name,
+		pwd,
+		host,
+	))
+	if err != nil {
+		return nil, err
+	}
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }

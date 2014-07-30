@@ -37,14 +37,14 @@ func newSessionInfo(user *user) *sessionInfo {
 	return &sessionInfo{user.ID, user.Name, user.Email, user.IsAdmin, true}
 }
 
-func newSessionManager(config *appConfig) (sessionManager, error) {
+func newSessionManager(cfg *appConfig) (sessionManager, error) {
 	mgr := &defaultSessionManager{}
 	var err error
-	mgr.signKey, err = ioutil.ReadFile(config.PrivateKey)
+	mgr.signKey, err = ioutil.ReadFile(cfg.PrivateKey)
 	if err != nil {
 		return mgr, errgo.Mask(err)
 	}
-	mgr.verifyKey, err = ioutil.ReadFile(config.PublicKey)
+	mgr.verifyKey, err = ioutil.ReadFile(cfg.PublicKey)
 	if err != nil {
 		return mgr, errgo.Mask(err)
 	}

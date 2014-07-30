@@ -26,52 +26,52 @@ func newAppConfig() (*appConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	config := &appConfig{settings: settings}
+	cfg := &appConfig{settings: settings}
 
-	if err := config.initDB(); err != nil {
-		return config, err
+	if err := cfg.initDB(); err != nil {
+		return cfg, err
 	}
 
-	config.ds, err = newDataStore(config.db, config.LogSql)
+	cfg.ds, err = newDataStore(cfg.db, cfg.LogSql)
 	if err != nil {
-		return config, err
+		return cfg, err
 	}
-	config.fs = newFileStorage(config)
-	config.mailer = newMailer(config)
-	config.cache = newCache(config)
-	config.auth = newAuthenticator(config)
+	cfg.fs = newFileStorage(cfg)
+	cfg.mailer = newMailer(cfg)
+	cfg.cache = newCache(cfg)
+	cfg.auth = newAuthenticator(cfg)
 
-	config.session, err = newSessionManager(config)
+	cfg.session, err = newSessionManager(cfg)
 	if err != nil {
-		return config, err
+		return cfg, err
 	}
 
-	return config, nil
+	return cfg, nil
 }
 
-func (config *appConfig) close() {
-	config.db.Close()
+func (cfg *appConfig) close() {
+	cfg.db.Close()
 }
 
-func (config *appConfig) initDB() error {
+func (cfg *appConfig) initDB() error {
 
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
-		config.DBUser,
-		config.DBName,
-		config.DBPassword,
-		config.DBHost,
+		cfg.DBUser,
+		cfg.DBName,
+		cfg.DBPassword,
+		cfg.DBHost,
 	))
 	if err != nil {
 		return err
 	}
 
-	config.db = db
+	cfg.db = db
 	return nil
 }
 
-func (config *appConfig) handler(h handlerFunc, loginRequired bool) http.HandlerFunc {
+func (cfg *appConfig) handler(h handlerFunc, loginRequired bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		c := newContext(config, r)
+		c := newContext(cfg, r)
 		if loginRequired {
 			_, err := c.getUser(r, true)
 			if err != nil {
@@ -82,7 +82,9 @@ func (config *appConfig) handler(h handlerFunc, loginRequired bool) http.Handler
 	}
 }
 
-func (config *appConfig) getRouter() http.Handler {
+type handlerFunc func(c *context, w http.ResponseWriter, r *http.Request) error
+
+func (cfg *appConfig) getRouter() http.Handler {
 
 	r := mux.NewRouter()
 
@@ -90,39 +92,39 @@ func (config *appConfig) getRouter() http.Handler {
 
 	photos := api.PathPrefix("/photos/").Subrouter()
 
-	photos.HandleFunc("/", config.handler(getPhotos, false)).Methods("GET")
-	photos.HandleFunc("/", config.handler(upload, true)).Methods("POST")
-	photos.HandleFunc("/search", config.handler(searchPhotos, false)).Methods("GET")
-	photos.HandleFunc("/owner/{ownerID:[0-9]+}", config.handler(photosByOwnerID, false)).Methods("GET")
+	photos.HandleFunc("/", cfg.handler(getPhotos, false)).Methods("GET")
+	photos.HandleFunc("/", cfg.handler(upload, true)).Methods("POST")
+	photos.HandleFunc("/search", cfg.handler(searchPhotos, false)).Methods("GET")
+	photos.HandleFunc("/owner/{ownerID:[0-9]+}", cfg.handler(photosByOwnerID, false)).Methods("GET")
 
-	photos.HandleFunc("/{id:[0-9]+}", config.handler(getPhotoDetail, false)).Methods("GET")
-	photos.HandleFunc("/{id:[0-9]+}", config.handler(deletePhoto, true)).Methods("DELETE")
-	photos.HandleFunc("/{id:[0-9]+}/title", config.handler(editPhotoTitle, true)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/tags", config.handler(editPhotoTags, true)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/upvote", config.handler(voteUp, true)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/downvote", config.handler(voteDown, true)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}", cfg.handler(getPhotoDetail, false)).Methods("GET")
+	photos.HandleFunc("/{id:[0-9]+}", cfg.handler(deletePhoto, true)).Methods("DELETE")
+	photos.HandleFunc("/{id:[0-9]+}/title", cfg.handler(editPhotoTitle, true)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}/tags", cfg.handler(editPhotoTags, true)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}/upvote", cfg.handler(voteUp, true)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}/downvote", cfg.handler(voteDown, true)).Methods("PATCH")
 
 	auth := api.PathPrefix("/auth/").Subrouter()
 
-	auth.HandleFunc("/", config.handler(getSessionInfo, false)).Methods("GET")
-	auth.HandleFunc("/", config.handler(login, false)).Methods("POST")
-	auth.HandleFunc("/", config.handler(logout, true)).Methods("DELETE")
-	auth.HandleFunc("/oauth2/{provider}/url", config.handler(getAuthRedirectURL, false)).Methods("GET")
-	auth.HandleFunc("/oauth2/{provider}/callback/", config.handler(authCallback, false)).Methods("GET")
-	auth.HandleFunc("/signup", config.handler(signup, false)).Methods("POST")
-	auth.HandleFunc("/recoverpass", config.handler(recoverPassword, false)).Methods("PUT")
-	auth.HandleFunc("/changepass", config.handler(changePassword, false)).Methods("PUT")
+	auth.HandleFunc("/", cfg.handler(getSessionInfo, false)).Methods("GET")
+	auth.HandleFunc("/", cfg.handler(login, false)).Methods("POST")
+	auth.HandleFunc("/", cfg.handler(logout, true)).Methods("DELETE")
+	auth.HandleFunc("/oauth2/{provider}/url", cfg.handler(getAuthRedirectURL, false)).Methods("GET")
+	auth.HandleFunc("/oauth2/{provider}/callback/", cfg.handler(authCallback, false)).Methods("GET")
+	auth.HandleFunc("/signup", cfg.handler(signup, false)).Methods("POST")
+	auth.HandleFunc("/recoverpass", cfg.handler(recoverPassword, false)).Methods("PUT")
+	auth.HandleFunc("/changepass", cfg.handler(changePassword, false)).Methods("PUT")
 
-	api.HandleFunc("/tags/", config.handler(getTags, false)).Methods("GET")
+	api.HandleFunc("/tags/", cfg.handler(getTags, false)).Methods("GET")
 	api.Handle("/messages/{path:.*}", messageHandler)
 
 	feeds := r.PathPrefix("/feeds/").Subrouter()
 
-	feeds.HandleFunc("", config.handler(latestFeed, false)).Methods("GET")
-	feeds.HandleFunc("popular/", config.handler(popularFeed, false)).Methods("GET")
-	feeds.HandleFunc("owner/{ownerID:[0-9]+}", config.handler(ownerFeed, false)).Methods("GET")
+	feeds.HandleFunc("", cfg.handler(latestFeed, false)).Methods("GET")
+	feeds.HandleFunc("popular/", cfg.handler(popularFeed, false)).Methods("GET")
+	feeds.HandleFunc("owner/{ownerID:[0-9]+}", cfg.handler(ownerFeed, false)).Methods("GET")
 
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir(config.PublicDir)))
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir(cfg.PublicDir)))
 
 	return r
 

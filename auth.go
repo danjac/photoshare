@@ -19,20 +19,20 @@ type authenticator interface {
 	getUserInfo(*http.Request, string) (*authInfo, error)
 }
 
-func newAuthenticator(config *appConfig) authenticator {
+func newAuthenticator(cfg *appConfig) authenticator {
 	gomniauth.SetSecurityKey(signature.RandomKey(64))
-	a := &defaultAuthenticator{config}
+	a := &defaultAuthenticator{cfg}
 	return a
 }
 
 type defaultAuthenticator struct {
-	config *appConfig
+	cfg *appConfig
 }
 
 func (a *defaultAuthenticator) getAuthProvider(r *http.Request, providerName string) (common.Provider, error) {
 	gomniauth.WithProviders(
-		google.New(a.config.GoogleClientID,
-			a.config.GoogleSecret,
+		google.New(a.cfg.GoogleClientID,
+			a.cfg.GoogleSecret,
 			getBaseURL(r)+"/api/auth/oauth2/google/callback/",
 		),
 	)

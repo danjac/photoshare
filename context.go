@@ -19,8 +19,6 @@ func (p *params) getInt(name string) int64 {
 	return value
 }
 
-type handlerFunc func(c *context, w http.ResponseWriter, r *http.Request) error
-
 type context struct {
 	*appConfig
 	params *params
@@ -70,8 +68,8 @@ func (c *context) getUser(r *http.Request, required bool) (*user, error) {
 	return c.user, nil
 }
 
-func newContext(config *appConfig, r *http.Request) *context {
-	c := &context{appConfig: config}
+func newContext(cfg *appConfig, r *http.Request) *context {
+	c := &context{appConfig: cfg}
 	c.params = &params{mux.Vars(r)}
 	return c
 }

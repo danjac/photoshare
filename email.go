@@ -30,7 +30,7 @@ func (msg *message) String() string {
 
 type mailer struct {
 	sender             mailSender
-	config             *appConfig
+	cfg                *appConfig
 	defaultFromAddress string
 	templates          map[string]*template.Template
 }
@@ -47,7 +47,7 @@ func (m *mailer) parseTemplate(name string) (*template.Template, error) {
 	)
 	t, ok = m.templates[name]
 	if !ok {
-		t, err = template.ParseFiles(path.Join(m.config.TemplatesDir, name+".tmpl"))
+		t, err = template.ParseFiles(path.Join(m.cfg.TemplatesDir, name+".tmpl"))
 		if err != nil {
 			return nil, errgo.Mask(err)
 		}
@@ -88,12 +88,12 @@ type mailSender interface {
 
 type smtpSender struct {
 	smtp.Auth
-	config *appConfig
+	cfg *appConfig
 }
 
 func (s *smtpSender) send(msg *message) error {
 	return errgo.Mask(smtp.SendMail(
-		fmt.Sprintf("%s:%d", s.config.SmtpHost, s.config.SmtpPort),
+		fmt.Sprintf("%s:%d", s.cfg.SmtpHost, s.cfg.SmtpPort),
 		s.Auth,
 		msg.from,
 		msg.to,
@@ -108,26 +108,26 @@ func (s *fakeSender) send(msg *message) error {
 	return nil
 }
 
-func newSmtpSender(config *appConfig) *smtpSender {
-	s := &smtpSender{config: config}
+func newSmtpSender(cfg *appConfig) *smtpSender {
+	s := &smtpSender{cfg: cfg}
 	s.Auth = smtp.PlainAuth("",
-		config.SmtpName,
-		config.SmtpPassword,
-		config.SmtpHost,
+		cfg.SmtpName,
+		cfg.SmtpPassword,
+		cfg.SmtpHost,
 	)
 	return s
 }
 
-func newMailer(config *appConfig) *mailer {
-	mailer := &mailer{config: config}
-	if config.SmtpName == "" {
+func newMailer(cfg *appConfig) *mailer {
+	mailer := &mailer{cfg: cfg}
+	if cfg.SmtpName == "" {
 		log.Println("WARNING: using fake mailer, messages will not be sent by SMTP. " +
 			"Set SMTP_NAME and SMTP_PASSWORD in environment to enable.")
 		mailer.sender = &fakeSender{}
 	} else {
-		mailer.sender = newSmtpSender(config)
+		mailer.sender = newSmtpSender(cfg)
 	}
-	mailer.defaultFromAddress = config.SmtpDefaultSender
+	mailer.defaultFromAddress = cfg.SmtpDefaultSender
 	mailer.templates = make(map[string]*template.Template)
 	return mailer
 }

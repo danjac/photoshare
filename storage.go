@@ -10,7 +10,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
-	"mime/multipart"
+	//"mime/multipart"
 	"os"
 	"path"
 )
@@ -19,6 +19,11 @@ const (
 	thumbnailHeight = 300
 	thumbnailWidth  = 300
 )
+
+type readable interface {
+	io.Reader
+	io.Seeker
+}
 
 var (
 	allowedContentTypes   = []string{"image/png", "image/jpeg"}
@@ -45,7 +50,7 @@ func generateRandomFilename(contentType string) string {
 
 type fileStorage interface {
 	clean(string) error
-	store(src multipart.File, contentType string) (string, error)
+	store(readable, string, string) error
 }
 
 func newFileStorage(cfg *config) fileStorage {
@@ -73,7 +78,7 @@ func (f *defaultFileStorage) clean(name string) error {
 	return nil
 }
 
-func (f *defaultFileStorage) saveFiles(filename string, contentType string, src multipart.File) error {
+func (f *defaultFileStorage) store(src readable, filename, contentType string) error {
 	if err := os.MkdirAll(f.uploadsDir, 0777); err != nil && !os.IsExist(err) {
 		return errgo.Mask(err)
 	}
@@ -137,24 +142,5 @@ func (f *defaultFileStorage) saveFiles(filename string, contentType string, src 
 	}
 
 	return nil
-
-}
-
-func (f *defaultFileStorage) store(src multipart.File, contentType string) (string, error) {
-
-	if !isAllowedContentType(contentType) {
-		return "", errInvalidContentType
-	}
-
-	filename := generateRandomFilename(contentType)
-
-	go func() {
-		err := f.saveFiles(filename, contentType, src)
-		if err != nil {
-			logError(err)
-		}
-	}()
-
-	return filename, nil
 
 }

@@ -136,14 +136,10 @@ func upload(ctx *context, w http.ResponseWriter, r *http.Request) error {
 	}()
 
 	contentType := hdr.Header["Content-Type"][0]
+	filename := generateRandomFilename(contentType)
 
-	filename, err := ctx.filestore.store(src, contentType)
-
-	if err != nil {
-		if err == errInvalidContentType {
-			return httpError{http.StatusBadRequest, err.Error()}
-		}
-		return err
+	if !isAllowedContentType(contentType) {
+		return httpError{http.StatusBadRequest, err.Error()}
 	}
 
 	photo := &photo{Title: title,
@@ -151,6 +147,13 @@ func upload(ctx *context, w http.ResponseWriter, r *http.Request) error {
 		Filename: filename,
 		Tags:     tags,
 	}
+
+	go func() {
+		err := ctx.filestore.store(src, photo.Filename, contentType)
+		if err != nil {
+			logError(err)
+		}
+	}()
 
 	if err := ctx.validate(photo, r); err != nil {
 		return err

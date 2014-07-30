@@ -2,7 +2,6 @@ package photoshare
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -129,21 +128,4 @@ func (cfg *config) getRouter() http.Handler {
 
 	return r
 
-}
-
-func dbConnect(user, pwd, name, host string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
-		user,
-		name,
-		pwd,
-		host,
-	))
-	if err != nil {
-		return nil, err
-	}
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	return db, nil
 }

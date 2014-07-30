@@ -9,5 +9,6 @@ photoshare
 db/dbconf.yml
 logs
 server
+import
 *.sublime-project
 *.sublime-workspace

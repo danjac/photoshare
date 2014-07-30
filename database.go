@@ -11,6 +11,23 @@ import (
 	"strings"
 )
 
+func dbConnect(user, pwd, name, host string) (*sql.DB, error) {
+	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
+		user,
+		name,
+		pwd,
+		host,
+	))
+	if err != nil {
+		return nil, err
+	}
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
 func initDB(db *sql.DB, logSql bool) (*gorp.DbMap, error) {
 	dbMap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
 
@@ -65,11 +82,13 @@ func (t *transaction) updateTags(photo *photo) error {
 		args    = []string{"$1"}
 		params  = []interface{}{interface{}(photo.ID)}
 		isEmpty = true
+		counter = 1
 	)
-	for i, name := range photo.Tags {
+	for _, name := range photo.Tags {
 		name = strings.TrimSpace(name)
 		if name != "" {
-			args = append(args, fmt.Sprintf("$%d", i+2))
+			counter++
+			args = append(args, fmt.Sprintf("$%d", counter))
 			params = append(params, interface{}(strings.ToLower(name)))
 			isEmpty = false
 		}

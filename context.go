@@ -20,7 +20,7 @@ func (p *params) getInt(name string) int64 {
 }
 
 type context struct {
-	*configurator
+	*config
 	params *params
 	user   *user
 }
@@ -68,8 +68,8 @@ func (ctx *context) getUser(r *http.Request, required bool) (*user, error) {
 	return ctx.user, nil
 }
 
-func newContext(cfg *configurator, r *http.Request) *context {
-	ctx := &context{configurator: cfg}
+func newContext(cfg *config, r *http.Request) *context {
+	ctx := &context{config: cfg}
 	ctx.params = &params{mux.Vars(r)}
 	return ctx
 }

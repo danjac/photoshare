@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-type configurator struct {
+type config struct {
 	*settings
 	db         *sql.DB
 	mailer     *mailer
@@ -18,7 +18,7 @@ type configurator struct {
 	cache      cache
 }
 
-func newConfigurator() (*configurator, error) {
+func newConfig() (*config, error) {
 
 	var err error
 
@@ -26,7 +26,7 @@ func newConfigurator() (*configurator, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg := &configurator{settings: settings}
+	cfg := &config{settings: settings}
 
 	if err := cfg.initDB(); err != nil {
 		return cfg, err
@@ -49,27 +49,41 @@ func newConfigurator() (*configurator, error) {
 	return cfg, nil
 }
 
-func (cfg *configurator) close() {
+func (cfg *config) close() {
 	cfg.db.Close()
 }
 
-func (cfg *configurator) initDB() error {
-
+func dbConnect(user, pwd, name, host string) (*sql.DB, error) {
 	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
-		cfg.DBUser,
-		cfg.DBName,
-		cfg.DBPassword,
-		cfg.DBHost,
+		user,
+		name,
+		pwd,
+		host,
 	))
+	if err != nil {
+		return nil, err
+	}
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func (cfg *config) initDB() error {
+
+	db, err := dbConnect(cfg.DBUser,
+		cfg.DBPassword,
+		cfg.DBName,
+		cfg.DBHost)
 	if err != nil {
 		return err
 	}
-
 	cfg.db = db
 	return nil
 }
 
-func (cfg *configurator) handler(h handlerFunc, loginRequired bool) http.HandlerFunc {
+func (cfg *config) handler(h handlerFunc, loginRequired bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := newContext(cfg, r)
 		if loginRequired {
@@ -84,7 +98,7 @@ func (cfg *configurator) handler(h handlerFunc, loginRequired bool) http.Handler
 
 type handlerFunc func(c *context, w http.ResponseWriter, r *http.Request) error
 
-func (cfg *configurator) getRouter() http.Handler {
+func (cfg *config) getRouter() http.Handler {
 
 	r := mux.NewRouter()
 

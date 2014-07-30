@@ -48,16 +48,32 @@ body { padding-top: 70px; }
     vertical-align: middle;
 }
 
-.animate-enter {
-    -webkit-transition: 1s linear all; /* Chrome */
-    transition: 1s linear all;
-    opacity: 0;
+.slide {
+    //position: absolute;
+    //left: 0;
+    //top: 0;
+    //width: 85%;
+    //height: 100%;
 }
-
-.animate-enter.animate-enter-active {
-    opacity: 1;
+.slide.ng-enter,
+.slide.ng-leave {
+    -webkit-transition: all 1s ease;
+    -moz-transition: all 1s ease;
+    -o-transition: all 1s ease;
+    transition: all 1s ease;
 }
-
+.slide.ng-enter {
+    left: 100%;
+}
+.slide.ng-enter-active {
+    left: 0;
+}
+.slide.ng-leave {
+    left: 0;
+}
+.slide.ng-leave-active {
+    left: -100%;
+}
 .navbar-form  {
     padding-top: 6px;
 }

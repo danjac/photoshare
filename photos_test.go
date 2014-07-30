@@ -165,13 +165,13 @@ func TestGetPhotoDetailIfNone(t *testing.T) {
 	req := &http.Request{}
 	res := httptest.NewRecorder()
 
-	cfg := &configurator{
+	cfg := &config{
 		session:    &mockSessionManager{},
 		datamapper: &emptyDataStore{},
 	}
 
 	c := &context{
-		configurator: cfg,
+		config: cfg,
 		params:       &params{make(map[string]string)},
 	}
 
@@ -188,13 +188,13 @@ func TestGetPhotoDetail(t *testing.T) {
 	p := &params{make(map[string]string)}
 	p.vars["id"] = "1"
 
-	cfg := &configurator{
+	cfg := &config{
 		session:    &mockSessionManager{},
 		datamapper: &mockDataMapper{},
 	}
 
 	c := &context{
-		configurator: cfg,
+		config: cfg,
 		params:       p,
 	}
 
@@ -217,13 +217,13 @@ func TestGetPhotos(t *testing.T) {
 	req := &http.Request{}
 	res := httptest.NewRecorder()
 
-	cfg := &configurator{
+	cfg := &config{
 		datamapper: &mockDataMapper{},
 		cache:      &mockCache{},
 	}
 
 	c := &context{
-		configurator: cfg,
+		config: cfg,
 		params:       &params{},
 	}
 

@@ -4,6 +4,7 @@
     angular.module('photoshare', [
         'ngRoute',
         'ngResource',
+        'ngAnimate',
         'ngSanitize',
         'ngCookies',
         'ui.gravatar',

@@ -19,14 +19,14 @@ type authenticator interface {
 	getUserInfo(*http.Request, string) (*authInfo, error)
 }
 
-func newAuthenticator(cfg *configurator) authenticator {
+func newAuthenticator(cfg *config) authenticator {
 	gomniauth.SetSecurityKey(signature.RandomKey(64))
 	a := &defaultAuthenticator{cfg}
 	return a
 }
 
 type defaultAuthenticator struct {
-	cfg *configurator
+	cfg *config
 }
 
 func (a *defaultAuthenticator) getAuthProvider(r *http.Request, providerName string) (common.Provider, error) {

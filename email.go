@@ -30,7 +30,7 @@ func (msg *message) String() string {
 
 type mailer struct {
 	sender             mailSender
-	cfg                *configurator
+	cfg                *config
 	defaultFromAddress string
 	templates          map[string]*template.Template
 }
@@ -88,7 +88,7 @@ type mailSender interface {
 
 type smtpSender struct {
 	smtp.Auth
-	cfg *configurator
+	cfg *config
 }
 
 func (s *smtpSender) send(msg *message) error {
@@ -108,7 +108,7 @@ func (s *fakeSender) send(msg *message) error {
 	return nil
 }
 
-func newSmtpSender(cfg *configurator) *smtpSender {
+func newSmtpSender(cfg *config) *smtpSender {
 	s := &smtpSender{cfg: cfg}
 	s.Auth = smtp.PlainAuth("",
 		cfg.SmtpName,
@@ -118,7 +118,7 @@ func newSmtpSender(cfg *configurator) *smtpSender {
 	return s
 }
 
-func newMailer(cfg *configurator) *mailer {
+func newMailer(cfg *config) *mailer {
 	mailer := &mailer{cfg: cfg}
 	if cfg.SmtpName == "" {
 		log.Println("WARNING: using fake mailer, messages will not be sent by SMTP. " +

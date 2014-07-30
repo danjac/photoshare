@@ -98,7 +98,7 @@ func (m *memcacheCache) clear() error {
 }
 
 // NewCache creates a new Cache instance
-func newCache(cfg *configurator) cache {
+func newCache(cfg *config) cache {
 	mc := memcache.New(strings.Split(cfg.MemcacheHost, ",")...) // will be from cfg
 	return &memcacheCache{mc}
 }

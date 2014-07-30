@@ -10,7 +10,7 @@ import (
 // Serve runs the HTTP server
 func Serve() {
 
-	cfg, err := newConfigurator()
+	cfg, err := newConfig()
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -76,7 +76,7 @@ func (t *transaction) updateTags(photo *photo) error {
 	}
 
 	if isEmpty && photo.ID != 0 {
-		_, err := t.Exec("delete FROM photo_tags WHERE photo_id=$1", photo.ID)
+		_, err := t.Exec("DELETE FROM photo_tags WHERE photo_id=$1", photo.ID)
 		return errgo.Mask(err)
 	}
 	if _, err := t.Exec(fmt.Sprintf("SELECT add_tags(%s)", strings.Join(args, ",")), params...); err != nil {

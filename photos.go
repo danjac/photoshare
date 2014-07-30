@@ -127,7 +127,13 @@ func upload(ctx *context, w http.ResponseWriter, r *http.Request) error {
 		}
 		return err
 	}
-	defer src.Close()
+
+	defer func() {
+		src.Close()
+		if err := ctx.cache.clear(); err != nil {
+			logError(err)
+		}
+	}()
 
 	contentType := hdr.Header["Content-Type"][0]
 
@@ -152,10 +158,6 @@ func upload(ctx *context, w http.ResponseWriter, r *http.Request) error {
 	if err := ctx.datamapper.createPhoto(photo); err != nil {
 		return err
 	}
-	if err := ctx.cache.clear(); err != nil {
-		return err
-	}
-
 	sendMessage(&socketMessage{ctx.user.Name, "", photo.ID, "photo_uploaded"})
 	return renderJSON(w, photo, http.StatusCreated)
 }

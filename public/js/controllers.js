@@ -117,6 +117,7 @@
 
                 $scope.total = 0;
                 $scope.currentPage = 1;
+                $scope.showPagination = false;
 
                 if (q) {
                     apiCall = function(page) {
@@ -161,6 +162,7 @@
                         $scope.searchComplete = true;
                         $scope.photos = result.photos;
                         $scope.total = result.total;
+                        $scope.showPagination = result.numPages > 1;
                     });
                 };
                 $scope.nextPage();

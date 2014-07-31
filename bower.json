@@ -17,6 +17,7 @@
     "bootstrap": "*",
     "bootswatch": "*",
     "sockjs": "*",
-    "css3-social-signin-buttons": "necolas/css3-social-signin-buttons"
+    "css3-social-signin-buttons": "necolas/css3-social-signin-buttons",
+    "angular-bootstrap": "~0.11.0"
   }
 }

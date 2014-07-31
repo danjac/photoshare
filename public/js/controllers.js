@@ -93,11 +93,11 @@
             $scope.searchQuery = q;
             $scope.ownerName = ownerName;
             $scope.searchComplete = false;
-            $scope.total = 0;
-            $scope.currentPage = 0;
-            $scope.numPages = 0;
-            $scope.showPagination = false;
+
             $scope.showHeader = false;
+
+            $scope.total = 0;
+            $scope.currentPage = 1;
 
             if (q) {
                 apiCall = function(page) {
@@ -132,9 +132,9 @@
                 };
             }
 
-            $scope.nextPage = function(page) {
+            $scope.nextPage = function() {
                 pageLoaded = false;
-                apiCall(page).$promise.then(function(result) {
+                apiCall($scope.currentPage).$promise.then(function(result) {
                     if (result.total == 1) {
                         $scope.getDetail(result.photos[0]);
                     }
@@ -142,12 +142,9 @@
                     $scope.searchComplete = true;
                     $scope.photos = result.photos;
                     $scope.total = result.total;
-                    $scope.numPages = result.numPages;
-                    $scope.currentPage = page;
-                    $scope.showPagination = $scope.numPages > 1;
                 });
             };
-            $scope.nextPage(1);
+            $scope.nextPage();
 
             $scope.getDetail = function(photo) {
                 $location.path("/detail/" + photo.id);

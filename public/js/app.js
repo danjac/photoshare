@@ -7,6 +7,7 @@
         'ngAnimate',
         'ngSanitize',
         'ngCookies',
+        'ui.bootstrap',
         'ui.gravatar',
         'photoshare.filters',
         'photoshare.services',

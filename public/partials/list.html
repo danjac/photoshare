@@ -8,6 +8,11 @@
 </div>
 
 <hr ng-show="showHeader">
+<div class="row">
+    <div class="col-md-12">
+        <pagination class="pagination" items-per-page="20" total-items="total" max-size="20" ng-model="currentPage" ng-change="nextPage()" boundary-links="true" />
+    </div>
+</div>
 
 <div class="spinner" ng-show="!pageLoaded"></div>
 
@@ -23,8 +28,8 @@
 </div>
 
 
-<div class="row" ng-show="showPagination">
+<div class="row">
     <div class="col-md-12">
-        <pagination class="pull-right" num-pages="numPages" current-page="currentPage" on-next-page="nextPage" />
+        <pagination class="pagination" items-per-page="20" total-items="total" max-size="20" ng-model="currentPage" ng-change="nextPage()" boundary-links="true" />
     </div>
 </div>

@@ -47,37 +47,5 @@
                 });
             }
         };
-    }).
-    directive('pagination', function() {
-
-        return {
-            restrict: 'E',
-            replace: true,
-            link: function(scope, element, attrs) {
-
-                scope.isFirstPage = false;
-                scope.isLastPage = true;
-
-                scope.$watch('currentPage', function(page) {
-                    scope.isFirstPage = (scope.currentPage == 1);
-                    scope.isLastPage = (scope.currentPage == scope.numPages);
-                    scope.pageRange = [];
-                    for (var i = 0; i < scope.numPages; i++) {
-                        scope.pageRange.push(i + 1);
-                    }
-                });
-
-                scope.nextPage = function(page) {
-                    scope.onNextPage(page);
-                };
-            },
-            scope: {
-                numPages: '=',
-                currentPage: '=',
-                onNextPage: '='
-            },
-            templateUrl: 'partials/pagination.html'
-
-        };
     });
 })();

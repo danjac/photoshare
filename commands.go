@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -67,11 +67,11 @@ func scanDir(cfg *config, userID int64, baseDir, dirname string) {
 	for _, info := range fileList {
 		name := info.Name()
 		if info.IsDir() {
-			scanDir(cfg, userID, baseDir, path.Join(dirname, name))
+			scanDir(cfg, userID, baseDir, filepath.Join(dirname, name))
 		} else {
-			fullPath := path.Join(dirname, name)
-			tags := strings.Split(strings.TrimSpace(dirname[len(baseDir):]), "/")
-			ext := strings.ToLower(path.Ext(name))
+			fullPath := filepath.Join(dirname, name)
+			tags := filepath.SplitList(dirname[len(baseDir):])
+			ext := strings.ToLower(filepath.Ext(name))
 			if ext != ".jpg" && ext != ".png" {
 				continue
 			}

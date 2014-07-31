@@ -71,11 +71,11 @@ func (cfg *config) initDB() error {
 
 // the handler should create a new context on each request, and handle any returned
 // errors appropriately.
-func (cfg *config) handler(h handlerFunc, auth authLevel) http.HandlerFunc {
+func (cfg *config) handler(h handlerFunc, level authLevel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		handleError(w, r, func() error {
 			ctx := newContext(cfg, r)
-			if _, err := ctx.authenticate(r, auth); err != nil {
+			if _, err := ctx.authenticate(r, level); err != nil {
 				return err
 			}
 			return h(ctx, w, r)

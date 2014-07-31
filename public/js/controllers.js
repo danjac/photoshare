@@ -82,7 +82,7 @@
                 orderBy: "votes",
                 page: 1
             }, function(response) {
-                $scope.photos = response.photos.slice(0, 10);
+                $scope.photos = response.photos;
             });
 
             $scope.go = function(photo) {

@@ -51,12 +51,15 @@ func (ctx *context) validate(v validator, r *http.Request) error {
 }
 
 // lazily fetches the current session user
-func (ctx *context) authenticate(r *http.Request, auth authLevel) (*user, error) {
+func (ctx *context) authenticate(r *http.Request, level authLevel) (*user, error) {
 
+	if level == noAuth {
+		return nil, nil
+	}
 	var errLoginRequired = httpError{http.StatusUnauthorized, "You must be logged in"}
 
 	var checkAuthLevel = func() error {
-		switch auth {
+		switch level {
 		case userReq:
 			if !ctx.user.IsAuthenticated {
 				return errLoginRequired

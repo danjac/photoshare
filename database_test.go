@@ -7,7 +7,7 @@ import (
 
 func TestGetIfNotNone(t *testing.T) {
 
-	cfg, _ := newConfigurator()
+	cfg, _ := newConfig()
 	tdb := makeTestDB(cfg)
 	defer tdb.clean()
 
@@ -34,7 +34,7 @@ func TestGetIfNotNone(t *testing.T) {
 
 func TestGetIfNone(t *testing.T) {
 
-	cfg, _ := newConfigurator()
+	cfg, _ := newConfig()
 	tdb := makeTestDB(cfg)
 	defer tdb.clean()
 
@@ -49,7 +49,7 @@ func TestGetIfNone(t *testing.T) {
 }
 
 func TestSearchPhotos(t *testing.T) {
-	cfg, _ := newConfigurator()
+	cfg, _ := newConfig()
 	tdb := makeTestDB(cfg)
 	defer tdb.clean()
 
@@ -77,7 +77,7 @@ func TestSearchPhotos(t *testing.T) {
 	}
 }
 func TestAllPhotos(t *testing.T) {
-	cfg, _ := newConfigurator()
+	cfg, _ := newConfig()
 	tdb := makeTestDB(cfg)
 	defer tdb.clean()
 

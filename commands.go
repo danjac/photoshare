@@ -15,21 +15,21 @@ import (
 // Serve runs the HTTP server
 func Serve() {
 
-	cfg, err := newConfig()
+	app, err := newApp()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer cfg.close()
+	defer app.close()
 
 	runtime.GOMAXPROCS((runtime.NumCPU() * 2) + 1)
 
 	n := negroni.Classic()
-	n.UseHandler(cfg.getRouter())
-	n.Run(fmt.Sprintf(":%d", cfg.ServerPort))
+	n.UseHandler(app.getRouter())
+	n.Run(fmt.Sprintf(":%d", app.cfg.ServerPort))
 
 }
 
-func storeFile(cfg *config,
+func storeFile(app *app,
 	filename,
 	title,
 	contentType string,
@@ -42,7 +42,7 @@ func storeFile(cfg *config,
 		logError(err)
 	}
 	defer file.Close()
-	err = cfg.filestore.store(file, name, contentType)
+	err = app.filestore.store(file, name, contentType)
 	if err != nil {
 		logError(err)
 	}
@@ -52,14 +52,14 @@ func storeFile(cfg *config,
 		Tags:     tags,
 		OwnerID:  userID,
 	}
-	if err := cfg.datamapper.createPhoto(photo); err != nil {
+	if err := app.datamapper.createPhoto(photo); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func scanDir(cfg *config, userID int64, baseDir, dirname string) {
+func scanDir(app *app, userID int64, baseDir, dirname string) {
 	fileList, err := ioutil.ReadDir(dirname)
 	if err != nil {
 		log.Println(err)
@@ -67,7 +67,7 @@ func scanDir(cfg *config, userID int64, baseDir, dirname string) {
 	for _, info := range fileList {
 		name := info.Name()
 		if info.IsDir() {
-			scanDir(cfg, userID, baseDir, filepath.Join(dirname, name))
+			scanDir(app, userID, baseDir, filepath.Join(dirname, name))
 		} else {
 			fullPath := filepath.Join(dirname, name)
 			tags := filepath.SplitList(dirname[len(baseDir):])
@@ -84,7 +84,7 @@ func scanDir(cfg *config, userID int64, baseDir, dirname string) {
 				contentType = "image/png"
 			}
 
-			if err := storeFile(cfg, fullPath, title, contentType, tags, userID); err != nil {
+			if err := storeFile(app, fullPath, title, contentType, tags, userID); err != nil {
 				log.Println(err)
 			}
 		}
@@ -102,17 +102,17 @@ func Import() {
 	fmt.Println(*email)
 	fmt.Println(*dirname)
 
-	cfg, err := newConfig()
+	app, err := newApp()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer cfg.close()
+	defer app.close()
 
-	user, err := cfg.datamapper.getUserByEmail(*email)
+	user, err := app.datamapper.getUserByEmail(*email)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	scanDir(cfg, user.ID, *dirname, *dirname)
+	scanDir(app, user.ID, *dirname, *dirname)
 
 }

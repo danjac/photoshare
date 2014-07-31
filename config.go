@@ -1,131 +1,102 @@
 package photoshare
 
 import (
-	"database/sql"
-	"github.com/gorilla/mux"
-	"net/http"
+	"errors"
+	"github.com/danryan/env"
+	"os"
+	"path"
 )
 
-// contains all the objects needed to run the application
 type config struct {
-	*settings
-	db         *sql.DB
-	mailer     *mailer
-	datamapper dataMapper
-	filestore  fileStorage
-	session    sessionManager
-	auth       authenticator
-	cache      cache
+	DBName     string `env:"key=DB_NAME required=true"`
+	DBUser     string `env:"key=DB_USER required=true"`
+	DBPassword string `env:"key=DB_PASS required=true"`
+	DBHost     string `env:"key=DB_HOST default=localhost"`
+
+	TestDBName     string `env:"key=TEST_DB_NAME"`
+	TestDBUser     string `env:"key=TEST_DB_USER"`
+	TestDBPassword string `env:"key=TEST_DB_PASS"`
+	TestDBHost     string `env:"key=TEST_DB_HOST"`
+
+	LogSql bool `env:"key=LOG_SQL default=false"`
+
+	SmtpName          string `env:"key=SMTP_NAME"`
+	SmtpPassword      string `env:"key=SMTP_PASS"`
+	SmtpUser          string `env:"key=SMTP_USER"`
+	SmtpHost          string `env:"key=SMTP_HOST default=localhost"`
+	SmtpPort          int    `env:"key=SMTP_PORT default=25"`
+	SmtpDefaultSender string `env:"key=DEFAULT_EMAIL_SENDER default=webmaster@localhost"`
+
+	BaseDir       string `env:"key=BASE_DIR"`
+	PublicDir     string `env:"key=PUBLIC_DIR"`
+	UploadsDir    string `env:"key=UPLOADS_DIR"`
+	ThumbnailsDir string `env:"key=THUMBNAILS_DIR"`
+	TemplatesDir  string `env:"key=TEMPLATES_DIR"`
+
+	PrivateKey string `env:"key=PRIVATE_KEY required=true"`
+	PublicKey  string `env:"key=PUBLIC_KEY required=true"`
+
+	MemcacheHost string `env:"key=MEMCACHE_HOST default=0.0.0.0:11211"`
+
+	GoogleClientID string `env:"key=GOOGLE_CLIENT_ID"`
+	GoogleSecret   string `env:"key=GOOGLE_SECRET"`
+
+	ServerPort int `env:"key=PORT default=5000"`
 }
 
-// our custom handler
-type handlerFunc func(c *context, w http.ResponseWriter, r *http.Request) error
-
 func newConfig() (*config, error) {
-
-	var err error
-
-	settings, err := newSettings()
-	if err != nil {
-		return nil, err
-	}
-	cfg := &config{settings: settings}
-
-	if err := cfg.initDB(); err != nil {
+	cfg := &config{}
+	if err := env.Process(cfg); err != nil {
 		return cfg, err
 	}
 
-	cfg.datamapper, err = newDataMapper(cfg.db, cfg.LogSql)
-	if err != nil {
-		return cfg, err
+	if cfg.TestDBName == "" {
+		cfg.TestDBName = cfg.DBName + "_test"
 	}
-	cfg.filestore = newFileStorage(cfg)
-	cfg.mailer = newMailer(cfg)
-	cfg.cache = newCache(cfg)
-	cfg.auth = newAuthenticator(cfg)
 
-	cfg.session, err = newSessionManager(cfg)
-	if err != nil {
-		return cfg, err
+	if cfg.TestDBUser == "" {
+		cfg.TestDBUser = cfg.DBUser
+	}
+
+	if cfg.TestDBPassword == "" {
+		cfg.TestDBPassword = cfg.DBPassword
+	}
+
+	if cfg.TestDBHost == "" {
+		cfg.TestDBHost = cfg.DBHost
+	}
+
+	if cfg.TestDBName == cfg.DBName {
+		return cfg, errors.New("test DB name same as DB name")
+	}
+
+	if cfg.BaseDir == "" {
+		cfg.BaseDir = getDefaultBaseDir()
+	}
+
+	if cfg.PublicDir == "" {
+		cfg.PublicDir = path.Join(cfg.BaseDir, "public")
+	}
+
+	if cfg.UploadsDir == "" {
+		cfg.UploadsDir = path.Join(cfg.PublicDir, "uploads")
+	}
+
+	if cfg.ThumbnailsDir == "" {
+		cfg.ThumbnailsDir = path.Join(cfg.UploadsDir, "thumbnails")
+	}
+
+	if cfg.TemplatesDir == "" {
+		cfg.TemplatesDir = path.Join(cfg.BaseDir, "templates")
 	}
 
 	return cfg, nil
 }
 
-func (cfg *config) close() {
-	cfg.db.Close()
-}
-
-func (cfg *config) initDB() error {
-
-	db, err := dbConnect(cfg.DBUser,
-		cfg.DBPassword,
-		cfg.DBName,
-		cfg.DBHost)
+func getDefaultBaseDir() string {
+	defaultBaseDir, err := os.Getwd()
 	if err != nil {
-		return err
+		defaultBaseDir = "."
 	}
-	cfg.db = db
-	return nil
-}
-
-// the handler should create a new context on each request, and handle any returned
-// errors appropriately.
-func (cfg *config) handler(h handlerFunc, level authLevel) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		handleError(w, r, func() error {
-			ctx := newContext(cfg, r)
-			if _, err := ctx.authenticate(r, level); err != nil {
-				return err
-			}
-			return h(ctx, w, r)
-		}())
-	}
-}
-
-// generates the routes for the API
-func (cfg *config) getRouter() http.Handler {
-
-	r := mux.NewRouter()
-
-	api := r.PathPrefix("/api/").Subrouter()
-
-	photos := api.PathPrefix("/photos/").Subrouter()
-
-	photos.HandleFunc("/", cfg.handler(getPhotos, noAuth)).Methods("GET")
-	photos.HandleFunc("/", cfg.handler(upload, userReq)).Methods("POST")
-	photos.HandleFunc("/search", cfg.handler(searchPhotos, noAuth)).Methods("GET")
-	photos.HandleFunc("/owner/{ownerID:[0-9]+}", cfg.handler(photosByOwnerID, noAuth)).Methods("GET")
-
-	photos.HandleFunc("/{id:[0-9]+}", cfg.handler(getPhotoDetail, authReq)).Methods("GET")
-	photos.HandleFunc("/{id:[0-9]+}", cfg.handler(deletePhoto, userReq)).Methods("DELETE")
-	photos.HandleFunc("/{id:[0-9]+}/title", cfg.handler(editPhotoTitle, userReq)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/tags", cfg.handler(editPhotoTags, userReq)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/upvote", cfg.handler(voteUp, userReq)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/downvote", cfg.handler(voteDown, userReq)).Methods("PATCH")
-
-	auth := api.PathPrefix("/auth/").Subrouter()
-
-	auth.HandleFunc("/", cfg.handler(getSessionInfo, authReq)).Methods("GET")
-	auth.HandleFunc("/", cfg.handler(login, noAuth)).Methods("POST")
-	auth.HandleFunc("/", cfg.handler(logout, userReq)).Methods("DELETE")
-	auth.HandleFunc("/oauth2/{provider}/url", cfg.handler(getAuthRedirectURL, noAuth)).Methods("GET")
-	auth.HandleFunc("/oauth2/{provider}/callback/", cfg.handler(authCallback, noAuth)).Methods("GET")
-	auth.HandleFunc("/signup", cfg.handler(signup, noAuth)).Methods("POST")
-	auth.HandleFunc("/recoverpass", cfg.handler(recoverPassword, noAuth)).Methods("PUT")
-	auth.HandleFunc("/changepass", cfg.handler(changePassword, noAuth)).Methods("PUT")
-
-	api.HandleFunc("/tags/", cfg.handler(getTags, noAuth)).Methods("GET")
-	api.Handle("/messages/{path:.*}", messageHandler)
-
-	feeds := r.PathPrefix("/feeds/").Subrouter()
-
-	feeds.HandleFunc("", cfg.handler(latestFeed, noAuth)).Methods("GET")
-	feeds.HandleFunc("popular/", cfg.handler(popularFeed, noAuth)).Methods("GET")
-	feeds.HandleFunc("owner/{ownerID:[0-9]+}", cfg.handler(ownerFeed, noAuth)).Methods("GET")
-
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir(cfg.PublicDir)))
-
-	return r
-
+	return defaultBaseDir
 }

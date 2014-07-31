@@ -34,7 +34,7 @@ func (p *params) getInt(name string) int64 {
 // request-specific context
 // contains the app config so we have access to all the objects we nee
 type context struct {
-	*config
+	*app
 	params *params
 	user   *user
 }
@@ -101,8 +101,8 @@ func (ctx *context) authenticate(r *http.Request, level authLevel) (*user, error
 	return ctx.user, checkAuthLevel()
 }
 
-func newContext(cfg *config, r *http.Request) *context {
-	ctx := &context{config: cfg}
+func newContext(app *app, r *http.Request) *context {
+	ctx := &context{app: app}
 	ctx.params = &params{mux.Vars(r)}
 	return ctx
 }

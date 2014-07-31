@@ -72,86 +72,105 @@
             }
         ])
 
-    .controller('ListCtrl', ['$scope',
-        '$location',
-        '$routeParams',
-        'Photo',
-        function($scope,
-            $location,
-            $routeParams,
-            Photo) {
-            var pageLoaded = false,
-                apiCall = null,
-                q = $routeParams.q || "",
-                ownerID = $routeParams.ownerID || "",
-                ownerName = $routeParams.ownerName || "",
-                tag = $routeParams.tag || "",
-                orderBy = $location.path() == "/popular" ? "votes" : "";
+    .controller('FrontCtrl', ['$scope', '$location', 'Photo',
+        function($scope, $location, Photo) {
 
+            $scope.pageLoaded = false;
             $scope.photos = [];
-            $scope.tag = tag;
-            $scope.searchQuery = q;
-            $scope.ownerName = ownerName;
-            $scope.searchComplete = false;
 
-            $scope.showHeader = false;
+            Photo.query({
+                orderBy: "votes",
+                page: 1
+            }, function(response) {
+                $scope.photos = response.photos.slice(0, 10);
+            });
 
-            $scope.total = 0;
-            $scope.currentPage = 1;
-
-            if (q) {
-                apiCall = function(page) {
-                    return Photo.search({
-                        q: q,
-                        page: page
-                    });
-                };
-                $scope.showHeader = true;
-            } else if (tag) {
-                apiCall = function(page) {
-                    return Photo.search({
-                        q: "#" + tag,
-                        page: page
-                    });
-                };
-                $scope.showHeader = true;
-            } else if (ownerID) {
-                apiCall = function(page) {
-                    return Photo.byOwner({
-                        ownerID: ownerID,
-                        page: page
-                    });
-                };
-                $scope.showHeader = true;
-            } else {
-                apiCall = function(page) {
-                    return Photo.query({
-                        orderBy: orderBy,
-                        page: page
-                    });
-                };
-            }
-
-            $scope.nextPage = function() {
-                pageLoaded = false;
-                apiCall($scope.currentPage).$promise.then(function(result) {
-                    if (result.total == 1) {
-                        $scope.getDetail(result.photos[0]);
-                    }
-                    $scope.pageLoaded = true;
-                    $scope.searchComplete = true;
-                    $scope.photos = result.photos;
-                    $scope.total = result.total;
-                });
-            };
-            $scope.nextPage();
-
-            $scope.getDetail = function(photo) {
+            $scope.go = function(photo) {
                 $location.path("/detail/" + photo.id);
-            };
+            }
 
         }
     ])
+        .controller('ListCtrl', ['$scope',
+            '$location',
+            '$routeParams',
+            'Photo',
+            function($scope,
+                $location,
+                $routeParams,
+                Photo) {
+                var pageLoaded = false,
+                    apiCall = null,
+                    q = $routeParams.q || "",
+                    ownerID = $routeParams.ownerID || "",
+                    ownerName = $routeParams.ownerName || "",
+                    tag = $routeParams.tag || "",
+                    orderBy = $location.path() == "/popular" ? "votes" : "";
+
+                $scope.photos = [];
+                $scope.tag = tag;
+                $scope.searchQuery = q;
+                $scope.ownerName = ownerName;
+                $scope.searchComplete = false;
+
+                $scope.showHeader = false;
+
+                $scope.total = 0;
+                $scope.currentPage = 1;
+
+                if (q) {
+                    apiCall = function(page) {
+                        return Photo.search({
+                            q: q,
+                            page: page
+                        });
+                    };
+                    $scope.showHeader = true;
+                } else if (tag) {
+                    apiCall = function(page) {
+                        return Photo.search({
+                            q: "#" + tag,
+                            page: page
+                        });
+                    };
+                    $scope.showHeader = true;
+                } else if (ownerID) {
+                    apiCall = function(page) {
+                        return Photo.byOwner({
+                            ownerID: ownerID,
+                            page: page
+                        });
+                    };
+                    $scope.showHeader = true;
+                } else {
+                    apiCall = function(page) {
+                        return Photo.query({
+                            orderBy: orderBy,
+                            page: page
+                        });
+                    };
+                }
+
+                $scope.nextPage = function() {
+                    pageLoaded = false;
+                    apiCall($scope.currentPage).$promise.then(function(result) {
+                        if (result.total == 1) {
+                            $scope.getDetail(result.photos[0]);
+                        }
+                        $scope.pageLoaded = true;
+                        $scope.searchComplete = true;
+                        $scope.photos = result.photos;
+                        $scope.total = result.total;
+                    });
+                };
+                $scope.nextPage();
+
+                $scope.getDetail = function(photo) {
+                    $location.path("/detail/" + photo.id);
+                };
+
+            }
+        ])
 
     .controller('DetailCtrl', ['$scope',
         '$routeParams',

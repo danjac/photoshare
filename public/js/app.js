@@ -33,7 +33,10 @@
             $resourceProvider
         ) {
             $routeProvider.
-
+            when('/front', {
+                templateUrl: 'partials/front.html',
+                controller: 'FrontCtrl'
+            }).
             when('/popular', {
                 templateUrl: 'partials/list.html',
                 controller: 'ListCtrl'
@@ -96,7 +99,7 @@
             }).
 
             otherwise({
-                redirectTo: '/popular'
+                redirectTo: '/front'
             });
             //$locationProvider.html5Mode(true);
             //

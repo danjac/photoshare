@@ -11,10 +11,10 @@ import (
 type authLevel int
 
 const (
-	noAuth   authLevel = iota // we don't need the user in this handler
-	authReq                   // prefetch user, doesn't matter if not logged in
-	userReq                   // user required, 401 if not available
-	adminReq                  // admin required, 401 if no user, 403 if not admin
+	authLevelIgnore authLevel = iota // we don't need the user in this handler
+	authLevelCheck                   // prefetch user, doesn't matter if not logged in
+	authLevelLogin                   // user required, 401 if not available
+	authLevelAdmin                   // admin required, 401 if no user, 403 if not admin
 )
 
 // contains route parameters in a map
@@ -53,19 +53,19 @@ func (ctx *context) validate(v validator, r *http.Request) error {
 // lazily fetches the current session user
 func (ctx *context) authenticate(r *http.Request, level authLevel) (*user, error) {
 
-	if level == noAuth {
+	if level == authLevelSkip {
 		return nil, nil
 	}
 	var errLoginRequired = httpError{http.StatusUnauthorized, "You must be logged in"}
 
 	var checkAuthLevel = func() error {
 		switch level {
-		case userReq:
+		case authLevelLogin:
 			if !ctx.user.IsAuthenticated {
 				return errLoginRequired
 			}
 			break
-		case adminReq:
+		case authLevelAdmin:
 			if !ctx.user.IsAuthenticated {
 				return errLoginRequired
 			}

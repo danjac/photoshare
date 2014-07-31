@@ -37,7 +37,7 @@ func (m *memcacheCache) set(key string, obj interface{}) ([]byte, error) {
 		Expiration: defaultExpiration,
 	}
 	if err := m.mc.Set(item); err != nil {
-		return value, err
+		return value, errgo.Mask(err)
 	}
 	return value, nil
 }
@@ -61,7 +61,7 @@ func (m *memcacheCache) get(key string, fn func() (interface{}, error)) (interfa
 		return obj, err
 	}
 	if _, err := m.set(key, obj); err != nil {
-		return obj, err
+		return obj, errgo.Mask(err)
 	}
 	return obj, nil
 }
@@ -87,7 +87,7 @@ func (m *memcacheCache) render(w http.ResponseWriter, status int, key string, fn
 	}
 	value, err := m.set(key, obj)
 	if err != nil {
-		return err
+		return errgo.Mask(err)
 	}
 	return write(value)
 

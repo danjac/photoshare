@@ -36,15 +36,15 @@ func storeFile(cfg *config,
 	tags []string,
 	userID int64) error {
 	log.Println(title)
+	name := generateRandomFilename(contentType)
 	file, err := os.Open(filename)
 	if err != nil {
-		return err
+		logError(err)
 	}
 	defer file.Close()
-	name := generateRandomFilename(contentType)
-	err = cfg.filestore.store(file, filename, contentType)
+	err = cfg.filestore.store(file, name, contentType)
 	if err != nil {
-		return err
+		logError(err)
 	}
 	photo := &photo{
 		Title:    title,
@@ -65,23 +65,26 @@ func scanDir(cfg *config, userID int64, baseDir, dirname string) {
 		log.Println(err)
 	}
 	for _, info := range fileList {
+		name := info.Name()
 		if info.IsDir() {
-			scanDir(cfg, userID, baseDir, path.Join(dirname, info.Name()))
+			scanDir(cfg, userID, baseDir, path.Join(dirname, name))
 		} else {
-			filename := path.Join(dirname, info.Name())
+			fullPath := path.Join(dirname, name)
 			tags := strings.Split(strings.TrimSpace(dirname[len(baseDir):]), "/")
-			ext := strings.ToLower(path.Ext(info.Name()))
+			ext := strings.ToLower(path.Ext(name))
 			if ext != ".jpg" && ext != ".png" {
 				continue
 			}
-			title := info.Name()[:len(info.Name())-4]
+			title := name[:len(name)-len(ext)]
+
 			var contentType string
 			if ext == ".jpg" {
 				contentType = "image/jpeg"
 			} else {
 				contentType = "image/png"
 			}
-			if err := storeFile(cfg, filename, title, contentType, tags, userID); err != nil {
+
+			if err := storeFile(cfg, fullPath, title, contentType, tags, userID); err != nil {
 				log.Println(err)
 			}
 		}

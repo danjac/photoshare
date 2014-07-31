@@ -18,7 +18,7 @@
                             attrs.$set('src', originalSrc);
                             imageFound = true;
                         });
-                    }, 1000, 100);
+                    }, 1000, 10);
 
                 });
             }

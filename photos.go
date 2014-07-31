@@ -127,20 +127,15 @@ func upload(ctx *context, w http.ResponseWriter, r *http.Request) error {
 		}
 		return err
 	}
-
-	defer func() {
-		src.Close()
-		if err := ctx.cache.clear(); err != nil {
-			logError(err)
-		}
-	}()
+	defer src.Close()
 
 	contentType := hdr.Header["Content-Type"][0]
-	filename := generateRandomFilename(contentType)
 
 	if !isAllowedContentType(contentType) {
-		return httpError{http.StatusBadRequest, err.Error()}
+		return httpError{http.StatusBadRequest, "Only JPEG or PNG files allowed"}
 	}
+
+	filename := generateRandomFilename(contentType)
 
 	photo := &photo{Title: title,
 		OwnerID:  ctx.user.ID,
@@ -161,6 +156,10 @@ func upload(ctx *context, w http.ResponseWriter, r *http.Request) error {
 	if err := ctx.datamapper.createPhoto(photo); err != nil {
 		return err
 	}
+	if err := ctx.cache.clear(); err != nil {
+		logError(err)
+	}
+
 	sendMessage(&socketMessage{ctx.user.Name, "", photo.ID, "photo_uploaded"})
 	return renderJSON(w, photo, http.StatusCreated)
 }

@@ -2,7 +2,6 @@ package photoshare
 
 import (
 	"code.google.com/p/graphics-go/graphics"
-	"errors"
 	"github.com/dchest/uniuri"
 	"github.com/disintegration/gift"
 	"github.com/juju/errgo"
@@ -25,10 +24,7 @@ type readable interface {
 	io.Seeker
 }
 
-var (
-	allowedContentTypes   = []string{"image/png", "image/jpeg"}
-	errInvalidContentType = errors.New("must be PNG or JPG")
-)
+var allowedContentTypes = []string{"image/png", "image/jpeg"}
 
 func isAllowedContentType(contentType string) bool {
 	for _, value := range allowedContentTypes {

@@ -156,7 +156,7 @@ func changePassword(ctx *context, w http.ResponseWriter, r *http.Request) error 
 	}
 
 	if s.RecoveryCode == "" {
-		if user, err = ctx.authenticate(r, userReq); err != nil {
+		if user, err = ctx.authenticate(r, authLevelLogin); err != nil {
 			return err
 		}
 	} else {

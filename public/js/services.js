@@ -250,17 +250,21 @@
 
                 function Alert() {
                     var $this = this;
-                    $this.message = null;
+                    $this.messages = [];
 
-                    var addMessage = function(level, message) {
-                        $this.message = {
+                    var addMessage = function(type, message) {
+                        $this.messages.push({
                             message: message,
-                            level: level
-                        };
+                            type: type
+                        });
                     };
 
-                    $this.dismiss = function() {
-                        $this.message = null;
+                    $this.dismiss = function(index) {
+                        $this.messages.splice(index, 1);
+                    };
+
+                    $this.dismissLast = function() {
+                        $this.messages.pop();
                     };
 
                     $this.success = addMessage.bind(null, "success");

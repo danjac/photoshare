@@ -30,12 +30,10 @@
 
                 Session.init(Auth);
 
-                $scope.$watch('alert.message', function(newValue, oldValue) {
-                    if (newValue) {
-                        $timeout(function() {
-                            Alert.dismiss();
-                        }, 3000);
-                    }
+                $scope.$watchCollection('alert.messages', function(newValue, oldValue) {
+                    $timeout(function() {
+                        Alert.dismissLast();
+                    }, 3000);
                 });
 
                 $scope.$watch('mq.newMessage', function(newValue, oldValue) {
@@ -248,8 +246,8 @@
                     return;
                 }
                 $scope.photo.$delete(function() {
-                    Alert.warning('Your photo has been deleted');
-                    $location.path("/");
+                    Alert.success('Your photo has been deleted');
+                    $window.history.back();
                 });
             };
             $scope.showEditForm = function() {

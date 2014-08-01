@@ -73,7 +73,7 @@
 
     <div class="container-fluid">
 
-        <alert ng-show="alert.message" type="{{alert.level}}" close="alert.dismiss()">{{alert.message.message}}</alert>
+        <alert ng-repeat="msg in alert.messages" type="{{msg.type}}" close="alert.dismiss($index)">{{msg.message}}</alert>
 
         <div ng-view></div>
 

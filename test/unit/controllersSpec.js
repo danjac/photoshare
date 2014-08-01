@@ -2,24 +2,22 @@
 
 /* jasmine specs for controllers go here */
 
-describe('controllers', function (){
+describe('controllers', function() {
 
-
-    beforeEach(function () {
+    beforeEach(function() {
         module('photoshare');
         module('photoshare.services');
         module('photoshare.controllers');
     });
 
-    it('should show a list of photos', inject(function ($rootScope, $controller, _$httpBackend_) {
+    it('should show a list of photos', inject(function($rootScope, $controller, _$httpBackend_) {
 
         var scope = $rootScope.$new(),
             httpBackend = _$httpBackend_;
 
         httpBackend.expectGET("/api/photos/?orderBy=&page=1").respond({
             total: 1,
-            photos: [
-            {
+            photos: [{
                 'title': 'this is a photo',
                 'photo': 'test.jpg'
             }]
@@ -31,7 +29,7 @@ describe('controllers', function (){
         expect(scope.photos.length).toBe(1);
     }));
 
-    it('should show upload form', inject(function ($location, $rootScope, $controller, _$httpBackend_, Auth, Session) {
+    it('should show upload form', inject(function($location, $rootScope, $controller, _$httpBackend_, Auth, Session) {
         var scope = $rootScope.$new(),
             httpBackend = _$httpBackend_,
             data = {
@@ -46,8 +44,10 @@ describe('controllers', function (){
             'title': 'test'
         });
 
-        Session.check = function () {};
-        $controller('UploadCtrl', { $scope: scope });
+        Session.check = function() {};
+        $controller('UploadCtrl', {
+            $scope: scope
+        });
 
         scope.newPhoto.title = data.title;
         scope.newPhoto.photo = data.photo;

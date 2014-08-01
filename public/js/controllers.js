@@ -37,8 +37,8 @@
                     }
                 });
 
-                $scope.$on('$routeChangeStart', function(event, current, previous) {
-                    if (current.loginRequired) {
+                $scope.$on('$stateChangeStart', function(event, toState) {
+                    if (toState.data && toState.data.loginRequired) {
                         Session.check();
                     }
                 });
@@ -378,7 +378,7 @@
     ])
 
     .controller('LoginCtrl', ['$scope',
-        'location',
+        '$location',
         '$window',
         '$http',
         'Session',
@@ -408,7 +408,7 @@
                         Session.login(result, headers(authTokenHeader));
                         Alert.success("Welcome back, " + result.name);
                         var path = Session.getLastLoginUrl();
-                        if ($path) {
+                        if (path) {
                             $location.path(path);
                         } else {
                             $window.history.back();

@@ -24,13 +24,11 @@
     constant('authTokenStorageKey', 'authToken').
     config(['$stateProvider',
         '$urlRouterProvider',
-        '$locationProvider',
         '$httpProvider',
         '$resourceProvider',
         function(
             $stateProvider,
             $urlRouterProvider,
-            $locationProvider,
             $httpProvider,
             $resourceProvider
         ) {
@@ -93,7 +91,9 @@
                 url: '/upload',
                 templateUrl: 'partials/upload.html',
                 controller: 'UploadCtrl',
-                loginRequired: true
+                data: {
+                    loginRequired: true
+                }
             }).
 
             state('login', {

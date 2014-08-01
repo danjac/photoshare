@@ -54,7 +54,7 @@ func (ctx *context) validate(v validator, r *http.Request) error {
 func (ctx *context) authenticate(r *http.Request, level authLevel) (*user, error) {
 
 	if level == authLevelIgnore {
-		return nil, nil
+		return &user{}, nil
 	}
 	var errLoginRequired = httpError{http.StatusUnauthorized, "You must be logged in"}
 

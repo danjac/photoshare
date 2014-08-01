@@ -4,14 +4,14 @@
     'use strict';
     angular.module('photoshare.controllers', ['photoshare.services'])
         .controller('AppCtrl', ['$scope',
-            '$location',
+            '$state',
             '$timeout',
             'Session',
             'Auth',
             'MessageQueue',
             'Alert',
             function($scope,
-                $location,
+                $state,
                 $timeout,
                 Session,
                 Auth,
@@ -22,7 +22,6 @@
                 $scope.alert = Alert;
                 $scope.mq = MessageQueue;
                 $scope.searchQuery = "";
-                $scope.currentUrl = $location.path();
 
                 Session.init(Auth);
 
@@ -44,30 +43,28 @@
                     }
                 });
 
-                $scope.$on('$locationChangeStart', function(next, current) {
-                    $scope.currentUrl = current;
-                });
-
                 $scope.logout = function() {
                     Session.logout().then(function() {
-                        $location.path("/popular");
+                        $state.go("popular");
                     });
                 };
 
                 $scope.login = function() {
                     Session.setLastLoginUrl();
-                    $location.path("/login");
+                    $state.go("login");
                 };
 
                 $scope.doSearch = function() {
-                    $location.path("/search/" + $scope.searchQuery);
+                    $state.go('search', {
+                        q: $scope.searchQuery
+                    });
                     $scope.searchQuery = "";
                 };
             }
         ])
 
-    .controller('FrontCtrl', ['$scope', '$location', 'Photo',
-        function($scope, $location, Photo) {
+    .controller('FrontCtrl', ['$scope', '$state', 'Photo',
+        function($scope, $state, Photo) {
 
             $scope.pageLoaded = false;
             $scope.photos = [];
@@ -80,7 +77,9 @@
             });
 
             $scope.go = function(photo) {
-                $location.path("/detail/" + photo.id);
+                $state.go('detail', {
+                    id: photo.id
+                });
             }
 
         }
@@ -175,7 +174,6 @@
 
     .controller('DetailCtrl', ['$scope',
         '$stateParams',
-        '$location',
         '$window',
         'Photo',
         'Tag',
@@ -183,7 +181,6 @@
         'Alert',
         function($scope,
             $stateParams,
-            $location,
             $window,
             Photo,
             Tag,
@@ -292,10 +289,10 @@
     ])
 
     .controller('TagsCtrl', ['$scope',
-        '$location',
+        '$state',
         '$filter',
         'Tag',
-        function($scope, $location, $filter, Tag) {
+        function($scope, $state, $filter, Tag) {
             $scope.tags = [];
             $scope.orderField = '-numPhotos';
             $scope.pageLoaded = false;
@@ -317,7 +314,9 @@
             };
 
             $scope.doSearch = function(tag) {
-                $location.path("/tag/" + tag);
+                $state.go('tag', {
+                    tag: tag
+                });
             };
 
             $scope.orderTags = function(field) {
@@ -328,13 +327,13 @@
     ])
 
     .controller('UploadCtrl', ['$scope',
-        '$location',
+        '$state',
         '$window',
         'Session',
         'Alert',
         'Photo',
         function($scope,
-            $location,
+            $state,
             $window,
             Session,
             Alert,
@@ -361,7 +360,9 @@
                             $scope.formDisabled = false;
                             $window.document.getElementById('photo_input').value = '';
                         } else {
-                            $location.path("/detail/" + response.id);
+                            $state.go('detail', {
+                                id: response.id
+                            });
                         }
                     },
                     function(result) {
@@ -377,7 +378,7 @@
     ])
 
     .controller('LoginCtrl', ['$scope',
-        '$location',
+        'location',
         '$window',
         '$http',
         'Session',
@@ -406,8 +407,12 @@
                     if (result.loggedIn) {
                         Session.login(result, headers(authTokenHeader));
                         Alert.success("Welcome back, " + result.name);
-                        var path = Session.getLastLoginUrl() || "/popular";
-                        $location.path(path);
+                        var path = Session.getLastLoginUrl();
+                        if ($path) {
+                            $location.path(path);
+                        } else {
+                            $window.history.back();
+                        }
                     }
                 });
             };
@@ -415,17 +420,17 @@
     ])
 
     .controller('RecoverPassCtrl', ['$scope',
-        '$location',
+        '$window',
         'Auth',
         'Alert',
-        function($scope, $location, Auth, Alert) {
+        function($scope, $window, Auth, Alert) {
 
             $scope.formData = {};
 
             $scope.recoverPassword = function() {
                 Auth.recoverPassword({}, $scope.formData, function() {
                     Alert.success("Check your email for a link to change your password");
-                    $location.path("/");
+                    $window.history.back();
                 }, function(result) {
                     Alert.danger(result.data);
                 });
@@ -436,10 +441,12 @@
 
     .controller('ChangePassCtrl', ['$scope',
         '$location',
+        '$window',
+        '$state',
         'Auth',
         'Session',
         'Alert',
-        function($scope, $location, Auth, Session, Alert) {
+        function($scope, $location, $window, $state, Auth, Session, Alert) {
 
             var code = $location.search().code;
             $scope.formData = {};
@@ -454,9 +461,9 @@
                 Auth.changePassword({}, $scope.formData, function() {
                     Alert.success("Your password has been updated");
                     if (!Session.loggedIn) {
-                        $location.path("/login");
+                        $state.go('login');
                     } else {
-                        $location.path("/");
+                        $window.history.back();
                     }
                 }, function(result) {
                     Alert.danger(result.data || "Sorry, an error occurred");
@@ -466,13 +473,13 @@
     ])
 
     .controller('SignupCtrl', ['$scope',
-        '$location',
+        '$state',
         'Auth',
         'Session',
         'Alert',
         'authTokenHeader',
         function($scope,
-            $location,
+            $state,
             Auth,
             Session,
             Alert,
@@ -485,7 +492,7 @@
                     Session.login(result, headers(authTokenHeader));
                     $scope.formData = {};
                     Alert.success("Welcome, " + result.name);
-                    $location.path("/popular");
+                    $state.go('upload');
                 }, function(result) {
                     $scope.formErrors = result.data.errors;
                 });

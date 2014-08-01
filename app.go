@@ -6,6 +6,17 @@ import (
 	"net/http"
 )
 
+// authentication behaviours
+
+type authLevel int
+
+const (
+	authLevelIgnore authLevel = iota // we don't need the user in this handler
+	authLevelCheck                   // prefetch user, doesn't matter if not logged in
+	authLevelLogin                   // user required, 401 if not available
+	authLevelAdmin                   // admin required, 401 if no user, 403 if not admin
+)
+
 // contains all the objects needed to run the application
 type app struct {
 	cfg        *config
@@ -75,13 +86,60 @@ func (app *app) initDB() error {
 func (app *app) handler(h handlerFunc, level authLevel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		handleError(w, r, func() error {
-			ctx := newContext(app, r)
-			if _, err := ctx.authenticate(r, level); err != nil {
+			user, err := app.authenticate(r, level)
+			if err != nil {
 				return err
 			}
-			return h(ctx, w, r)
+			return h(newContext(app, r, user), w, r)
 		}())
 	}
+}
+
+// lazily fetches the current session user
+func (app *app) authenticate(r *http.Request, level authLevel) (*user, error) {
+
+	if level == authLevelIgnore {
+		return &user{}, nil
+	}
+	var errLoginRequired = httpError{http.StatusUnauthorized, "You must be logged in"}
+
+	var checkAuthLevel = func(user *user) error {
+		switch level {
+		case authLevelLogin:
+			if !user.IsAuthenticated {
+				return errLoginRequired
+			}
+			break
+		case authLevelAdmin:
+			if !user.IsAuthenticated {
+				return errLoginRequired
+			}
+			if !user.IsAdmin {
+				return httpError{http.StatusForbidden, "You must be an admin"}
+			}
+		}
+		return nil
+	}
+
+	user := &user{}
+
+	userID, err := app.session.readToken(r)
+	if err != nil {
+		return user, err
+	}
+	if userID == 0 {
+		return user, checkAuthLevel(user)
+	}
+	user, err = app.datamapper.getActiveUser(userID)
+	if err != nil {
+		if isErrSqlNoRows(err) {
+			return user, checkAuthLevel(user)
+		}
+		return nil, err
+	}
+	user.IsAuthenticated = true
+
+	return user, checkAuthLevel(user)
 }
 
 // generates the routes for the API

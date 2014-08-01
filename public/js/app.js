@@ -2,11 +2,11 @@
     'use strict';
     // Declare app level module which depends on filters, and services
     angular.module('photoshare', [
-        'ngRoute',
         'ngResource',
         'ngAnimate',
         'ngSanitize',
         'ngCookies',
+        'ui.router',
         'ui.bootstrap',
         'ui.gravatar',
         'photoshare.filters',
@@ -22,85 +22,104 @@
     }).
     constant('authTokenHeader', 'X-Auth-Token').
     constant('authTokenStorageKey', 'authToken').
-    config(['$routeProvider',
+    config(['$stateProvider',
+        '$urlRouterProvider',
         '$locationProvider',
         '$httpProvider',
         '$resourceProvider',
         function(
-            $routeProvider,
+            $stateProvider,
+            $urlRouterProvider,
             $locationProvider,
             $httpProvider,
             $resourceProvider
         ) {
-            $routeProvider.
-            when('/front', {
+
+            $urlRouterProvider.otherwise("/");
+
+            $stateProvider.
+            state('front', {
+                url: '/',
                 templateUrl: 'partials/front.html',
                 controller: 'FrontCtrl'
             }).
-            when('/popular', {
+
+            state('popular', {
+                url: '/popular',
+                templateUrl: 'partials/list.html',
+                controller: 'ListCtrl',
+                data: {
+                    orderBy: "votes"
+                }
+            }).
+
+            state('latest', {
+                url: '/latest',
                 templateUrl: 'partials/list.html',
                 controller: 'ListCtrl'
             }).
 
-            when('/latest', {
-                templateUrl: 'partials/list.html',
-                controller: 'ListCtrl'
-            }).
-
-            when('/tags', {
+            state('tags', {
+                url: '/tags',
                 templateUrl: 'partials/tags.html',
                 controller: 'TagsCtrl'
             }).
 
-            when('/tag/:tag', {
+            state('tag', {
+                url: '/tag/:tag',
                 templateUrl: 'partials/list.html',
                 controller: 'ListCtrl'
             }).
 
-            when('/search/:q', {
+            state('search', {
+                url: '/search/:q',
                 templateUrl: 'partials/list.html',
                 controller: 'ListCtrl'
             }).
 
-            when('/owner/:ownerID/:ownerName', {
+            state('owner', {
+                url: '/owner/:ownerID/:ownerName',
                 templateUrl: 'partials/list.html',
                 controller: 'ListCtrl'
             }).
 
-            when('/detail/:id', {
+            state('detail', {
+                url: '/detail/:id',
                 templateUrl: 'partials/detail.html',
                 controller: 'DetailCtrl'
             }).
 
-            when('/upload', {
+            state('upload', {
+                url: '/upload',
                 templateUrl: 'partials/upload.html',
                 controller: 'UploadCtrl',
                 loginRequired: true
             }).
 
-            when('/login', {
+            state('login', {
+                url: '/login',
                 templateUrl: 'partials/login.html',
                 controller: 'LoginCtrl'
             }).
 
-            when('/recoverpass', {
+            state('recoverpass', {
+                url: '/recoverpass',
                 templateUrl: 'partials/recover_pass.html',
                 controller: 'RecoverPassCtrl'
             }).
 
-            when('/changepass', {
+            state('changepass', {
+                url: '/changepass',
                 templateUrl: 'partials/change_pass.html',
                 controller: 'ChangePassCtrl'
             }).
 
-            when('/signup', {
+            state('signup', {
+                url: '/signup',
                 templateUrl: 'partials/signup.html',
                 controller: 'SignupCtrl'
-            }).
-
-            otherwise({
-                redirectTo: '/front'
             });
+
             //$locationProvider.html5Mode(true);
             //
             $resourceProvider.defaults.stripTrailingSlashes = false;

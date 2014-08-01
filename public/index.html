@@ -25,17 +25,17 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="#"><span class="glyphicon glyphicon-camera"></span> Photoshare</a>
+                <a class="navbar-brand" ui-sref="front"><span class="glyphicon glyphicon-camera"></span> Photoshare</a>
             </div>
             <div class="collapse navbar-collapse" id="navbar-links">
                 <ul class="nav navbar-nav navbar-left">
-                    <li ng-class="{active: isActive('/popular')}"><a href="#/popular"><span class="glyphicon glyphicon-fire"></span> Popular</a>
+                    <li ui-sref-active="popular"><a ui-sref="popular"><span class="glyphicon glyphicon-fire"></span> Popular</a>
                     </li>
-                    <li ng-class="{active: isActive('/latest')}"><a href="#/latest"><span class="glyphicon glyphicon-time"></span> Latest</a>
+                    <li ui-sref-active="latest"><a ui-sref="latest"><span class="glyphicon glyphicon-time"></span> Latest</a>
                     </li>
-                    <li ng-class="{active: isActive('/tags')}"><a href="#/tags"><span class="glyphicon glyphicon-tasks"></span> Tags</a>
+                    <li ui-sref-active="active"><a ui-sref="tags"><span class="glyphicon glyphicon-tasks"></span> Tags</a>
                     </li>
-                    <li ng-class="{active: isActive('/upload')}"><a href="#/upload"><span class="glyphicon glyphicon-upload"></span> Upload</a>
+                    <li ui-sref-active="active"><a ui-sref="upload"><span class="glyphicon glyphicon-upload"></span> Upload</a>
                     </li>
                 </ul>
                 <form class="navbar-form navbar-left" role="search" name="searchForm" novalidate>
@@ -47,9 +47,9 @@
                 </form>
 
                 <ul class="nav navbar-nav navbar-right" ng-show="!session.loggedIn">
-                    <li ng-class="{active: isActive('/login')}"><a ng-click="login()"><span class="glyphicon glyphicon-log-in"></span> Login</a>
+                    <li ui-sref-active="login"><a ng-click="login()"><span class="glyphicon glyphicon-log-in"></span> Login</a>
                     </li>
-                    <li ng-class="{active: isActive('/signup')}"><a href="#/signup"><span class="glyphicon glyphicon-user"></span> Signup</a>
+                    <li ui-sref-active="signup"><a href="#/signup"><span class="glyphicon glyphicon-user"></span> Signup</a>
                     </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right" ng-show="session.loggedIn">
@@ -58,7 +58,7 @@
                             <img gravatar-src="session.email" gravatar-size="20" />&nbsp;{{session.name}} <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu" role="menu">
-                            <li ng-class="{active: isActive('/owner/'+session.id+'/'+session.name)}"><a href="#/owner/{{session.id}}/{{session.name}}">My photos</a>
+                            <li><a ui-sref="owner({ownerID: session.id, ownerName: session.name})">My photos</a>
                             </li>
                             <li><a ng-href="#/changepass">Change my password</a>
                             </li>
@@ -75,7 +75,7 @@
 
         <alert ng-repeat="msg in alert.messages" type="{{msg.type}}" close="alert.dismiss($index)">{{msg.message}}</alert>
 
-        <div ng-view></div>
+        <div ui-view></div>
 
     </div>
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
@@ -83,9 +83,9 @@
     <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
     <script src="bower_components/angular/angular.js"></script>
     <script src="bower_components/angular-cookies/angular-cookies.js"></script>
-    <script src="bower_components/angular-route/angular-route.js"></script>
     <script src="bower_components/angular-animate/angular-animate.js"></script>
-    <script src="bower_components/angular-bootstrap/ui-bootstrap.js"></script>
+    <script src="bower_components/angular-ui-router/release/angular-ui-router.min.js"></script>
+    <script src="bower_components/angular-bootstrap/ui-bootstrap.min.js"></script>
     <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
     <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
     <script src="bower_components/angular-resource/angular-resource.js"></script>

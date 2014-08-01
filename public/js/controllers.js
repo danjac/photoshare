@@ -24,10 +24,6 @@
                 $scope.searchQuery = "";
                 $scope.currentUrl = $location.path();
 
-                $scope.isActive = function(url) {
-                    return $scope.currentUrl.indexOf(url, $scope.currentUrl.length - url.length) !== -1;
-                };
-
                 Session.init(Auth);
 
                 $scope.$watchCollection('alert.messages', function(newValue, oldValue) {
@@ -90,21 +86,24 @@
         }
     ])
         .controller('ListCtrl', ['$scope',
-            '$location',
-            '$routeParams',
+            '$state',
+            '$stateParams',
             'Photo',
             function($scope,
-                $location,
-                $routeParams,
+                $state,
+                $stateParams,
                 Photo) {
                 var pageLoaded = false,
                     apiCall = null,
-                    q = $routeParams.q || "",
-                    ownerID = $routeParams.ownerID || "",
-                    ownerName = $routeParams.ownerName || "",
-                    tag = $routeParams.tag || "",
-                    orderBy = $location.path() == "/popular" ? "votes" : "";
+                    q = $stateParams.q || "",
+                    ownerID = $stateParams.ownerID || "",
+                    ownerName = $stateParams.ownerName || "",
+                    tag = $stateParams.tag || "",
+                    orderBy = "";
 
+                if ($state.current.data && $state.current.data.orderBy) {
+                    orderBy = $state.current.data.orderBy;
+                }
                 $scope.photos = [];
                 $scope.tag = tag;
                 $scope.searchQuery = q;
@@ -166,14 +165,16 @@
                 $scope.nextPage();
 
                 $scope.getDetail = function(photo) {
-                    $location.path("/detail/" + photo.id);
+                    $state.go('detail', {
+                        id: photo.id
+                    });
                 };
 
             }
         ])
 
     .controller('DetailCtrl', ['$scope',
-        '$routeParams',
+        '$stateParams',
         '$location',
         '$window',
         'Photo',
@@ -181,7 +182,7 @@
         'Session',
         'Alert',
         function($scope,
-            $routeParams,
+            $stateParams,
             $location,
             $window,
             Photo,
@@ -208,7 +209,7 @@
             });
 
             Photo.get({
-                id: $routeParams.id
+                id: $stateParams.id
             }).$promise.then(function(photo) {
                 $scope.photo = photo;
                 $scope.photo.taglist = $scope.photo.tags ? $scope.photo.tags.join(" ") : "";

@@ -22,6 +22,7 @@ type app struct {
 	cfg        *config
 	db         *sql.DB
 	mailer     *mailer
+	router     *mux.Router
 	datamapper dataMapper
 	filestore  fileStorage
 	session    sessionManager
@@ -60,6 +61,8 @@ func newApp() (*app, error) {
 	if err != nil {
 		return app, err
 	}
+
+	app.initRouter()
 
 	return app, nil
 }
@@ -143,48 +146,47 @@ func (app *app) authenticate(r *http.Request, level authLevel) (*user, error) {
 }
 
 // generates the routes for the API
-func (app *app) getRouter() http.Handler {
+func (app *app) initRouter() {
 
-	r := mux.NewRouter()
+	app.router = mux.NewRouter()
 
-	api := r.PathPrefix("/api/").Subrouter()
+	api := app.router.PathPrefix("/api/").Subrouter()
 
 	photos := api.PathPrefix("/photos/").Subrouter()
 
-	photos.HandleFunc("/", app.handler(getPhotos, authLevelIgnore)).Methods("GET")
-	photos.HandleFunc("/", app.handler(upload, authLevelLogin)).Methods("POST")
-	photos.HandleFunc("/search", app.handler(searchPhotos, authLevelIgnore)).Methods("GET")
-	photos.HandleFunc("/owner/{ownerID:[0-9]+}", app.handler(photosByOwnerID, authLevelIgnore)).Methods("GET")
+	photos.HandleFunc("/", app.handler(getPhotos, authLevelIgnore)).Methods("GET").Name("photos")
+	photos.HandleFunc("/", app.handler(upload, authLevelLogin)).Methods("POST").Name("photos")
+	photos.HandleFunc("/search", app.handler(searchPhotos, authLevelIgnore)).Methods("GET").Name("search")
+	photos.HandleFunc("/owner/{ownerID:[0-9]+}", app.handler(photosByOwnerID, authLevelIgnore)).Methods("GET").Name("owner")
 
-	photos.HandleFunc("/{id:[0-9]+}", app.handler(getPhotoDetail, authLevelCheck)).Methods("GET")
-	photos.HandleFunc("/{id:[0-9]+}", app.handler(deletePhoto, authLevelLogin)).Methods("DELETE")
-	photos.HandleFunc("/{id:[0-9]+}/title", app.handler(editPhotoTitle, authLevelLogin)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/tags", app.handler(editPhotoTags, authLevelLogin)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/upvote", app.handler(voteUp, authLevelLogin)).Methods("PATCH")
-	photos.HandleFunc("/{id:[0-9]+}/downvote", app.handler(voteDown, authLevelLogin)).Methods("PATCH")
+	photos.HandleFunc("/{id:[0-9]+}", app.handler(getPhotoDetail, authLevelCheck)).Methods("GET").Name("photoDetail")
+	photos.HandleFunc("/{id:[0-9]+}", app.handler(deletePhoto, authLevelLogin)).Methods("DELETE").Name("deletePhoto")
+	photos.HandleFunc("/{id:[0-9]+}/title", app.handler(editPhotoTitle, authLevelLogin)).Methods("PATCH").Name("editPhotoTitle")
+	photos.HandleFunc("/{id:[0-9]+}/tags", app.handler(editPhotoTags, authLevelLogin)).Methods("PATCH").Name("editPhotoTags")
+	photos.HandleFunc("/{id:[0-9]+}/upvote", app.handler(voteUp, authLevelLogin)).Methods("PATCH").Name("upvote")
+	photos.HandleFunc("/{id:[0-9]+}/downvote", app.handler(voteDown, authLevelLogin)).Methods("PATCH").Name("downvote")
 
 	auth := api.PathPrefix("/auth/").Subrouter()
 
-	auth.HandleFunc("/", app.handler(getSessionInfo, authLevelCheck)).Methods("GET")
-	auth.HandleFunc("/", app.handler(login, authLevelIgnore)).Methods("POST")
-	auth.HandleFunc("/", app.handler(logout, authLevelLogin)).Methods("DELETE")
+	auth.HandleFunc("/", app.handler(getSessionInfo, authLevelCheck)).Methods("GET").Name("sessionInfo")
+	auth.HandleFunc("/", app.handler(login, authLevelIgnore)).Methods("POST").Name("login")
+	auth.HandleFunc("/", app.handler(logout, authLevelLogin)).Methods("DELETE").Name("logout")
+	auth.HandleFunc("/signup", app.handler(signup, authLevelIgnore)).Methods("POST").Name("signup")
+	auth.HandleFunc("/recoverpass", app.handler(recoverPassword, authLevelIgnore)).Methods("PUT").Name("recoverPassword")
+	auth.HandleFunc("/changepass", app.handler(changePassword, authLevelIgnore)).Methods("PUT").Name("changePassword")
+
 	auth.HandleFunc("/oauth2/{provider}/url", app.handler(getAuthRedirectURL, authLevelIgnore)).Methods("GET")
 	auth.HandleFunc("/oauth2/{provider}/callback/", app.handler(authCallback, authLevelIgnore)).Methods("GET")
-	auth.HandleFunc("/signup", app.handler(signup, authLevelIgnore)).Methods("POST")
-	auth.HandleFunc("/recoverpass", app.handler(recoverPassword, authLevelIgnore)).Methods("PUT")
-	auth.HandleFunc("/changepass", app.handler(changePassword, authLevelIgnore)).Methods("PUT")
 
-	api.HandleFunc("/tags/", app.handler(getTags, authLevelIgnore)).Methods("GET")
-	api.Handle("/messages/{path:.*}", messageHandler)
+	api.HandleFunc("/tags/", app.handler(getTags, authLevelIgnore)).Methods("GET").Name("tags")
+	api.Handle("/messages/{path:.*}", messageHandler).Name("messages")
 
-	feeds := r.PathPrefix("/feeds/").Subrouter()
+	feeds := app.router.PathPrefix("/feeds/").Subrouter()
 
-	feeds.HandleFunc("", app.handler(latestFeed, authLevelIgnore)).Methods("GET")
-	feeds.HandleFunc("popular/", app.handler(popularFeed, authLevelIgnore)).Methods("GET")
-	feeds.HandleFunc("owner/{ownerID:[0-9]+}", app.handler(ownerFeed, authLevelIgnore)).Methods("GET")
+	feeds.HandleFunc("", app.handler(latestFeed, authLevelIgnore)).Methods("GET").Name("latestFeed")
+	feeds.HandleFunc("popular/", app.handler(popularFeed, authLevelIgnore)).Methods("GET").Name("popularFeed")
+	feeds.HandleFunc("owner/{ownerID:[0-9]+}", app.handler(ownerFeed, authLevelIgnore)).Methods("GET").Name("ownerFeed")
 
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir(app.cfg.PublicDir)))
-
-	return r
+	app.router.PathPrefix("/").Handler(http.FileServer(http.Dir(app.cfg.PublicDir)))
 
 }

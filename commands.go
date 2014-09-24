@@ -24,7 +24,7 @@ func Serve() {
 	runtime.GOMAXPROCS((runtime.NumCPU() * 2) + 1)
 
 	n := negroni.Classic()
-	n.UseHandler(app.getRouter())
+	n.UseHandler(app.router)
 	n.Run(fmt.Sprintf(":%d", app.cfg.ServerPort))
 
 }

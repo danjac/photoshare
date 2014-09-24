@@ -60,8 +60,8 @@ type dataMapper interface {
 	getPhotosByOwnerID(*page, int64) (*photoList, error)
 	searchPhotos(*page, string) (*photoList, error)
 
-	isUserNameAvailable(user *user) (bool, error)
-	isUserEmailAvailable(user *user) (bool, error)
+	isUserNameAvailable(*user) (bool, error)
+	isUserEmailAvailable(*user) (bool, error)
 	getActiveUser(userID int64) (*user, error)
 	getUserByRecoveryCode(string) (*user, error)
 	getUserByEmail(string) (*user, error)

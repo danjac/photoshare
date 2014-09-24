@@ -9,11 +9,18 @@
 
 <hr ng-show="showHeader">
 
-<div class="row" ng-show="showPagination">
+<div class="row hidden-xs hidden-sm" ng-show="showPagination">
     <div class="col-md-12">
         <pagination class="pagination" items-per-page="20" total-items="total" max-size="20" ng-model="currentPage" ng-change="nextPage()" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" boundary-links="true" />
     </div>
 </div>
+
+<div class="row visible-xs visible-sm" ng-show="showPagination">
+    <div class="col-md-12">
+        <pager items-per-page="20" total-items="total" max-size="20" ng-model="currentPage" ng-change="nextPage()" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" />
+    </div>
+</div>
+
 
 <div class="spinner" ng-show="!pageLoaded"></div>
 
@@ -29,8 +36,16 @@
 </div>
 
 
-<div class="row" ng-show="showPagination">
+<div class="row hidden-xs hidden-sm" ng-show="showPagination">
     <div class="col-md-12">
         <pagination class="pagination" items-per-page="20" total-items="total" max-size="20" ng-model="currentPage" ng-change="nextPage()" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" boundary-links="true" />
     </div>
 </div>
+
+<div class="row visible-xs visible-sm" ng-show="showPagination">
+    <div class="col-md-12">
+        <pager items-per-page="20" total-items="total" max-size="20" ng-model="currentPage" ng-change="nextPage()" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" />
+    </div>
+</div>
+
+

@@ -54,12 +54,15 @@
                     $state.go("login");
                 };
 
-                $scope.doSearch = function() {
+                $scope.doSearch = function(clear) {
                     $state.go('search', {
                         q: $scope.searchQuery
                     });
-                    $scope.searchQuery = "";
+                    if (clear) {
+                        $scope.searchQuery = "";
+                    }
                 };
+
             }
         ])
 

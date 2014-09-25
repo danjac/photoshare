@@ -60,7 +60,7 @@ func (m *defaultSessionManager) readToken(r *http.Request) (int64, error) {
 	if tokenString == "" {
 		return 0, nil
 	}
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) ([]byte, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return m.verifyKey, nil
 	})
 	switch err.(type) {

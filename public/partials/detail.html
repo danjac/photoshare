@@ -1,13 +1,13 @@
 <div class="row" ng-show="pageLoaded">
     <h2 class="col-md-9" ng-click="showEditForm()" ng-show="!editTitle">{{photo.title}}</h2>
     <div class="button-group col-md-3 pull-right" ng-show="!editTitle">
-        <button type="button" class="btn btn-default" ng-show="photo.perms.edit" ng-click="showEditForm()"> <span class="glyphicon glyphicon-pencil"></span>
+        <button type="button" class="btn btn-default" ng-show="photo.perms.edit" ng-click="showEditForm()"> <i class="fa fa-pencil"></i>
         </button>
-        <button type="button" class="btn btn-default" ng-show="photo.perms.vote" ng-click="voteUp()"><span class="glyphicon glyphicon-thumbs-up"></span>
+        <button type="button" class="btn btn-default" ng-show="photo.perms.vote" ng-click="voteUp()"><i class="fa fa-thumbs-up"></i>
         </button>
-        <button type="button" class="btn btn-default" ng-show="photo.perms.vote" ng-click="voteDown()"><span class="glyphicon glyphicon-thumbs-down"></span>
+        <button type="button" class="btn btn-default" ng-show="photo.perms.vote" ng-click="voteDown()"><i class="fa fa-thumbs-down"></i>
         </button>
-        <button type="button" ng-show="photo.perms.delete" class="btn btn-danger" ng-click="deletePhoto()"><span class="glyphicon glyphicon-trash"></span>
+        <button type="button" ng-show="photo.perms.delete" class="btn btn-danger" ng-click="deletePhoto()"><i class="fa fa-trash"></i>
         </button>
     </div>
 
@@ -26,7 +26,7 @@
             <div ng-show="!editTags">
                 <span ng-repeat="tag in photo.tags"><a ng-href="#/tag/{{tag}}"><span class="label label-md label-default">#{{tag}}</span></a>&nbsp;</span>
                 <span ng-show="!photo.tags.length && photo.perms.edit" ng-click="showEditTagsForm()">Untagged</span>
-                  <button type="button" class="btn btn-default btn-md"  ng-show="photo.perms.edit" ng-click="showEditTagsForm()"> <span class="glyphicon glyphicon-pencil"></span></button>
+                  <button type="button" class="btn btn-default btn-md"  ng-show="photo.perms.edit" ng-click="showEditTagsForm()"> <i class="fa fa-pencil"></i></button>
             </div>
                 <form role="form"
                       action=""
@@ -62,8 +62,8 @@
         <dl>
             <dt>Score <span class="badge">{{photo.score}}</span></dt>
             <dd>
-                <span class="glyphicon glyphicon-thumbs-up" ng-click="voteUp()"></span> {{photo.upVotes}}
-                <span class="glyphicon glyphicon-thumbs-down" ng-click="voteDown()"></span> {{photo.downVotes}}
+                <i class="fa fa-thumbs-up" ng-click="voteUp()"></i> {{photo.upVotes}}
+                <i class="fa fa-thumbs-down" ng-click="voteDown()"></i> {{photo.downVotes}}
             </dd>
             <dt>Uploaded by</dt>
             <dd>

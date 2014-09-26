@@ -2,9 +2,9 @@
     <form class="form-inline">
         <div class="form-group">
             <input class="form-control" type="text" placeholder="Find a tag" ng-model="tagFilter.name" ng-change="filterTags()">
-            <button class="btn" ng-class="{'btn-primary active': orderField=='-numPhotos'}" ng-click="orderTags('-numPhotos')"><span class="glyphicon glyphicon-sort-by-alphabet"></span>
+            <button class="btn" ng-class="{'btn-primary active': orderField=='-numPhotos'}" ng-click="orderTags('-numPhotos')"><i class="fa fa-sort-numeric-desc"></i>
             </button>
-            <button class="btn" ng-class="{'btn-primary active': orderField=='name'}" ng-click="orderTags('name')"><span class="glyphicon glyphicon-sort-by-attributes"></span>
+            <button class="btn" ng-class="{'btn-primary active': orderField=='name'}" ng-click="orderTags('name')"><i class="fa fa-sort-alpha-asc"></i>
             </button>
         </div>
     </form>

@@ -19,6 +19,7 @@
     "sockjs": "*",
     "css3-social-signin-buttons": "necolas/css3-social-signin-buttons",
     "angular-bootstrap": "~0.11.0",
-    "angular-ui-router": "~0.2.10"
+    "angular-ui-router": "~0.2.10",
+    "font-awesome": "~4.2.0"
   }
 }

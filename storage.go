@@ -2,14 +2,16 @@ package photoshare
 
 import (
 	"code.google.com/p/graphics-go/graphics"
+	"errors"
+	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/disintegration/gift"
 	"github.com/juju/errgo"
 	"image"
+	"image/gif"
 	"image/jpeg"
 	"image/png"
 	"io"
-	//"mime/multipart"
 	"os"
 	"path"
 )
@@ -24,9 +26,13 @@ type readable interface {
 	io.Seeker
 }
 
-var allowedContentTypes = []string{"image/png", "image/jpeg"}
+var allowedContentTypes = []string{
+	"image/png",
+	"image/jpeg",
+	"image/gif"}
 
 func isAllowedContentType(contentType string) bool {
+	fmt.Println("CHECKING", contentType)
 	for _, value := range allowedContentTypes {
 		if contentType == value {
 			return true
@@ -37,11 +43,21 @@ func isAllowedContentType(contentType string) bool {
 }
 
 func generateRandomFilename(contentType string) string {
-	filename := uniuri.New()
-	if contentType == "image/png" {
-		return filename + ".png"
+
+	var ext string
+
+	switch contentType {
+	case "image/jpeg":
+
+		ext = ".jpg"
+	case "image/png":
+		ext = ".png"
+
+	case "image/gif":
+		ext = ".gif"
 	}
-	return filename + ".jpg"
+
+	return uniuri.New() + ext
 }
 
 type fileStorage interface {
@@ -89,10 +105,16 @@ func (f *defaultFileStorage) store(src readable, filename, contentType string) e
 		err error
 	)
 
-	if contentType == "image/png" {
+	switch contentType {
+	case "image/png":
 		img, err = png.Decode(src)
-	} else {
+		break
+	case "image/jpg":
 		img, err = jpeg.Decode(src)
+	case "image/gif":
+		img, err = gif.Decode(src)
+	default:
+		return errors.New("invalid content type:" + contentType)
 	}
 
 	if err != nil {
@@ -116,10 +138,15 @@ func (f *defaultFileStorage) store(src readable, filename, contentType string) e
 
 	defer dst.Close()
 
-	if contentType == "image/png" {
+	switch contentType {
+	case "image/png":
 		png.Encode(dst, thumb)
-	} else if contentType == "image/jpeg" {
+		break
+	case "image/jpg":
 		jpeg.Encode(dst, thumb, nil)
+		break
+	case "image/gif":
+		gif.Encode(dst, thumb, nil)
 	}
 
 	src.Seek(0, 0)

@@ -6,17 +6,19 @@ var React = require('react'),
     RouteHandler = Router.RouteHandler;
 
   var Alerts = React.createClass({
+
     getInitialState: function () {
       return {
         messages: []
       };
     },
+
     render: function () {
       return (
-        <div class="alerts">
-        {_.map(self.state.messages, function(msg, index) {
+        <div className="alerts">
+        {_.map(this.state.messages, function(msg, index) {
             return(
-              <div role="alert" class={"alert alert-" + msg.priority} key={index}>
+              <div role="alert" className={"alert alert-" + msg.priority} key={index}>
                 {msg.message}
               </div>
             )
@@ -30,26 +32,25 @@ var React = require('react'),
   var NavBar = React.createClass({
     render: function() {
       return (
-        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-links">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="#"><i class="fa fa-camera"></i> Wallshare</a>
-            </div>
-            <div class="collapse navbar-collapse" id="navbar-links">
-                <ul class="nav navbar-nav navbar-left">
-                </ul>
-                <ul class="nav navbar-nav navbar-right">
-                </ul>
-            </div>
-        </div>
+        <nav className="navbar navbar-inverse navbar-fixed-top" role="navigation">
+          <div className="container-fluid">
+              <div className="navbar-header">
+                  <button type="button" className="navbar-toggle" data-toggle="collapse" data-target="#navbar-links">
+                      <span className="sr-only">Toggle navigation</span>
+                      <span className="icon-bar"></span>
+                      <span className="icon-bar"></span>
+                      <span className="icon-bar"></span>
+                  </button>
+                  <a className="navbar-brand" href="#"><i className="fa fa-camera"></i> Wallshare</a>
+              </div>
+              <div className="collapse navbar-collapse" id="navbar-links">
+                  <ul className="nav navbar-nav navbar-left">
+                  </ul>
+                  <ul className="nav navbar-nav navbar-right">
+                  </ul>
+              </div>
+          </div>
         </nav>
-     
       )
     }
 
@@ -59,7 +60,7 @@ var React = require('react'),
     render: function () {
       return (
         <div>
-          Photos go here...
+          Photos go here !!!
         </div>
       )
     }
@@ -67,12 +68,14 @@ var React = require('react'),
   });
 
   var App = React.createClass({
+
     render: function () {
       return (
-        <NavBar />
-        <div class="container-fluid">
-          <Alerts />
-          <RouteHandler />
+        <div>
+          <NavBar />
+          <div className="container-fluid">
+            <RouteHandler />
+          </div>
         </div>
       )
     }

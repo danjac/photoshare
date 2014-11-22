@@ -1,18 +1,17 @@
 var browserify = require('gulp-browserify'),
-  bowerFiles = require('main-bower-files'),
-  watchify = require('watchify'),
-  gulp = require('gulp'),
-  plumber = require('gulp-plumber'),
-  shell = require('gulp-shell'),
-  minifyCss = require('gulp-minify-css'),
-  gulpFilter = require('gulp-filter'),
-  concat = require('gulp-concat');
+    bowerFiles = require('main-bower-files'),
+    watchify = require('watchify'),
+    gulp = require('gulp'),
+    plumber = require('gulp-plumber'),
+    shell = require('gulp-shell'),
+    minifyCss = require('gulp-minify-css'),
+    gulpFilter = require('gulp-filter'),
+    concat = require('gulp-concat');
 
 var staticDir = './public',
-  assetsDir = './assets',
-  watch = false,
-  cssFilter = gulpFilter('*.css'),
-  fontFilter = gulpFilter(['*.eot', '*.woff', '*.svg', '*.ttf']);
+    assetsDir = './assets',
+    cssFilter = gulpFilter('*.css'),
+    fontFilter = gulpFilter(['*.eot', '*.woff', '*.svg', '*.ttf']);
 
 
 var src = {

@@ -43,9 +43,28 @@ var React = require('react'),
                   </button>
                   <a className="navbar-brand" href="#"><i className="fa fa-camera"></i> Wallshare</a>
               </div>
+
               <div className="collapse navbar-collapse" id="navbar-links">
+
                   <ul className="nav navbar-nav navbar-left">
+                    <li><a><i className="fa fa-fire"></i> Popular</a></li>
+                    <li><a><i className="fa fa-clock-o"></i> Latest</a></li>
+                    <li><a><i className="fa fa-tags"></i> Tags</a></li>
+                    <li><a><i className="fa fa-upload"></i> Upload</a></li>
                   </ul>
+
+                  <form className="navbar-form navbar-left" role="search" name="searchForm">
+                      <div className="form-group">
+                          <input type="text" 
+                                 className="form-control input-sm" 
+                                 placeholder="Search" 
+                                 data-toggle="tooltip" 
+                                 data-placement="bottom" 
+                                 title="Prefix search with '#' for tags and '@' for users" />
+                          <button type="submit" className="btn btn-default btn-sm"><i className="fa fa-search"></i></button>
+                      </div>
+                  </form>
+
                   <ul className="nav navbar-nav navbar-right">
                   </ul>
               </div>
@@ -60,7 +79,7 @@ var React = require('react'),
     render: function () {
       return (
         <div>
-          Photos go here !!!
+          Photos go here....
         </div>
       )
     }

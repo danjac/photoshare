@@ -110,6 +110,7 @@ func (f *defaultFileStorage) store(src readable, filename, contentType string) e
 		img, err = png.Decode(src)
 		break
 	case "image/jpg":
+	case "image/jpeg":
 		img, err = jpeg.Decode(src)
 	case "image/gif":
 		img, err = gif.Decode(src)
@@ -143,6 +144,7 @@ func (f *defaultFileStorage) store(src readable, filename, contentType string) e
 		png.Encode(dst, thumb)
 		break
 	case "image/jpg":
+	case "image/jpeg":
 		jpeg.Encode(dst, thumb, nil)
 		break
 	case "image/gif":

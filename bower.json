@@ -1,25 +1,13 @@
 {
-  "name": "angular-seed",
-  "description": "A starter project for AngularJS",
+  "name": "photoshare",
+  "description": "",
   "version": "0.0.0",
-  "homepage": "https://github.com/angular/angular-seed",
+  "homepage": "",
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "angular": "1.3.x",
-    "angular-route": "1.3.x",
-    "angular-sanitize": "1.3.x",
-    "angular-cookies": "1.3.x",
-    "angular-animate": "1.3.x",
-    "angular-resource": "1.3.x",
-    "angular-loader": "1.3.x",
-    "angular-mocks": "~1.3.x",
-    "bootstrap": "*",
-    "bootswatch": "*",
-    "sockjs": "*",
-    "css3-social-signin-buttons": "necolas/css3-social-signin-buttons",
-    "angular-bootstrap": "~0.11.0",
-    "angular-ui-router": "~0.2.10",
+    "bootstrap": "~3.3.1",
+    "bootswatch": "~3.3.1+2",
     "font-awesome": "~4.2.0"
   }
 }

@@ -1,4 +1,7 @@
 var React = require('react');
+var Router = require('react-router');
+var RouteHandler = Router.RouteHandler;
+var Link = Router.Link;
 
 var Navbar = React.createClass({
     render: function(){
@@ -16,9 +19,9 @@ var Navbar = React.createClass({
             </div>
             <div className="collapse navbar-collapse" id="navbar-links">
                 <ul className="nav navbar-nav navbar-left">
-                    <li><a href="popular"><i className="fa fa-fire"></i> Popular</a>
+                    <li><Link to="popular"><i className="fa fa-fire"></i> Popular</Link>
                     </li>
-                    <li><a href="latest"><i className="fa fa-clock-o"></i> Latest</a>
+                    <li><Link to="latest"><i className="fa fa-clock-o"></i> Latest</Link>
                     </li>
                     <li><a href="tags"><i className="fa fa-tags"></i> Tags</a>
                     </li>
@@ -68,7 +71,7 @@ var App = React.createClass({
     <div>
         <Navbar />
         <div className="container-fluid">
-        Main content goes here!
+        <RouteHandler />
         </div>
     </div>
         );

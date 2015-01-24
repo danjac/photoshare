@@ -1,10 +1,22 @@
 /** @jsx React.DOM */
 
 var React = require('react');
-// Here we put our React instance to the global scope. Make sure you do not put it
-// into production and make sure that you close and open your console if the
-// DEV-TOOLS does not display
-// window.React = React;
+var Router = require('react-router');
+var Route = Router.Route;
+var RouteHandler = Router.RouteHandler;
+var DefaultRoute = Router.DefaultRoute;
 
 var App = require('./components/App.jsx');
-React.renderComponent(<App/>, document.body);
+var Popular = require('./components/Popular.jsx');
+var Latest = require('./components/Latest.jsx');
+
+var routes = (
+    <Route handler={App}>
+        <DefaultRoute name="popular" handler={Popular} />
+        <Route name="latest" path="latest" handler={Latest} />
+    </Route>
+    );
+
+Router.run(routes, function (Handler) {
+  React.render(<Handler/>, document.body);
+});

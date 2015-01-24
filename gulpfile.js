@@ -5,7 +5,7 @@ var source = require('vinyl-source-stream'); // Used to stream bundle for furthe
 var browserify = require('browserify');
 var watchify = require('watchify');
 var reactify = require('reactify');
-var concat = require('gulp-concat');
+var es6transpiler = require('gulp-es6-transpiler');
 
 gulp.task('browserify', function() {
     var bundler = browserify({
@@ -23,6 +23,7 @@ gulp.task('browserify', function() {
         watcher.bundle() // Create new bundle that uses the cache for high performance
         .pipe(source('main.js'))
     // This is where you add uglifying etc.
+        //.pipe(es6transpiler)
         .pipe(gulp.dest('./public/build/main.js/'));
         console.log('Updated!', (Date.now() - updateStart) + 'ms');
     })

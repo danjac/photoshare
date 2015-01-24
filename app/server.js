@@ -3,7 +3,7 @@
  */
 
 var express = require('express');
-var routes = require('./routes');
+//var routes = require('./routes');
 //var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
@@ -41,7 +41,7 @@ app.locals({
 });
 app.locals.qaz = 'qut';
 
-app.get('/', routes.index);
+//app.get('/', routes.index);
 //app.get('/users', user.list);
 
 http.createServer(app).listen(app.get('port'), function(){

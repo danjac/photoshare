@@ -28,7 +28,7 @@ var Navbar = React.createClass({
                     <li><a href="upload"><i className="fa fa-upload"></i> Upload</a>
                     </li>
                 </ul>
-                <form className="navbar-form navbar-left" role="search" name="searchForm" novalidate>
+                <form className="navbar-form navbar-left" role="search" name="searchForm">
                     <div className="form-group">
                         <input type="text" className="form-control input-sm" placeholder="Search" data-toggle="tooltip" data-placement="bottom" title="Prefix search with '#' for tags and '@' for users" required />
                         <button type="submit" className="btn btn-default btn-sm"><i className="fa fa-search"></i>
@@ -71,7 +71,7 @@ var App = React.createClass({
     <div>
         <Navbar />
         <div className="container-fluid">
-        <RouteHandler />
+        <RouteHandler data={this.props.data} />
         </div>
     </div>
         );

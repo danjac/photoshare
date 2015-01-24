@@ -1,9 +1,11 @@
 var React = require('react');
+var PhotoList = require('./PhotoList.jsx')
 
 var Popular = React.createClass({
+
     render: function() {
         return (
-            <p>Popular photos go here</p>
+            <PhotoList photos={this.props.data.photos.photos} />
         )
     }
 });

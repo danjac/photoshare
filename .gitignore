@@ -1,6 +1,7 @@
 Godeps
 public/bower_components
 public/uploads
+public/build
 node_modules
 *.swp
 photoshare

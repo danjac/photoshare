@@ -1,9 +1,25 @@
 var React = require('react');
+var API = require('../API.js');
+var PhotoList = require('./PhotoList.jsx')
 
 var Latest = React.createClass({
+    getInitialState: function() {
+        return {
+            photos: []
+        }
+    },
+    componentWillMount: function() {
+        var self = this;
+        API.getPhotos(null, function(data){
+            self.setState({
+                photos: data.photos
+            })
+        });
+    },
+
     render: function() {
         return (
-            <p>Latest photos go here...</p>
+            <PhotoList photos={this.state.photos} />
         )
     }
 });

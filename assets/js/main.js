@@ -27,8 +27,8 @@ var fetchData = function(callback) {
 };
 
 
-Router.run(routes, function (Handler) {
-    fetchData(function(data){
+fetchData(function(data) {
+    Router.run(routes, function (Handler) {
         React.render(<Handler data={data} />, document.body);
     });
 });

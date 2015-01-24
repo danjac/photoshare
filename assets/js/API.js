@@ -6,7 +6,7 @@ var API = {
         request
             .get("/api/photos/")
             .query({
-                orderBy: 'votes'
+                orderBy: orderBy || ''
             })
             .end(function(response) {
                 callback(response.body);

@@ -1,36 +1,83 @@
-/* modified from https://christianalfoni.github.io/javascript/2014/08/15/react-js-workflow.html */
+var browserify = require('gulp-browserify'),
+    bowerFiles = require('main-bower-files'),
+    watchify = require('watchify'),
+    gulp = require('gulp'),
+    plumber = require('gulp-plumber'),
+    shell = require('gulp-shell'),
+    minifyCss = require('gulp-minify-css'),
+    gulpFilter = require('gulp-filter'),
+    concat = require('gulp-concat');
 
-var gulp = require('gulp');
-var source = require('vinyl-source-stream'); // Used to stream bundle for further handling
-var browserify = require('browserify');
-var watchify = require('watchify');
-var reactify = require('reactify');
-var es6transpiler = require('gulp-es6-transpiler');
+var staticDir = './public',
+    assetsDir = './assets',
+    watch = false,
+    cssFilter = gulpFilter('*.css'),
+    fontFilter = gulpFilter(['*.eot', '*.woff', '*.svg', '*.ttf']);
 
-gulp.task('browserify', function() {
-    var bundler = browserify({
-        entries: ['./public/js/main.js'], // Only need initial file, browserify finds the deps
-        transform: [reactify], // We want to convert JSX to normal javascript
-        debug: true, // Gives us sourcemapping
-        cache: {}, packageCache: {}, fullPaths: true // Requirement of watchify
-    });
-    var watcher  = watchify(bundler);
 
-    return watcher
-    .on('update', function () { // When any files update
-        var updateStart = Date.now();
-        console.log('Updating!');
-        watcher.bundle() // Create new bundle that uses the cache for high performance
-        .pipe(source('main.js'))
-    // This is where you add uglifying etc.
-        //.pipe(es6transpiler)
-        .pipe(gulp.dest('./public/build/main.js/'));
-        console.log('Updated!', (Date.now() - updateStart) + 'ms');
-    })
-    .bundle() // Create the initial bundle when starting the task
-    .pipe(source('main.js'))
-    .pipe(gulp.dest('./public/build/'));
+var src = {
+    js: assetsDir + '/js',
+    css: assetsDir + '/css',
+    fonts: assetsDir + '/fonts'
+};
+
+var dest = {
+    js: staticDir + '/js',
+    css: staticDir + '/css',
+    fonts: staticDir + '/fonts'
+};
+
+
+gulp.task('build-js', function() {
+
+    gulp.src(src.js + '/main.js')
+        .pipe(browserify({
+            cache: {},
+            packageCache: {},
+            fullPaths: true,
+            transform: [
+                "reactify",
+                "envify"
+            ]
+        }))
+        .pipe(concat('/bundle.js'))
+        .pipe(gulp.dest(dest.js));
+
 });
 
-// Just running the two tasks
-gulp.task('default', ['browserify']);
+gulp.task('pkg', function() {
+
+    return gulp.src(bowerFiles({
+            debugging: true,
+            checkExistence: true,
+            base: 'bower_components'
+        }))
+        .pipe(cssFilter)
+        .pipe(concat('vendor.css'))
+        .pipe(minifyCss())
+        .pipe(gulp.dest(dest.css))
+        .pipe(cssFilter.restore())
+        .pipe(fontFilter)
+        .pipe(gulp.dest(dest.fonts));
+});
+
+gulp.task('build-css', function() {
+    return gulp.src(src.css + '/*.css')
+        .pipe(plumber())
+        .pipe(concat('app.css'))
+        .pipe(minifyCss())
+        .pipe(gulp.dest(dest.css));
+});
+
+
+gulp.task('install', shell.task([
+    'bower cache clean',
+    'bower install'
+]));
+
+
+gulp.task('default', function() {
+    gulp.start('install', 'pkg');
+    gulp.watch(src.js + '/**', {}, ['build-js']);
+    gulp.watch(src.css + '/**', {}, ['build-css']);
+});

@@ -1,6 +1,6 @@
 var AppDispatcher = require('./AppDispatcher');
 var Constants = require('./Constants');
-var API = require('./API')
+var API = require('./API');
 
 var Actions = {
 
@@ -32,9 +32,18 @@ var Actions = {
         });
     },
 
+    getUser: function() {
+        API.getUser(function(data) {
+            AppDispatcher.dispatch({
+                actionType: Constants.LOGIN_SUCCESSFUL,
+                user: data
+            });
+        });
+    },
+
     login: function(identifier, password) {
         var self = this;
-        API.login(identifier, password, function(data) {
+        API.login(identifier, password, function(data, authToken) {
             self.alertMessage("Welcome back!", Constants.ALERT_SUCCESS);
             AppDispatcher.dispatch({
                 actionType: Constants.LOGIN_SUCCESSFUL,

@@ -139,6 +139,7 @@ var App = React.createClass({
     componentWillMount: function() {
         UserStore.addChangeListener(this._onChange);
         AlertStore.addChangeListener(this._onChange);
+        Actions.getUser();
     },
 
     componentWillUnmount: function () {
@@ -151,9 +152,12 @@ var App = React.createClass({
     <div>
         <Navbar user={this.state.user}/>
         <div className="container-fluid">
+        <div>
         {this.state.messages.map(function(msg, num){
             return <Alert key={num} message={msg} />
-        })}        <RouteHandler user={this.state.user} />
+        })}
+        </div>
+        <RouteHandler user={this.state.user} />
         </div>
     </div>
         );

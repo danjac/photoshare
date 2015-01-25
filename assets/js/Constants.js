@@ -10,5 +10,6 @@ module.exports = keyMirror({
     ALERT_SUCCESS: null,
     ALERT_INFO: null,
     ALERT_WARNING: null,
-    ALERT_DANGER: null
+    ALERT_DANGER: null,
+    AUTH_TOKEN_STORAGE_KEY: null
 });

@@ -1,4 +1,7 @@
 var request = require('superagent');
+var Utils = require('./Utils');
+
+var X_AUTH_HEADER = "X-Auth-Token";
 
 var API = {
 
@@ -21,6 +24,20 @@ var API = {
             });
     },
 
+    getUser: function(callback) {
+        var token = Utils.getAuthToken();
+        if (!token) {
+            return;
+        }
+
+        request
+            .get("/api/auth/")
+            .set(X_AUTH_HEADER, token)
+            .end(function(res){
+                callback(res.body);
+            });
+    },
+
     login: function(identifier, password, onSuccess, onError) {
         request
             .post("/api/auth/")
@@ -32,13 +49,22 @@ var API = {
                 if (res.badRequest) {
                     onError(res.text);
                 } else {
-                    onSuccess(res.body);
+                    Utils.setAuthToken(res.headers["x-auth-token"]);
+                    onSuccess(res.body); ;
                 }
             });
     },
 
-    logout: function() {
-        request.del('/api/auth/');
+    logout: function(callback) {
+        request
+            .del('/api/auth/')
+            .set(X_AUTH_HEADER, Utils.getAuthToken())
+            .end(function(){
+                Utils.delAuthToken();
+                if (callback) {
+                    callback();
+                }
+            });
     }
 };
 

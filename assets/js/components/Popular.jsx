@@ -22,14 +22,6 @@ var Popular = React.createClass({
         PhotoStore.removeChangeListener(this._onChange);
     },
 
-    componentWillReceiveProps: function(nextProps) {
-        if (nextProps) {
-            this.setState({
-                photos: nextProps
-            });
-        }
-    },
-
     render: function() {
         return (
             <PhotoList photos={this.state.photos.photos} />

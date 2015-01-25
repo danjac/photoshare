@@ -34,4 +34,5 @@ var Latest = React.createClass({
         })
     }
 });
+
 module.exports = Latest;

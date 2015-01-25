@@ -7,10 +7,16 @@ var _photos = {
     photos: []
 };
 
+var _photoDetail = {};
+
 var PhotoStore = assign({}, EventEmitter.prototype, {
 
     getPhotos: function (){
         return _photos;
+    },
+
+    getPhotoDetail: function(){
+        return _photoDetail;
     },
 
     emitChange: function() {
@@ -30,8 +36,14 @@ var PhotoStore = assign({}, EventEmitter.prototype, {
 AppDispatcher.register(function(action){
 
     switch(action.actionType){
+
         case Constants.GET_PHOTOS:
             _photos = action.photos;
+            PhotoStore.emitChange();
+            break;
+        case Constants.GET_PHOTO_DETAIL:
+            console.log("GETPHOTODETAIL")
+            _photoDetail = action.photo;
             PhotoStore.emitChange();
             break;
         default:

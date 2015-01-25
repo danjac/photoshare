@@ -1,6 +1,7 @@
 var keyMirror = require('keymirror');
 
-module.exports = {
+module.exports = keyMirror({
     CHANGE_EVENT: null,
-    GET_PHOTOS: null
-};
+    GET_PHOTOS: null,
+    GET_PHOTO_DETAIL: null
+});

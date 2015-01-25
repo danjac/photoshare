@@ -11,6 +11,15 @@ var Actions = {
                 photos: data
             });
         });
+    },
+
+    getPhotoDetail: function(photoId) {
+        API.getPhoto(photoId, function(data){
+            AppDispatcher.dispatch({
+                actionType: Constants.GET_PHOTO_DETAIL,
+                photo: data
+            })
+        });
     }
 };
 

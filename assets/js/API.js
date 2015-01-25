@@ -2,7 +2,15 @@ var request = require('superagent');
 
 var API = {
 
-   getPhotos: function(orderBy, callback) {
+    getPhoto: function(photoId, callback) {
+        request
+            .get("/api/photos/" + photoId)
+            .end(function(response){
+                callback(response.body);
+            });
+    },
+
+    getPhotos: function(orderBy, callback) {
         request
             .get("/api/photos/")
             .query({
@@ -11,7 +19,7 @@ var API = {
             .end(function(response) {
                 callback(response.body);
             });
-   }
+    }
 };
 
 module.exports = API;

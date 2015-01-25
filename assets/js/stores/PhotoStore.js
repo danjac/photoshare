@@ -42,7 +42,6 @@ AppDispatcher.register(function(action){
             PhotoStore.emitChange();
             break;
         case Constants.GET_PHOTO_DETAIL:
-            console.log("GETPHOTODETAIL")
             _photoDetail = action.photo;
             PhotoStore.emitChange();
             break;

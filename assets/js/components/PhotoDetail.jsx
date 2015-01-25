@@ -2,6 +2,39 @@ var React = require('react');
 var Router = require('react-router');
 var PhotoStore = require('../stores/PhotoStore');
 var Actions = require('../Actions');
+var moment = require('moment');
+
+var Tag = React.createClass({
+    render: function (){
+       return (
+            <span>
+                <a href="#"><span className="label label-md label-default">#{this.props.tag}</span></a>&nbsp;
+            </span>
+        );
+    }
+});
+
+var PhotoDetailToolbar = React.createClass({
+
+    render: function(){
+        if (!this.props.user) {
+            return (<div />);
+        }
+        return (
+            <div className="button-group col-md-3 pull-right">
+                <button type="button" className="btn btn-default"> <i className="fa fa-pencil"></i>
+                </button>
+                <button type="button" className="btn btn-default"><i className="fa fa-thumbs-up"></i>
+                </button>
+                <button type="button" className="btn btn-default"><i className="fa fa-thumbs-down"></i>
+                </button>
+                <button type="button" className="btn btn-danger"><i className="fa fa-trash"></i>
+                </button>
+            </div>
+        );
+    }
+
+});
 
 var PhotoDetail = React.createClass({
 
@@ -9,7 +42,7 @@ var PhotoDetail = React.createClass({
 
     getInitialState: function() {
         return {
-            photo: {}
+            photo: null
         }
     },
 
@@ -24,31 +57,32 @@ var PhotoDetail = React.createClass({
 
     render: function() {
         var photo = this.state.photo;
+        var user = this.props.user;
+        console.log(user)
+
+        if (photo === null) {
+            return (<div />);
+        }
+
+        var tags = photo.tags || [];
 
         return (
-<div>
-    <div className="row">
-        <h2 className="col-md-9">{photo.title}</h2>
-        <div className="button-group col-md-3 pull-right">
-            <button type="button" className="btn btn-default"> <i className="fa fa-pencil"></i>
-            </button>
-            <button type="button" className="btn btn-default"><i className="fa fa-thumbs-up"></i>
-            </button>
-            <button type="button" className="btn btn-default"><i className="fa fa-thumbs-down"></i>
-            </button>
-            <button type="button" className="btn btn-danger"><i className="fa fa-trash"></i>
-            </button>
+    <div>
+        <div className="row">
+            <h2 className="col-md-9">{photo.title}</h2>
+            <PhotoDetailToolbar user={user} />
         </div>
-    </div>
 
-    <hr />
+        <hr />
     <h3>
-        tags go here...
+        {tags.map(function(tag){
+            return <Tag key={tag} tag={tag} />;
+        })}
     </h3>
 
     <div className="row">
         <div className="col-xs-6 col-md-3">
-            <a target="_blank" className="thumbnail" title="{photo.title}" href="uploads/{photo.photo}">
+            <a target="_blank" className="thumbnail" title="{photo.title}" href={'uploads/' + photo.photo}>
                 <img alt="{photo.title}" src={'uploads/thumbnails/' + photo.photo} />
             </a>
             <div className="btn-group">
@@ -64,8 +98,9 @@ var PhotoDetail = React.createClass({
                 <dt>Uploaded by</dt>
                 <dd>
                     <a href="#">{photo.ownerName}</a>
-                </dd>   <dt>Uploaded on</dt>
-                <dd>{photo.createdAt}</dd>
+                </dd>
+                <dt>Uploaded on</dt>
+                <dd>{moment(photo.createdAt).format("MMMM Do YYYY hh:mm")}</dd>
             </dl>
 
         </div>
@@ -75,8 +110,6 @@ var PhotoDetail = React.createClass({
     },
 
     _onChange: function() {
-        console.log("onchange")
-        console.log(PhotoStore.getPhotoDetail())
         this.setState({
             photo: PhotoStore.getPhotoDetail()
         });

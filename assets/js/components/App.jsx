@@ -3,8 +3,54 @@ var Router = require('react-router');
 var RouteHandler = Router.RouteHandler;
 var Link = Router.Link;
 
+var NavbarLoggedIn = React.createClass({
+
+    render: function() {
+        return (
+                <ul className="nav navbar-nav navbar-right">
+                    <li className="dropdown">
+                        <a className="dropdown-toggle" data-toggle="dropdown">
+                            {this.props.user.name} <i className="caret"></i>
+                        </a>
+                        <ul className="dropdown-menu" role="menu">
+                            <li><a href="">My photos</a>
+                            </li>
+                            <li><a href="#/changepass">Change my password</a>
+                            </li>
+                            <li><a href="">Logout</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+        );
+    }
+});
+
+
+var NavbarLoggedOut = React.createClass({
+
+    render: function () {
+
+        return (
+                <ul className="nav navbar-nav navbar-right">
+                    <li href="login"><a href=""><i className="fa fa-log-in"></i> Login</a>
+                    </li>
+                    <li href="signup"><a href="#/signup"><i className="fa fa-user"></i> Signup</a>
+                    </li>
+                </ul>
+        );
+    }
+});
+
 var Navbar = React.createClass({
     render: function(){
+
+        if (this.props.user) {
+            loginButtons = <NavbarLoggedIn user={this.props.user} />;
+        } else {
+            loginButtons = <NavbarLoggedOut />
+        }
+
         return (
     <nav className="navbar navbar-inverse navbar-fixed-top" role="navigation">
         <div className="container-fluid">
@@ -36,27 +82,8 @@ var Navbar = React.createClass({
                     </div>
                 </form>
 
-                <ul className="nav navbar-nav navbar-right">
-                    <li href="login"><a href=""><i className="fa fa-log-in"></i> Login</a>
-                    </li>
-                    <li href="signup"><a href="#/signup"><i className="fa fa-user"></i> Signup</a>
-                    </li>
-                </ul>
-                <ul className="nav navbar-nav navbar-right">
-                    <li className="dropdown">
-                        <a className="dropdown-toggle" data-toggle="dropdown">
-                            <img  />&nbsp;danjac <i className="caret"></i>
-                        </a>
-                        <ul className="dropdown-menu" role="menu">
-                            <li><a href="">My photos</a>
-                            </li>
-                            <li><a href="#/changepass">Change my password</a>
-                            </li>
-                            <li><a href="">Logout</a>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
+                {loginButtons}
+
             </div>
         </div>
     </nav>
@@ -66,12 +93,21 @@ var Navbar = React.createClass({
 });
 
 var App = React.createClass({
+
+    getInitialState: function() {
+        return {
+            user: {
+                name: "danjac"
+            }
+        }
+    },
+
     render: function() {
         return (
     <div>
-        <Navbar />
+        <Navbar user={this.state.user}/>
         <div className="container-fluid">
-        <RouteHandler data={this.props.data} />
+        <RouteHandler data={this.props.data} user={this.state.user} />
         </div>
     </div>
         );

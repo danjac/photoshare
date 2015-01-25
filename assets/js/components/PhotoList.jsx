@@ -25,11 +25,12 @@ var PhotoListItem = React.createClass({
 });
 
 var PhotoList = React.createClass({
+
     render: function (){
 
         return (
             <div className="row">
-                {this.props.photos.map(function(photo){
+                {this.props.photos.map(function(photo) {
                     return <PhotoListItem key={photo.id} photo={photo} />;
                 })};
             </div>

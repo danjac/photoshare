@@ -13,6 +13,10 @@ var PhotoDetail = require('./components/PhotoDetail.jsx');
 
 var API = require('./API.js')
 
+var fakeUser = {
+    name: "danjac"
+}
+
 var routes = (
     <Route handler={App}>
         <DefaultRoute name="popular" handler={Popular} />

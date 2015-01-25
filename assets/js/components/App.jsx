@@ -1,9 +1,44 @@
 var React = require('react');
 var Router = require('react-router');
+
+var Constants = require('../Constants');
+var Actions = require('../Actions');
+var UserStore = require('../stores/UserStore');
+var AlertStore = require('../stores/AlertStore');
+
 var RouteHandler = Router.RouteHandler;
 var Link = Router.Link;
 
+var Alert = React.createClass({
+    render: function (){
+        var className = "alert alert-dismissable alert-";
+        switch (this.props.message.type) {
+            case Constants.ALERT_SUCCESS:
+                className += "success";
+                break;
+            case Constants.ALERT_WARNING:
+                className += "warning";
+                break;
+            case Constants.ALERT_DANGER:
+                className += "danger";
+                break;
+            default:
+                className += "info";
+          }
+        return (
+            <div className={className} role="alert">
+            <button type="button" className="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            {this.props.message.message}
+            </div>
+        );
+    }
+});
+
 var NavbarLoggedIn = React.createClass({
+
+    handleLogout: function() {
+        Actions.logout();
+    },
 
     render: function() {
         return (
@@ -17,7 +52,7 @@ var NavbarLoggedIn = React.createClass({
                             </li>
                             <li><a href="#/changepass">Change my password</a>
                             </li>
-                            <li><a href="">Logout</a>
+                            <li><a onClick={this.handleLogout}>Logout</a>
                             </li>
                         </ul>
                     </li>
@@ -33,9 +68,9 @@ var NavbarLoggedOut = React.createClass({
 
         return (
                 <ul className="nav navbar-nav navbar-right">
-                    <li href="login"><a href=""><i className="fa fa-log-in"></i> Login</a>
+                    <li><Link to="login"><i className="fa fa-log-in"></i> Login</Link>
                     </li>
-                    <li href="signup"><a href="#/signup"><i className="fa fa-user"></i> Signup</a>
+                    <li><a href="#/signup"><i className="fa fa-user"></i> Signup</a>
                     </li>
                 </ul>
         );
@@ -96,10 +131,19 @@ var App = React.createClass({
 
     getInitialState: function() {
         return {
-            user: {
-                name: "danjac"
-            }
-        }
+            user: null,
+            messages: []
+       };
+    },
+
+    componentWillMount: function() {
+        UserStore.addChangeListener(this._onChange);
+        AlertStore.addChangeListener(this._onChange);
+    },
+
+    componentWillUnmount: function () {
+        UserStore.removeChangeListener(this._onChange);
+        AlertStore.removeChangeListener(this._onChange);
     },
 
     render: function() {
@@ -107,10 +151,19 @@ var App = React.createClass({
     <div>
         <Navbar user={this.state.user}/>
         <div className="container-fluid">
-        <RouteHandler data={this.props.data} user={this.state.user} />
+        {this.state.messages.map(function(msg, num){
+            return <Alert key={num} message={msg} />
+        })}        <RouteHandler user={this.state.user} />
         </div>
     </div>
         );
+    },
+
+    _onChange: function() {
+        this.setState({
+            user: UserStore.getUser(),
+            messages: AlertStore.getMessages()
+        });
     }
 
 });

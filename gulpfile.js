@@ -12,6 +12,7 @@ var staticDir = './public',
     assetsDir = './assets',
     watch = false,
     cssFilter = gulpFilter('*.css'),
+    jsFilter = gulpFilter('*.js'),
     fontFilter = gulpFilter(['*.eot', '*.woff', '*.svg', '*.ttf']);
 
 
@@ -40,7 +41,7 @@ gulp.task('build-js', function() {
                 "envify"
             ]
         }))
-        .pipe(concat('/bundle.js'))
+        .pipe(concat('bundle.js'))
         .pipe(gulp.dest(dest.js));
 
 });
@@ -52,6 +53,10 @@ gulp.task('pkg', function() {
             checkExistence: true,
             base: 'bower_components'
         }))
+        .pipe(jsFilter)
+        .pipe(concat('vendor.js'))
+        .pipe(gulp.dest(dest.js))
+        .pipe(jsFilter.restore())
         .pipe(cssFilter)
         .pipe(concat('vendor.css'))
         .pipe(minifyCss())

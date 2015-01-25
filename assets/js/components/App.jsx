@@ -61,7 +61,7 @@ var Navbar = React.createClass({
                     <span className="icon-bar"></span>
                     <span className="icon-bar"></span>
                 </button>
-                <a className="navbar-brand" href="front"><i className="fa fa-camera"></i> Wallshare</a>
+                <Link to="popular" className="navbar-brand"><i className="fa fa-camera"></i> Wallshare</Link>
             </div>
             <div className="collapse navbar-collapse" id="navbar-links">
                 <ul className="nav navbar-nav navbar-left">

@@ -20,10 +20,7 @@ var routes = (
     );
 
 var fetchData = function(callback) {
-
-    API.getPhotos("votes", function(response){
-        callback({ photos: response });
-    });
+    callback({});
 };
 
 

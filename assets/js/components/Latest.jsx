@@ -1,26 +1,37 @@
 var React = require('react');
-var API = require('../API.js');
+var Actions = require('../Actions');
+var PhotoStore = require('../stores/PhotoStore');
 var PhotoList = require('./PhotoList.jsx')
 
 var Latest = React.createClass({
+
     getInitialState: function() {
         return {
-            photos: []
+            photos: {
+                photos: []
+            }
         }
     },
+
     componentWillMount: function() {
-        var self = this;
-        API.getPhotos(null, function(data){
-            self.setState({
-                photos: data.photos
-            })
-        });
+        PhotoStore.addChangeListener(this._onChange);
+        Actions.getPhotos();
+    },
+
+    componentWillUnmount: function() {
+        PhotoStore.removeChangeListener(this._onChange);
     },
 
     render: function() {
         return (
-            <PhotoList photos={this.state.photos} />
+            <PhotoList photos={this.state.photos.photos} />
         )
+    },
+
+    _onChange: function() {
+        this.setState({
+            photos: PhotoStore.getPhotos()
+        })
     }
 });
 module.exports = Latest;

@@ -58,7 +58,6 @@ var PhotoDetail = React.createClass({
     render: function() {
         var photo = this.state.photo;
         var user = this.props.user;
-        console.log(user)
 
         if (photo === null) {
             return (<div />);

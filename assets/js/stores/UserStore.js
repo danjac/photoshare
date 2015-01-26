@@ -11,6 +11,10 @@ var UserStore = assign({}, EventEmitter.prototype, {
         return _user;
     },
 
+    isLoggedIn: function(){
+        return _user !== null;
+    },
+
     emitChange: function() {
         this.emit(Constants.CHANGE_EVENT);
     },

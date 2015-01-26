@@ -106,7 +106,7 @@ var Navbar = React.createClass({
                     </li>
                     <li><a href="tags"><i className="fa fa-tags"></i> Tags</a>
                     </li>
-                    <li><a href="upload"><i className="fa fa-upload"></i> Upload</a>
+                    <li><Link to="upload"><i className="fa fa-upload"></i> Upload</Link>
                     </li>
                 </ul>
                 <form className="navbar-form navbar-left" role="search" name="searchForm">

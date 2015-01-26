@@ -8,6 +8,10 @@ var Login = React.createClass({
 
     mixins: [Router.Navigation],
 
+    statics: {
+        attemptedTransition: null
+    },
+
     handleSubmit: function(event) {
         event.preventDefault();
         var identifier = this.refs.identifier.getDOMNode().value;

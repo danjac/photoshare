@@ -16,20 +16,71 @@ var Tag = React.createClass({
 
 var PhotoDetailToolbar = React.createClass({
 
-    render: function(){
-        if (!this.props.user) {
-            return (<div />);
+    handleDelete: function() {
+        if (window.confirm("Are you sure you want to delete this photo?")){
+            Actions.deletePhoto(this.props.photo.id);
         }
+    },
+
+    handleEdit: function () {
+
+    },
+
+    handleVoteUp: function() {
+
+    },
+
+
+    handleVoteDown: function() {
+
+    },
+
+    render: function(){
+
+        var buttons = [];
+        var photo = this.props.photo;
+        if (!photo) {
+            return <div />;
+        }
+
+        if (photo.perms.edit) {
+            buttons.push({
+                className: "btn-default",
+                icon: "fa-pencil",
+                onClick: this.handleEdit
+            });
+        }
+
+        if (photo.perms.vote) {
+            buttons.push({
+                className: "btn-default",
+                icon: "fa-thumbs-up",
+                onClick: this.handleVoteUp
+            });
+            buttons.push({
+                className: "btn-default",
+                icon: "fa-thumbs-down",
+                onClick: this.handleVoteDown
+            });
+        }
+
+        if (photo.perms.delete) {
+            buttons.push({
+                className: "btn-danger",
+                icon: "fa-trash",
+                onClick: this.handleDelete
+            });
+        }
+
         return (
             <div className="button-group col-md-3 pull-right">
-                <button type="button" className="btn btn-default"> <i className="fa fa-pencil"></i>
-                </button>
-                <button type="button" className="btn btn-default"><i className="fa fa-thumbs-up"></i>
-                </button>
-                <button type="button" className="btn btn-default"><i className="fa fa-thumbs-down"></i>
-                </button>
-                <button type="button" className="btn btn-danger"><i className="fa fa-trash"></i>
-                </button>
+                {buttons.map(function(btn) {
+                    var className = "btn " + btn.className;
+                    var icon = "fa " + btn.icon;
+                    return (
+                <button onClick={btn.onClick} type="button" className={className}> <i className={icon}></i></button>
+                    )
+                })}
             </div>
         );
     }
@@ -38,7 +89,7 @@ var PhotoDetailToolbar = React.createClass({
 
 var PhotoDetail = React.createClass({
 
-    mixins: [Router.State],
+    mixins: [Router.State, Router.Navigation],
 
     getInitialState: function() {
         return {
@@ -69,7 +120,7 @@ var PhotoDetail = React.createClass({
     <div>
         <div className="row">
             <h2 className="col-md-9">{photo.title}</h2>
-            <PhotoDetailToolbar user={user} />
+            <PhotoDetailToolbar photo={photo} user={user} />
         </div>
 
         <hr />
@@ -82,7 +133,7 @@ var PhotoDetail = React.createClass({
     <div className="row">
         <div className="col-xs-6 col-md-3">
             <a target="_blank" className="thumbnail" title="{photo.title}" href={'uploads/' + photo.photo}>
-                <img alt="{photo.title}" src={'uploads/thumbnails/' + photo.photo} />
+                <img alt={photo.title} src={'uploads/thumbnails/' + photo.photo} />
             </a>
             <div className="btn-group">
             </div>
@@ -109,9 +160,14 @@ var PhotoDetail = React.createClass({
     },
 
     _onChange: function() {
-        this.setState({
-            photo: PhotoStore.getPhotoDetail()
-        });
+        var photo = PhotoStore.getPhotoDetail();
+        if (photo) {
+            this.setState({
+                photo: photo
+            });
+        } else {
+            this.transitionTo("popular");
+        }
     }
 
 });

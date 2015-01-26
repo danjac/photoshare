@@ -46,23 +46,24 @@ var PhotoStore = assign({}, EventEmitter.prototype, {
 AppDispatcher.register(function(action){
 
     switch(action.actionType){
-
         case Constants.GET_PHOTOS:
             _photos = action.photos;
-            PhotoStore.emitChange();
             break;
         case Constants.GET_PHOTO_DETAIL:
             _photoDetail = action.photo;
-            PhotoStore.emitChange();
             break;
         case Constants.NEW_PHOTO:
             _newPhoto = action.photo;
-            PhotoStore.emitChange();
+            break;
         case Constants.NEW_PHOTO_PREVIEW:
             _previewUrl = action.url;
-            PhotoStore.emitChange();
+            break;
+        case Constants.PHOTO_DELETED:
+            _photoDetail = null;
+            break;
         default:
     }
+    PhotoStore.emitChange();
 });
 
 module.exports = PhotoStore;

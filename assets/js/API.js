@@ -17,9 +17,19 @@ var API = {
             });
     },
 
+    deletePhoto: function(photoId, callback) {
+        request
+            .del("/api/photos/" + photoId)
+            .set(X_AUTH_HEADER, Utils.getAuthToken())
+            .end(function(res){
+                callback();
+            });
+    },
+
     getPhoto: function(photoId, callback) {
         request
             .get("/api/photos/" + photoId)
+            .set(X_AUTH_HEADER, Utils.getAuthToken())
             .end(function(res){
                 callback(res.body);
             });

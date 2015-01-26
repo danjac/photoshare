@@ -59,6 +59,16 @@ var Actions = {
         });
     },
 
+    deletePhoto: function(photoId) {
+        var self = this;
+        API.deletePhoto(photoId, function() {
+            self.alertMessage("Your photo has been deleted", Constants.ALERT_SUCCESS);
+            AppDispatcher.dispatch({
+                actionType: Constants.PHOTO_DELETED
+            });
+        });
+    },
+
     getUser: function() {
         API.getUser(function(data) {
             AppDispatcher.dispatch({

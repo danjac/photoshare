@@ -26,6 +26,20 @@ var API = {
             });
     },
 
+    editPhotoTitle: function(photoId, title, callback) {
+
+        request
+            .patch("/api/photos/" + photoId + "/title")
+            .set(X_AUTH_HEADER, Utils.getAuthToken())
+            .send({
+                title: title
+            })
+            .end(function(res){
+                callback();
+            });
+
+    },
+
     getPhoto: function(photoId, callback) {
         request
             .get("/api/photos/" + photoId)

@@ -6,6 +6,8 @@ module.exports = keyMirror({
     GET_PHOTO_DETAIL: null,
     NEW_PHOTO: null,
     PHOTO_DELETED: null,
+    PHOTO_EDIT_MODE: null,
+    PHOTO_EDIT_DONE: null,
     LOGIN_SUCCESSFUL: null,
     LOGOUT: null,
     NEW_ALERT_MESSAGE: null,

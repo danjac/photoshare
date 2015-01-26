@@ -14,6 +14,21 @@ var Actions = {
         });
     },
 
+    photoEditMode: function() {
+        AppDispatcher.dispatch({
+            actionType: Constants.PHOTO_EDIT_MODE
+        });
+    },
+
+    photoEditDone: function(photoId, newTitle) {
+
+        AppDispatcher.dispatch({
+            actionType: Constants.PHOTO_EDIT_DONE,
+            title: newTitle
+        });
+        API.editPhotoTitle(photoId, newTitle);
+    },
+
     previewPhoto: function(photo) {
 
         if (window.FileReader === null) {

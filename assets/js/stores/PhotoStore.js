@@ -10,6 +10,9 @@ var _photos = {
 var _photoDetail = {};
 var _newPhoto = null;
 var _previewUrl = null;
+var _deleted = false;
+var _editMode = false;
+
 
 var PhotoStore = assign({}, EventEmitter.prototype, {
 
@@ -27,6 +30,14 @@ var PhotoStore = assign({}, EventEmitter.prototype, {
 
     getPreviewUrl: function() {
         return _previewUrl;
+    },
+
+    isDeleted: function() {
+        return _deleted;
+    },
+
+    isEditMode: function(){
+        return _editMode;
     },
 
     emitChange: function() {
@@ -51,6 +62,8 @@ AppDispatcher.register(function(action){
             break;
         case Constants.GET_PHOTO_DETAIL:
             _photoDetail = action.photo;
+            _deleted = false;
+            _editMode = false;
             break;
         case Constants.NEW_PHOTO:
             _newPhoto = action.photo;
@@ -59,7 +72,14 @@ AppDispatcher.register(function(action){
             _previewUrl = action.url;
             break;
         case Constants.PHOTO_DELETED:
-            _photoDetail = null;
+            _deleted = true;
+            break;
+        case Constants.PHOTO_EDIT_MODE:
+            _editMode = !(_editMode);
+            break;
+        case Constants.PHOTO_EDIT_DONE:
+            _editMode = false;
+            _photoDetail.title = action.title;
             break;
         default:
     }

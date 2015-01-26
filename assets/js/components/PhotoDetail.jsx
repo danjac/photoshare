@@ -1,6 +1,7 @@
 var React = require('react');
 var Router = require('react-router');
 var PhotoStore = require('../stores/PhotoStore');
+var Constants = require('../Constants');
 var Actions = require('../Actions');
 var moment = require('moment');
 
@@ -14,6 +15,38 @@ var Tag = React.createClass({
     }
 });
 
+var PhotoTitle = React.createClass({
+
+    handleEdit: function() {
+        Actions.photoEditMode();
+    },
+
+    handleSubmit: function() {
+        var title = this.refs.title.getDOMNode().value;
+        Actions.photoEditDone(this.props.photo.id, title);
+    },
+
+    render: function(){
+        var photo = this.props.photo;
+
+        if (this.props.editMode) {
+            return (
+        <form role="form" name="form" onSubmit={this.handleSubmit}>
+            <div className="form-group">
+                <input ref="title" type="text" className="form-control" required="required" defaultValue={photo.title} />
+            </div>
+            <button type="submit" className="btn btn-primary">Save</button>
+            <button type="cancel" className="btn btn-default" onClick={this.handleEdit}>Cancel</button>
+        </form>
+            );
+        }
+
+        return (
+            <h2 className="col-md-9" onClick={this.handleEdit}>{photo.title}</h2>
+        );
+    }
+});
+
 var PhotoDetailToolbar = React.createClass({
 
     handleDelete: function() {
@@ -23,7 +56,7 @@ var PhotoDetailToolbar = React.createClass({
     },
 
     handleEdit: function () {
-
+        Actions.photoEditMode();
     },
 
     handleVoteUp: function() {
@@ -39,7 +72,8 @@ var PhotoDetailToolbar = React.createClass({
 
         var buttons = [];
         var photo = this.props.photo;
-        if (!photo) {
+
+        if (!photo || !photo.perms) {
             return <div />;
         }
 
@@ -106,6 +140,13 @@ var PhotoDetail = React.createClass({
         PhotoStore.removeChangeListener(this._onChange);
     },
 
+    handleEditTitle: function() {
+        if (this.state.photo && this.state.photo.perms.edit){
+            Actions.photoEditMode();
+        }
+    },
+
+
     render: function() {
         var photo = this.state.photo;
         var user = this.props.user;
@@ -119,8 +160,8 @@ var PhotoDetail = React.createClass({
         return (
     <div>
         <div className="row">
-            <h2 className="col-md-9">{photo.title}</h2>
-            <PhotoDetailToolbar photo={photo} user={user} />
+            <PhotoTitle photo={photo} editMode={this.state.editMode} />
+            <PhotoDetailToolbar photo={photo} />
         </div>
 
         <hr />
@@ -132,11 +173,9 @@ var PhotoDetail = React.createClass({
 
     <div className="row">
         <div className="col-xs-6 col-md-3">
-            <a target="_blank" className="thumbnail" title="{photo.title}" href={'uploads/' + photo.photo}>
+            <a target="_blank" className="thumbnail" title={photo.title} href={'uploads/' + photo.photo}>
                 <img alt={photo.title} src={'uploads/thumbnails/' + photo.photo} />
             </a>
-            <div className="btn-group">
-            </div>
         </div>
         <div className="col-xs-6">
             <dl>
@@ -160,10 +199,19 @@ var PhotoDetail = React.createClass({
     },
 
     _onChange: function() {
+
+        var isDeleted = PhotoStore.isDeleted();
+
+        if (isDeleted){
+            this.transitionTo("popular");
+            return;
+        }
+
         var photo = PhotoStore.getPhotoDetail();
         if (photo) {
             this.setState({
-                photo: photo
+                photo: photo,
+                editMode: PhotoStore.isEditMode()
             });
         } else {
             this.transitionTo("popular");

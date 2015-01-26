@@ -8,6 +8,8 @@ var _photos = {
 };
 
 var _photoDetail = {};
+var _newPhoto = null;
+var _previewUrl = null;
 
 var PhotoStore = assign({}, EventEmitter.prototype, {
 
@@ -17,6 +19,14 @@ var PhotoStore = assign({}, EventEmitter.prototype, {
 
     getPhotoDetail: function(){
         return _photoDetail;
+    },
+
+    getNewPhoto: function(){
+        return _newPhoto;
+    },
+
+    getPreviewUrl: function() {
+        return _previewUrl;
     },
 
     emitChange: function() {
@@ -45,6 +55,12 @@ AppDispatcher.register(function(action){
             _photoDetail = action.photo;
             PhotoStore.emitChange();
             break;
+        case Constants.NEW_PHOTO:
+            _newPhoto = action.photo;
+            PhotoStore.emitChange();
+        case Constants.NEW_PHOTO_PREVIEW:
+            _previewUrl = action.url;
+            PhotoStore.emitChange();
         default:
     }
 });

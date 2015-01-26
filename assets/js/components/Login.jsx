@@ -47,7 +47,13 @@ var Login = React.createClass({
     _onChange: function () {
         user = UserStore.getUser();
         if (user) {
-            this.transitionTo("popular");
+            if (Login.attemptedTransition) {
+                var transition = Login.attemptedTransition;
+                Login.attemptedTransition = null;
+                transition.retry();
+            } else {
+                this.transitionTo("popular");
+            }
         }
     }
 

@@ -14,6 +14,33 @@ var Actions = {
         });
     },
 
+    previewPhoto: function(photo) {
+
+        if (window.FileReader === null) {
+            return;
+        }
+
+        var reader = new window.FileReader();
+        reader.onload = function(){
+            AppDispatcher.dispatch({
+                actionType: Constants.NEW_PHOTO_PREVIEW,
+                url: reader.result
+            });
+        };
+        reader.readAsDataURL(photo);
+    },
+
+    uploadPhoto: function(title, tags, photo){
+        var self = this;
+        API.uploadPhoto(title, tags, photo, function(data) {
+            AppDispatcher.dispatch({
+                actionType: Constants.NEW_PHOTO,
+                photo: data
+            });
+            self.alertMessage('Your photo has been uploaded', Constants.ALERT_SUCCESS);
+        });
+    },
+
     getPhotos: function(orderBy) {
         API.getPhotos(orderBy, function(data){
             AppDispatcher.dispatch({

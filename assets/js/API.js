@@ -5,6 +5,18 @@ var X_AUTH_HEADER = "X-Auth-Token";
 
 var API = {
 
+    uploadPhoto: function(title, tags, photo, callback) {
+        request
+            .post("/api/photos/")
+            .set(X_AUTH_HEADER, Utils.getAuthToken())
+            .field("title", title)
+            .field("taglist", tags)
+            .attach("photo", photo)
+            .end(function(res){
+                callback(res.body);
+            });
+    },
+
     getPhoto: function(photoId, callback) {
         request
             .get("/api/photos/" + photoId)
@@ -34,7 +46,9 @@ var API = {
             .get("/api/auth/")
             .set(X_AUTH_HEADER, token)
             .end(function(res){
-                callback(res.body);
+                if (res.body.loggedIn) {
+                    callback(res.body);
+                }
             });
     },
 

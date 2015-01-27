@@ -14,6 +14,22 @@ var Actions = {
         });
     },
 
+    searchPhotos: function(search, page) {
+        if (!search) {
+            AppDispatcher.dispatch({
+                actionType: Constants.GET_PHOTOS,
+                photos: []
+            });
+        }
+        page = page || 1;
+        API.searchPhotos(search, page, function(data) {
+            AppDispatcher.dispatch({
+                actionType: Constants.GET_PHOTOS,
+                photos: data
+            });
+        });
+    },
+
     photoEditMode: function() {
         AppDispatcher.dispatch({
             actionType: Constants.PHOTO_EDIT_MODE
@@ -56,8 +72,9 @@ var Actions = {
         });
     },
 
-    getPhotos: function(orderBy) {
-        API.getPhotos(orderBy, function(data){
+    getPhotos: function(orderBy, page) {
+        page = page || 1;
+        API.getPhotos(orderBy, page, function(data){
             AppDispatcher.dispatch({
                 actionType: Constants.GET_PHOTOS,
                 photos: data

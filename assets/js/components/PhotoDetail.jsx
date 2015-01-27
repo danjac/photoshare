@@ -3,6 +3,7 @@ var Router = require('react-router');
 var PhotoStore = require('../stores/PhotoStore');
 var Constants = require('../Constants');
 var Actions = require('../Actions');
+
 var moment = require('moment');
 
 var Tag = React.createClass({
@@ -131,9 +132,20 @@ var PhotoDetail = React.createClass({
         }
     },
 
+    fetchData: function() {
+        Actions.getPhotoDetail(this.getParams().id);
+    },
+
+    componentWillReceiveProps: function() {
+        this.fetchData();
+    },
+
+    componentDidMount: function() {
+        this.fetchData();
+    },
+
     componentWillMount: function() {
         PhotoStore.addChangeListener(this._onChange);
-        Actions.getPhotoDetail(this.getParams().id);
     },
 
     componentWillUnmount: function () {
@@ -214,6 +226,7 @@ var PhotoDetail = React.createClass({
                 editMode: PhotoStore.isEditMode()
             });
         } else {
+            // TBD: transition to a 404 page
             this.transitionTo("popular");
         }
     }

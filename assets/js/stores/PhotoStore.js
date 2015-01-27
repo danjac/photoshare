@@ -13,7 +13,6 @@ var _previewUrl = null;
 var _deleted = false;
 var _editMode = false;
 
-
 var PhotoStore = assign({}, EventEmitter.prototype, {
 
     getPhotos: function (){

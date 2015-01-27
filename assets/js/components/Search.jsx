@@ -1,24 +1,41 @@
 var React = require('react');
+var Router = require('react-router');
 var Actions = require('../Actions');
 var PhotoStore = require('../stores/PhotoStore');
 var PhotoList = require('./PhotoList.jsx');
 
-var Popular = React.createClass({
+
+var Search = React.createClass({
+
+    mixins: [Router.State],
 
     getInitialState: function() {
         return {
             photos: {
-                photos: []
+                photos: [],
             }
         }
     },
 
-    componentWillMount: function() {
-        PhotoStore.addChangeListener(this._onChange);
+    getSearch: function(){
+        return this.getQuery().q;
+    },
+
+    fetchData: function(page) {
+
+        Actions.searchPhotos(this.getSearch(), page);
     },
 
     componentDidMount: function() {
-        Actions.getPhotos("votes");
+        this.fetchData();
+    },
+
+    componentWillReceiveProps: function() {
+        this.fetchData();
+    },
+
+    componentWillMount: function() {
+        PhotoStore.addChangeListener(this._onChange);
     },
 
     componentWillUnmount: function() {
@@ -26,19 +43,22 @@ var Popular = React.createClass({
     },
 
     handlePaginationLink: function(page) {
-        Actions.getPhotos("votes", page);
+        this.fetchData(page);
     },
 
     render: function() {
         return (
+            <div>
+            <h3>{this.getSearch()}: {this.state.photos.total}</h3>
             <PhotoList photos={this.state.photos} handlePaginationLink={this.handlePaginationLink} />
+            </div>
         )
     },
 
     _onChange: function() {
         this.setState({
             photos: PhotoStore.getPhotos()
-        })
+       })
     }
 });
-module.exports = Popular;
+module.exports = Search;

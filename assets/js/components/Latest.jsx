@@ -15,6 +15,9 @@ var Latest = React.createClass({
 
     componentWillMount: function() {
         PhotoStore.addChangeListener(this._onChange);
+    },
+
+    componentDidMount: function() {
         Actions.getPhotos();
     },
 
@@ -22,9 +25,13 @@ var Latest = React.createClass({
         PhotoStore.removeChangeListener(this._onChange);
     },
 
+    handlePaginationLink: function(page) {
+        Actions.getPhotos(null, page);
+    },
+
     render: function() {
         return (
-            <PhotoList photos={this.state.photos.photos} />
+            <PhotoList photos={this.state.photos} handlePaginationLink={this.handlePaginationLink}/>
         )
     },
 

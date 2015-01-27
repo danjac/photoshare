@@ -28,7 +28,7 @@ var Upload = React.createClass({
         event.preventDefault();
         var photo = this.refs.photo.getDOMNode().files[0];
 
-        if (!photo || window.FileReader === null) {
+        if (!photo) {
             return;
         }
 

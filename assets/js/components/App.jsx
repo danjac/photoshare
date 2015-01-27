@@ -78,6 +78,18 @@ var NavbarLoggedOut = React.createClass({
 });
 
 var Navbar = React.createClass({
+
+    mixins: [Router.Navigation],
+
+    handleSearch: function(){
+        var node = this.refs.search.getDOMNode();
+        var search = node.value.trim();
+        if (search){
+            this.transitionTo("search", {}, {q: search});
+        }
+        node.value = "";
+    },
+
     render: function(){
 
         if (this.props.user) {
@@ -109,9 +121,9 @@ var Navbar = React.createClass({
                     <li><Link to="upload"><i className="fa fa-upload"></i> Upload</Link>
                     </li>
                 </ul>
-                <form className="navbar-form navbar-left" role="search" name="searchForm">
+                <form className="navbar-form navbar-left" role="search" name="searchForm" onSubmit={this.handleSearch}>
                     <div className="form-group">
-                        <input type="text" className="form-control input-sm" placeholder="Search" data-toggle="tooltip" data-placement="bottom" title="Prefix search with '#' for tags and '@' for users" required />
+                        <input type="text" ref="search" className="form-control input-sm" placeholder="Search" data-toggle="tooltip" data-placement="bottom" title="Prefix search with '#' for tags and '@' for users" required />
                         <button type="submit" className="btn btn-default btn-sm"><i className="fa fa-search"></i>
                         </button>
                     </div>
@@ -129,6 +141,7 @@ var Navbar = React.createClass({
 
 var App = React.createClass({
 
+
     getInitialState: function() {
         return {
             user: null,
@@ -136,10 +149,13 @@ var App = React.createClass({
        };
     },
 
+    componentDidMount: function() {
+        Actions.getUser();
+    },
+
     componentWillMount: function() {
         UserStore.addChangeListener(this._onChange);
         AlertStore.addChangeListener(this._onChange);
-        Actions.getUser();
     },
 
     componentWillUnmount: function () {
@@ -164,6 +180,7 @@ var App = React.createClass({
     },
 
     _onChange: function() {
+
         this.setState({
             user: UserStore.getUser(),
             messages: AlertStore.getMessages()

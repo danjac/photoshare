@@ -11,12 +11,14 @@ var Popular = require('./components/Popular.jsx');
 var Latest = require('./components/Latest.jsx');
 var Login = require('./components/Login.jsx');
 var Upload = require('./components/Upload.jsx');
+var Search = require('./components/Search.jsx');
 var PhotoDetail = require('./components/PhotoDetail.jsx');
 
 var routes = (
     <Route handler={App}>
         <DefaultRoute name="popular" handler={Popular} />
         <Route name="latest" path="latest" handler={Latest} />
+        <Route name="search" path="search" handler={Search} />
         <Route name="upload" path="upload" handler={Upload} />
         <Route name="login" path="login" handler={Login} />
         <Route name="photoDetail" path="photo/:id" handler={PhotoDetail} />

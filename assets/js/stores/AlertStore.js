@@ -26,7 +26,7 @@ var AlertStore = assign({}, EventEmitter.prototype, {
 
 });
 
-AppDispatcher.register(function(action){
+AlertStore.dispatchToken = AppDispatcher.register(function(action){
 
     switch(action.actionType){
         case Constants.NEW_ALERT_MESSAGE:

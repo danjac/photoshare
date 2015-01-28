@@ -41,6 +41,7 @@ gulp.task('build-js', function() {
                 "envify"
             ]
         }))
+        .pipe(plumber())
         .pipe(concat('bundle.js'))
         .pipe(gulp.dest(dest.js));
 
@@ -82,7 +83,7 @@ gulp.task('install', shell.task([
 
 
 gulp.task('default', function() {
-    gulp.start('install', 'pkg');
+    gulp.start('install', 'pkg', 'build-css', 'build-js');
     gulp.watch(src.js + '/**', {}, ['build-js']);
     gulp.watch(src.css + '/**', {}, ['build-css']);
 });

@@ -71,6 +71,7 @@ var API = {
     },
 
     getPhoto: function(photoId, callback) {
+        var self = this;
         request
             .get("/api/photos/" + photoId)
             .set(X_AUTH_HEADER, _getAuthToken())

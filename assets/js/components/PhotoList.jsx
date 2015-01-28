@@ -1,5 +1,6 @@
 var React = require('react');
 var Router = require('react-router');
+var request = require('superagent');
 
 var PaginationItem = React.createClass({
 
@@ -59,16 +60,23 @@ var PhotoListItem = React.createClass({
 
     mixins: [Router.Navigation],
 
+    getDefaultState: function() {
+        return {
+            src: null
+        }
+    },
+
     handleSelectPhoto: function() {
         this.transitionTo("photoDetail", { id: this.props.photo.id });
     },
 
     render: function(){
         var photo = this.props.photo;
+        var src = 'uploads/thumbnails/' + photo.photo;
         return (
     <div className="col-xs-6 col-md-3" onClick={this.handleSelectPhoto}>
         <div className="thumbnail">
-            <img alt={photo.title} className="img-responsive" src={'uploads/thumbnails/' + photo.photo} />
+            <img alt={photo.title} className="img-responsive" src={src} />
             <div className="caption">
                 <h3>{photo.title}</h3>
             </div>
@@ -82,15 +90,16 @@ var PhotoList = React.createClass({
 
     render: function (){
 
+        var pagination = <Pagination photos={this.props.photos} handlePaginationLink={this.props.handlePaginationLink} />;
         return (
             <div>
-            <Pagination photos={this.props.photos} handlePaginationLink={this.props.handlePaginationLink} />
+            {pagination}
             <div className="row">
                 {this.props.photos.photos.map(function(photo) {
                     return <PhotoListItem key={photo.id} photo={photo}  />;
                 })};
             </div>
-            <Pagination photos={this.props.photos} handlePaginationLink={this.props.handlePaginationLink} />
+            {pagination}
             </div>
         );
     }

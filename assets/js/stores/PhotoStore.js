@@ -12,8 +12,13 @@ var _newPhoto = null;
 var _previewUrl = null;
 var _deleted = false;
 var _editMode = false;
+var _uploadStarted = false;
 
 var PhotoStore = assign({}, EventEmitter.prototype, {
+
+    isUploadStarted: function() {
+        return _uploadStarted;
+    },
 
     getPhotos: function (){
         return _photos;
@@ -53,19 +58,24 @@ var PhotoStore = assign({}, EventEmitter.prototype, {
 
 });
 
-AppDispatcher.register(function(action){
+PhotoStore.dispatchToken = AppDispatcher.register(function(action){
 
     switch(action.actionType){
         case Constants.GET_PHOTOS:
             _photos = action.photos;
             break;
+        case Constants.UPLOAD_STARED:
+            _uploadStarted = true;
+            break;
         case Constants.GET_PHOTO_DETAIL:
             _photoDetail = action.photo;
+            _newPhoto = null;
             _deleted = false;
             _editMode = false;
             break;
         case Constants.NEW_PHOTO:
             _newPhoto = action.photo;
+            _uploadStarted = false;
             break;
         case Constants.NEW_PHOTO_PREVIEW:
             _previewUrl = action.url;

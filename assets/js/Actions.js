@@ -52,6 +52,7 @@ var Actions = {
         }
 
         var reader = new window.FileReader();
+
         reader.onload = function(){
             AppDispatcher.dispatch({
                 actionType: Constants.NEW_PHOTO_PREVIEW,
@@ -63,6 +64,9 @@ var Actions = {
 
     uploadPhoto: function(title, tags, photo){
         var self = this;
+        AppDispatcher.dispatch({
+            actionType: Constants.UPLOAD_STARTED
+        });
         API.uploadPhoto(title, tags, photo, function(data) {
             AppDispatcher.dispatch({
                 actionType: Constants.NEW_PHOTO,
@@ -83,11 +87,12 @@ var Actions = {
     },
 
     getPhotoDetail: function(photoId) {
+        var self = this;
         API.getPhoto(photoId, function(data){
             AppDispatcher.dispatch({
                 actionType: Constants.GET_PHOTO_DETAIL,
                 photo: data
-            })
+            });
         });
     },
 

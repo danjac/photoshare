@@ -6,11 +6,14 @@ var Actions = require('../Actions');
 
 var moment = require('moment');
 
+var Link = Router.Link;
+
 var Tag = React.createClass({
     render: function (){
-       return (
+
+        return (
             <span>
-                <a href="#"><span className="label label-md label-default">#{this.props.tag}</span></a>&nbsp;
+                <Link to="search" query={{q: this.props.tag}}><span className="label label-md label-default">#{this.props.tag}</span></Link>&nbsp;
             </span>
         );
     }

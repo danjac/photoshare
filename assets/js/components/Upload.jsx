@@ -12,7 +12,8 @@ var Upload = React.createClass({
 
     getInitialState: function() {
         return {
-            previewUrl: null
+            previewUrl: null,
+            uploadStarted: false
         }
     },
 
@@ -47,6 +48,7 @@ var Upload = React.createClass({
     render: function(){
 
         var preview = "";
+
         if(this.state.previewUrl) {
             preview = (
                 <div className="thumbnail">
@@ -55,9 +57,12 @@ var Upload = React.createClass({
             );
         }
 
+        if (this.state.uploadStarted){
+            return <div className="spinner"></div>;
+        }
+
         return (
         <div>
-            <div className="spinner"></div>
 
             <div className="row">
                 <div className="col-md-6">
@@ -94,11 +99,12 @@ var Upload = React.createClass({
 
     _onChange: function() {
         var photo = PhotoStore.getNewPhoto();
-        if (photo) {
+        if (photo !== null) {
             this.transitionTo('photoDetail', {id: photo.id});
             return;
         }
         this.setState({
+            uploadedStarted: PhotoStore.isUploadStarted(),
             previewUrl: PhotoStore.getPreviewUrl()
         });
     }

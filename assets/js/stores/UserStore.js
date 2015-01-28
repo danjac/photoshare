@@ -29,7 +29,7 @@ var UserStore = assign({}, EventEmitter.prototype, {
 });
 
 
-AppDispatcher.register(function(action){
+UserStore.dispatchToken = AppDispatcher.register(function(action){
 
     switch(action.actionType){
         case Constants.LOGIN_SUCCESSFUL:

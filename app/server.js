@@ -8,6 +8,7 @@ var http = require('http');
 var path = require('path');
 var bodyParser = require('body-parser');
 var React = require('react');
+var request = require('request');
 var API = require('../assets/js/API');
 
 require('node-jsx').install()
@@ -30,11 +31,19 @@ if ('development' == app.get('env')) {
   //app.use(express.errorHandler());
 }
 
+var API_URL = "http://localhost:5050/api";
+
 // JSX components
 
 var Popular = React.createFactory(require('../assets/js/components/Popular.jsx'));
 // latest, search, detail
 // we also want to render to JSON
+
+app.use("/api", function(req, res) {
+  var url = API_URL + req.url;
+  req.pipe(request(url)).pipe(res);
+});
+
 
 app.get("/", function(req, res){
     API.getPhotos("votes", 1, function(data){
@@ -43,8 +52,9 @@ app.get("/", function(req, res){
           markup: markup,
           data: JSON.stringify(data)
         });
-    }, true);
+    }, "http://localhost:5050");
 });
+
 //app.get('/', routes.index);
 //app.get('/users', user.list);
 

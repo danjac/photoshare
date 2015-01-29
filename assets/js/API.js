@@ -1,7 +1,7 @@
 var request = require('superagent');
 var Constants = require('./Constants');
 
-var BASE_URL = "http://localhost:5050";
+var BASE_URL = "";
 var X_AUTH_HEADER = "X-Auth-Token";
 
 var _setAuthToken = function(token) {
@@ -20,7 +20,7 @@ var API = {
 
     uploadPhoto: function(title, tags, photo, callback) {
         request
-            .post("/api/photos/")
+            .post(BASE_URL + "/api/photos/")
             .set(X_AUTH_HEADER, _getAuthToken())
             .field("title", title)
             .field("taglist", tags)
@@ -32,7 +32,7 @@ var API = {
 
     deletePhoto: function(photoId, callback) {
         request
-            .del("/api/photos/" + photoId)
+            .del(BASE_URL + "/api/photos/" + photoId)
             .set(X_AUTH_HEADER, _getAuthToken())
             .end(function(res){
                 callback();
@@ -42,7 +42,7 @@ var API = {
     editPhotoTitle: function(photoId, title, callback) {
 
         request
-            .patch("/api/photos/" + photoId + "/title")
+            .patch(BASE_URL + "/api/photos/" + photoId + "/title")
             .set(X_AUTH_HEADER, _getAuthToken())
             .send({
                 title: title
@@ -58,7 +58,7 @@ var API = {
     editPhotoTags: function(photoId, tags, callback) {
 
         request
-            .patch("/api/photos/" + photoId + "/tags")
+            .patch(BASE_URL + "/api/photos/" + photoId + "/tags")
             .set(X_AUTH_HEADER, _getAuthToken())
             .send({
                 taglist: tags
@@ -74,30 +74,30 @@ var API = {
     getPhoto: function(photoId, callback) {
         var self = this;
         request
-            .get("/api/photos/" + photoId)
+            .get(BASE_URL + "/api/photos/" + photoId)
             .set(X_AUTH_HEADER, _getAuthToken())
             .end(function(res){
                 callback(res.body);
             });
     },
 
-    getPhotos: function(orderBy, page, callback, isServer) {
+    getPhotos: function(orderBy, page, callback, base_url) {
+        base_url = base_url || "";
         req = request
-            .get(BASE_URL + "/api/photos/")
+            .get(base_url + "/api/photos/")
             .query({
                 orderBy: orderBy || '',
                 page: page
             });
-
-        console.log(isServer)
         req.end(function(res) {
+          console.log(base_url)
               callback(res.body);
         });
     },
 
     searchPhotos: function(search, page, callback) {
         request
-            .get("/api/photos/search")
+            .get(BASE_URL + "/api/photos/search")
             .query({
                 q: search,
                 page: page
@@ -114,7 +114,7 @@ var API = {
         }
 
         request
-            .get("/api/auth/")
+            .get(BASE_URL + "/api/auth/")
             .set(X_AUTH_HEADER, token)
             .end(function(res){
                 if (res.body.loggedIn) {
@@ -125,7 +125,7 @@ var API = {
 
     login: function(identifier, password, onSuccess, onError) {
         request
-            .post("/api/auth/")
+            .post(BASE_URL + "/api/auth/")
             .send({
                 identifier: identifier,
                 password: password
@@ -142,7 +142,7 @@ var API = {
 
     logout: function(callback) {
         request
-            .del('/api/auth/')
+            .del(BASE_URL + '/api/auth/')
             .set(X_AUTH_HEADER, _getAuthToken())
             .end(function(){
                 _delAuthToken();

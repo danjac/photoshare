@@ -41,7 +41,7 @@ app.get("/", function(req, res){
         var markup = React.renderToString(Popular({photos: data}));
         res.render("index", {
           markup: markup,
-          //data: JSON.Stringify(data)
+          data: JSON.stringify(data)
         });
     }, true);
 });

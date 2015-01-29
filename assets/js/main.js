@@ -25,6 +25,8 @@ var routes = (
     </Route>
     );
 
+var data = JSON.parse(document.getElementById("initData").innerHTML);
+
 Router.run(routes, function (Handler) {
-    React.render(<Handler />, document.body);
+    React.render(<Handler photos={data} />, document.body);
 });

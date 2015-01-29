@@ -18,7 +18,9 @@ var Popular = React.createClass({
     },
 
     componentDidMount: function() {
-        Actions.getPhotos("votes");
+        if (!this.props.photos) {
+          Actions.getPhotos("votes");
+        }
     },
 
     componentWillUnmount: function() {

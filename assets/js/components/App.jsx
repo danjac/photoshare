@@ -173,7 +173,7 @@ var App = React.createClass({
             return <Alert key={num} message={msg} />
         })}
         </div>
-        <RouteHandler user={this.state.user} />
+        <RouteHandler user={this.state.user} photos={this.props.photos} />
         </div>
     </div>
         );

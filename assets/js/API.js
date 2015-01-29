@@ -1,6 +1,7 @@
 var request = require('superagent');
 var Constants = require('./Constants');
 
+var BASE_URL = "http://localhost:5050";
 var X_AUTH_HEADER = "X-Auth-Token";
 
 var _setAuthToken = function(token) {
@@ -80,16 +81,18 @@ var API = {
             });
     },
 
-    getPhotos: function(orderBy, page, callback) {
-        request
-            .get("/api/photos/")
+    getPhotos: function(orderBy, page, callback, isServer) {
+        req = request
+            .get(BASE_URL + "/api/photos/")
             .query({
                 orderBy: orderBy || '',
                 page: page
-            })
-            .end(function(res) {
-                callback(res.body);
             });
+
+        console.log(isServer)
+        req.end(function(res) {
+              callback(res.body);
+        });
     },
 
     searchPhotos: function(search, page, callback) {
@@ -100,7 +103,6 @@ var API = {
                 page: page
             })
             .end(function(res){
-                console.log(res)
                 callback(res.body);
             });
     },

@@ -39,7 +39,7 @@ var Pagination = React.createClass({
         }
 
         if (pages.length < 2) {
-            return <ul/>;
+            return <ul/>
         }
 
         return (
@@ -96,8 +96,8 @@ var PhotoList = React.createClass({
             {pagination}
             <div className="row">
                 {this.props.photos.photos.map(function(photo) {
-                    return <PhotoListItem key={photo.id} photo={photo}  />;
-                })};
+                    return <PhotoListItem key={photo.id} photo={photo}  />
+                })}
             </div>
             {pagination}
             </div>

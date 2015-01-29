@@ -7,7 +7,7 @@ var Popular = React.createClass({
 
     getInitialState: function() {
         return {
-            photos: {
+            photos: this.props.photos || {
                 photos: []
             }
         }
@@ -30,6 +30,7 @@ var Popular = React.createClass({
     },
 
     render: function() {
+        console.log(this.state.photos)
         return (
             <PhotoList photos={this.state.photos} handlePaginationLink={this.handlePaginationLink} />
         )

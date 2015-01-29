@@ -88,6 +88,7 @@ func (app *app) initDB() error {
 // errors appropriately.
 func (app *app) handler(h handlerFunc, level authLevel) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		handleError(w, r, func() error {
 			user, err := app.authenticate(r, level)
 			if err != nil {

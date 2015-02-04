@@ -2,19 +2,20 @@
  * Module dependencies.
  */
 
+require('node-jsx').install()
+
 var express = require('express');
-var cors = require('cors');
 var http = require('http');
 var path = require('path');
 var bodyParser = require('body-parser');
 var React = require('react');
+var Router = require('react-router');
 var request = require('request');
 var API = require('../assets/js/API');
+var Routes = require('../assets/js/Routes.jsx');
 
-require('node-jsx').install()
 
 var app = express();
-app.use(cors());
 
 // all environments
 app.set('port', process.env.PORT || 3000);
@@ -31,11 +32,11 @@ if ('development' == app.get('env')) {
   //app.use(express.errorHandler());
 }
 
-var API_URL = "http://localhost:5050/api";
+var API_URL = "http://localhost:5000/api";
 
 // JSX components
 
-var Popular = React.createFactory(require('../assets/js/components/Popular.jsx'));
+//var Popular = React.createFactory(require('../assets/js/components/Popular.jsx'));
 // latest, search, detail
 // we also want to render to JSON
 
@@ -47,12 +48,16 @@ app.use("/api", function(req, res) {
 
 app.get("/", function(req, res){
     API.getPhotos("votes", 1, function(data){
-        var markup = React.renderToString(Popular({photos: data}));
-        res.render("index", {
-          markup: markup,
-          data: JSON.stringify(data)
+
+        Router.run(Routes, req.url, function(Handler, state) {
+            var markup = React.renderToString(Handler({photos: data}));
+            res.render("index", {
+              markup: markup,
+              data: JSON.stringify(data)
+            });
         });
-    }, "http://localhost:5050");
+
+    }, "http://localhost:5000");
 });
 
 //app.get('/', routes.index);

@@ -88,14 +88,19 @@ var PhotoListItem = React.createClass({
 
 var PhotoList = React.createClass({
 
+
     render: function (){
 
         var pagination = <Pagination photos={this.props.photos} handlePaginationLink={this.props.handlePaginationLink} />;
+        var photos = [];
+        if (this.props.photos) {
+            photos = this.props.photos.photos || [];
+        } 
         return (
             <div>
             {pagination}
             <div className="row">
-                {this.props.photos.photos.map(function(photo) {
+                {photos.map(function(photo) {
                     return <PhotoListItem key={photo.id} photo={photo}  />
                 })}
             </div>

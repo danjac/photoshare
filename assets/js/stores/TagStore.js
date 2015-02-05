@@ -1,5 +1,5 @@
 var AppDispatcher = require('../AppDispatcher');
-var Constants = require('../Constants');
+var Constants = require('../Constants').Actions;
 var assign = require('object-assign');
 
 var BaseStore = require('./BaseStore');

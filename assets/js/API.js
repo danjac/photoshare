@@ -1,19 +1,19 @@
 var request = require('superagent');
-var Constants = require('./Constants');
 
 var BASE_URL = "";
 var X_AUTH_HEADER = "X-Auth-Token";
+var AUTH_TOKEN_STORAGE_KEY = "X-Auth-Token-Key";
 
 var _setAuthToken = function(token) {
-    window.localStorage.setItem(Constants.AUTH_TOKEN_STORAGE_KEY, token);
+    window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
 };
 
 var _getAuthToken = function() {
-    return window.localStorage.getItem(Constants.AUTH_TOKEN_STORAGE_KEY);
+    return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
 };
 
 var _delAuthToken = function() {
-    window.localStorage.removeItem(Constants.AUTH_TOKEN_STORAGE_KEY);
+    window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
 };
 
 var API = {

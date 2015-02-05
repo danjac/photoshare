@@ -1,4 +1,4 @@
-var Constants = require('../Constants');
+var Constants = require('../Constants').Events;
 var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
 

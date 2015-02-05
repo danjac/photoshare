@@ -5,8 +5,8 @@ var API = require('./API');
 var Actions = {
 
     alertMessage: function(msg, msgType) {
-        AppDispatcher.dispatch({
-            actionType: Constants.NEW_ALERT_MESSAGE,
+        AppDispatcher.handleViewAction({
+            actionType: Constants.Actions.NEW_ALERT_MESSAGE,
             message: {
                 message: msg,
                 type: msgType
@@ -15,16 +15,16 @@ var Actions = {
     },
 
     filterTags: function(tagFilter) {
-        AppDispatcher.dispatch({
-            actionType: Constants.FILTER_TAGS,
+        AppDispatcher.handleViewAction({
+            actionType: Constants.Actions.FILTER_TAGS,
             tagFilter: tagFilter
         });
     },
 
     getTags: function() {
         API.getTags(function(data) {
-            AppDispatcher.dispatch({
-                actionType: Constants.GET_TAGS,
+            AppDispatcher.handleServerAction({
+                actionType: Constants.Actions.GET_TAGS,
                 tags: data
             });
         });
@@ -32,15 +32,15 @@ var Actions = {
 
     searchPhotos: function(search, page) {
         if (!search) {
-            AppDispatcher.dispatch({
-                actionType: Constants.GET_PHOTOS,
+            AppDispatcher.handleViewAction({
+                actionType: Constants.Actions.GET_PHOTOS,
                 photos: []
             });
         }
         page = page || 1;
         API.searchPhotos(search, page, function(data) {
-            AppDispatcher.dispatch({
-                actionType: Constants.GET_PHOTOS,
+            AppDispatcher.handleServerAction({
+                actionType: Constants.Actions.GET_PHOTOS,
                 photos: data
             });
         });
@@ -48,8 +48,8 @@ var Actions = {
 
     getPhotosForUser: function(userId, page) {
         API.getPhotosForUser(userId, page, function(data) {
-            AppDispatcher.dispatch({
-                actionType: Constants.GET_PHOTOS,
+            AppDispatcher.handleServerAction({
+                actionType: Constants.Actions.GET_PHOTOS,
                 photos: data
             });
 
@@ -57,15 +57,15 @@ var Actions = {
     },
 
     photoEditMode: function() {
-        AppDispatcher.dispatch({
-            actionType: Constants.PHOTO_EDIT_MODE
+        AppDispatcher.handleViewAction({
+            actionType: Constants.Actions.PHOTO_EDIT_MODE
         });
     },
 
     photoEditDone: function(photoId, newTitle) {
 
-        AppDispatcher.dispatch({
-            actionType: Constants.PHOTO_EDIT_DONE,
+        AppDispatcher.handleViewAction({
+            actionType: Constants.Actions.PHOTO_EDIT_DONE,
             title: newTitle
         });
         API.editPhotoTitle(photoId, newTitle);
@@ -80,8 +80,8 @@ var Actions = {
         var reader = new window.FileReader();
 
         reader.onload = function(){
-            AppDispatcher.dispatch({
-                actionType: Constants.NEW_PHOTO_PREVIEW,
+            AppDispatcher.handleViewAction({
+                actionType: Constants.Actions.NEW_PHOTO_PREVIEW,
                 url: reader.result
             });
         };
@@ -90,23 +90,23 @@ var Actions = {
 
     uploadPhoto: function(title, tags, photo){
         var self = this;
-        AppDispatcher.dispatch({
-            actionType: Constants.UPLOAD_STARTED
+        AppDispatcher.handleViewAction({
+            actionType: Constants.Actions.UPLOAD_STARTED
         });
         API.uploadPhoto(title, tags, photo, function(data) {
-            AppDispatcher.dispatch({
-                actionType: Constants.NEW_PHOTO,
+            AppDispatcher.handleServerAction({
+                actionType: Constants.Actions.NEW_PHOTO,
                 photo: data
             });
-            self.alertMessage('Your photo has been uploaded', Constants.ALERT_SUCCESS);
+            self.alertMessage('Your photo has been uploaded', Constants.Alerts.SUCCESS);
         });
     },
 
     getPhotos: function(orderBy, page) {
         page = page || 1;
         API.getPhotos(orderBy, page, function(data){
-            AppDispatcher.dispatch({
-                actionType: Constants.GET_PHOTOS,
+            AppDispatcher.handleServerAction({
+                actionType: Constants.Actions.GET_PHOTOS,
                 photos: data
             });
         });
@@ -115,8 +115,8 @@ var Actions = {
     getPhotoDetail: function(photoId) {
         var self = this;
         API.getPhoto(photoId, function(data){
-            AppDispatcher.dispatch({
-                actionType: Constants.GET_PHOTO_DETAIL,
+            AppDispatcher.handleServerAction({
+                actionType: Constants.Actions.GET_PHOTO_DETAIL,
                 photo: data
             });
         });
@@ -125,17 +125,17 @@ var Actions = {
     deletePhoto: function(photoId) {
         var self = this;
         API.deletePhoto(photoId, function() {
-            self.alertMessage("Your photo has been deleted", Constants.ALERT_SUCCESS);
-            AppDispatcher.dispatch({
-                actionType: Constants.PHOTO_DELETED
+            self.alertMessage("Your photo has been deleted", Constants.Alerts.ALERT_SUCCESS);
+            AppDispatcher.handleServerAction({
+                actionType: Constants.Actions.PHOTO_DELETED
             });
         });
     },
 
     getUser: function() {
         API.getUser(function(data) {
-            AppDispatcher.dispatch({
-                actionType: Constants.LOGIN_SUCCESSFUL,
+            AppDispatcher.handleServerAction({
+                actionType: Constants.Actions.LOGIN_SUCCESSFUL,
                 user: data
             });
         });
@@ -144,21 +144,21 @@ var Actions = {
     login: function(identifier, password) {
         var self = this;
         API.login(identifier, password, function(data, authToken) {
-            self.alertMessage("Welcome back!", Constants.ALERT_SUCCESS);
-            AppDispatcher.dispatch({
-                actionType: Constants.LOGIN_SUCCESSFUL,
+            self.alertMessage("Welcome back!", Constants.Alerts.ALERT_SUCCESS);
+            AppDispatcher.handleServerAction({
+                actionType: Constants.Actions.LOGIN_SUCCESSFUL,
                 user: data
             });
         }, function(err) {
-            self.alertMessage(err, Constants.ALERT_DANGER);
+            self.alertMessage(err, Constants.Alerts.ALERT_DANGER);
         });
     },
 
     logout: function() {
-        AppDispatcher.dispatch({
-            actionType: Constants.LOGOUT
+        AppDispatcher.handleServerAction({
+            actionType: Constants.Actions.LOGOUT
         });
-        this.alertMessage("Bye for now!", Constants.ALERT_SUCCESS);
+        this.alertMessage("Bye for now!", Constants.Alerts.ALERT_SUCCESS);
         API.logout();
     }
 };

@@ -45,14 +45,22 @@ var Tags = React.createClass({
         Actions.getTags();
     },
 
+    onChangeFilter: function(event) {
+        event.preventDefault();
+        tagFilter = this.refs.tagFilter.getDOMNode().value;
+        Actions.filterTags(tagFilter);
+    },
+
     render: function() {
+
+        var self = this;
 
         return (
                 <div>
     <div className="tag-control-box">
         <form className="form-inline">
             <div className="form-group">
-                <input className="form-control" type="text" placeholder="Find a tag" />
+                <input ref="tagFilter" className="form-control" type="text" placeholder="Find a tag" onChange={self.onChangeFilter} />
                 <button className="btn"><i className="fa fa-sort-numeric-desc"></i>
                 </button>
                 <button className="btn"><i className="fa fa-sort-alpha-asc"></i>
@@ -62,7 +70,7 @@ var Tags = React.createClass({
     </div>
 
     <div>
-        {this.state.tags.map(function(tag) {
+        {self.state.tags.map(function(tag) {
             return <Tag tag={tag} />
         })}
     </div>

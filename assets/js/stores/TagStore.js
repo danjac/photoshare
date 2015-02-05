@@ -4,12 +4,29 @@ var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
 
 var _tags = [];
+var _filteredTags = [];
+var _tagFilter = null;
 
+function _filterTags(tagFilter){
+    if (!tagFilter) {
+        return _tags;
+    }
+
+    var rv = [];
+
+    _tags.forEach(function(tag) {
+        if (tag.name.indexOf(tagFilter) !== -1) {
+            rv.push(tag);
+        }
+    });
+    return rv;
+
+}
 
 var TagStore = assign({}, EventEmitter.prototype, {
 
     getTags: function() {
-        return _tags;
+        return _filteredTags;
     },
 
     emitChange: function() {
@@ -30,7 +47,11 @@ var TagStore = assign({}, EventEmitter.prototype, {
 TagStore.dispatchToken = AppDispatcher.register(function(action) {
     switch(action.actionType) {
         case Constants.GET_TAGS:
-            _tags = action.tags;
+            _tags = _filteredTags = action.tags;
+            TagStore.emitChange();
+            break;
+        case Constants.FILTER_TAGS:
+            _filteredTags = _filterTags(action.tagFilter);
             TagStore.emitChange();
             break;
     }

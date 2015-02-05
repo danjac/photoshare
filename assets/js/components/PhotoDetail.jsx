@@ -206,7 +206,7 @@ var PhotoDetail = React.createClass({
                 </dd>
                 <dt>Uploaded by</dt>
                 <dd>
-                    <a href="#">{photo.ownerName}</a>
+                    <Link to="user" params={{id: photo.ownerId}} query={{name: photo.ownerName}}>{photo.ownerName}</Link>
                 </dd>
                 <dt>Uploaded on</dt>
                 <dd>{moment(photo.createdAt).format("MMMM Do YYYY hh:mm")}</dd>

@@ -14,6 +14,13 @@ var Actions = {
         });
     },
 
+    filterTags: function(tagFilter) {
+        AppDispatcher.dispatch({
+            actionType: Constants.FILTER_TAGS,
+            tagFilter: tagFilter
+        });
+    },
+
     getTags: function() {
         API.getTags(function(data) {
             AppDispatcher.dispatch({
@@ -36,6 +43,16 @@ var Actions = {
                 actionType: Constants.GET_PHOTOS,
                 photos: data
             });
+        });
+    },
+
+    getPhotosForUser: function(userId, page) {
+        API.getPhotosForUser(userId, page, function(data) {
+            AppDispatcher.dispatch({
+                actionType: Constants.GET_PHOTOS,
+                photos: data
+            });
+
         });
     },
 

@@ -77,7 +77,7 @@ var PhotoListItem = React.createClass({
         <div className="thumbnail">
             <img alt={photo.title} className="img-responsive" src={src} />
             <div className="caption">
-                <h3>{photo.title}</h3>
+                <h3>{photo.title.slice(0, 20)}</h3>
             </div>
         </div>
     </div>

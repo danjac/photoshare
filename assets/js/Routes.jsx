@@ -14,6 +14,7 @@ var Upload = require('./components/Upload.jsx');
 var Search = require('./components/Search.jsx');
 var PhotoDetail = require('./components/PhotoDetail.jsx');
 var Tags = require('./components/Tags.jsx');
+var User = require('./components/User.jsx');
 
 var routes = (
     <Route handler={App}>
@@ -23,6 +24,7 @@ var routes = (
         <Route name="tags" path="tags" handler={Tags} />
         <Route name="upload" path="upload" handler={Upload} />
         <Route name="login" path="login" handler={Login} />
+        <Route name="user" path="user/:id" handler={User} />
         <Route name="photoDetail" path="photo/:id" handler={PhotoDetail} />
     </Route>
     );

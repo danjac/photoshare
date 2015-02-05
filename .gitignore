@@ -9,6 +9,7 @@ photoshare
 *.db
 .env
 db/dbconf.yml
+keys
 logs
 server
 import

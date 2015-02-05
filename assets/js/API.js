@@ -103,6 +103,19 @@ var API = {
         });
     },
 
+    getPhotosForUser: function(userId, page, callback, base_url) {
+        base_url = base_url || "";
+        req = request
+            .get(base_url + "/api/photos/owner/" + userId)
+            .query({
+                page: page
+            });
+        req.end(function(res) {
+          console.log(base_url)
+              callback(res.body);
+        });
+    },
+
     searchPhotos: function(search, page, callback) {
         request
             .get(BASE_URL + "/api/photos/search")

@@ -1,27 +1,15 @@
 var AppDispatcher = require('../AppDispatcher');
 var Constants = require('../Constants');
-var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
 
+var BaseStore = require('./BaseStore');
 
 var _messages = [];
 
-var AlertStore = assign({}, EventEmitter.prototype, {
+var AlertStore = assign({}, BaseStore, {
 
     getMessages: function (){
         return _messages;
-    },
-
-    emitChange: function() {
-        this.emit(Constants.CHANGE_EVENT);
-    },
-
-    addChangeListener: function(callback) {
-        this.on(Constants.CHANGE_EVENT, callback);
-    },
-
-    removeChangeListener: function(callback) {
-        this.removeListener(Constants.CHANGE_EVENT, callback);
     }
 
 });

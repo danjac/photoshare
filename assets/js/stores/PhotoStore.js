@@ -1,7 +1,8 @@
 var AppDispatcher = require('../AppDispatcher');
 var Constants = require('../Constants');
-var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
+
+var BaseStore = require('./BaseStore');
 
 var _photos = {
     photos: []
@@ -14,7 +15,7 @@ var _deleted = false;
 var _editMode = false;
 var _uploadStarted = false;
 
-var PhotoStore = assign({}, EventEmitter.prototype, {
+var PhotoStore = assign({}, BaseStore, {
 
     isUploadStarted: function() {
         return _uploadStarted;
@@ -42,18 +43,6 @@ var PhotoStore = assign({}, EventEmitter.prototype, {
 
     isEditMode: function(){
         return _editMode;
-    },
-
-    emitChange: function() {
-        this.emit(Constants.CHANGE_EVENT);
-    },
-
-    addChangeListener: function(callback) {
-        this.on(Constants.CHANGE_EVENT, callback);
-    },
-
-    removeChangeListener: function(callback) {
-        this.removeListener(Constants.CHANGE_EVENT, callback);
     }
 
 });

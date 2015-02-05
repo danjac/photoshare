@@ -1,11 +1,12 @@
 var AppDispatcher = require('../AppDispatcher');
 var Constants = require('../Constants');
-var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
+
+var BaseStore = require('./BaseStore');
 
 var _user = null;
 
-var UserStore = assign({}, EventEmitter.prototype, {
+var UserStore = assign({}, BaseStore, {
 
     getUser: function() {
         return _user;
@@ -15,17 +16,6 @@ var UserStore = assign({}, EventEmitter.prototype, {
         return _user !== null;
     },
 
-    emitChange: function() {
-        this.emit(Constants.CHANGE_EVENT);
-    },
-
-    addChangeListener: function(callback) {
-        this.on(Constants.CHANGE_EVENT, callback);
-    },
-
-    removeChangeListener: function(callback) {
-        this.removeListener(Constants.CHANGE_EVENT, callback);
-    }
 });
 
 

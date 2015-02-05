@@ -1,11 +1,11 @@
 var AppDispatcher = require('../AppDispatcher');
 var Constants = require('../Constants');
-var EventEmitter = require('events').EventEmitter;
 var assign = require('object-assign');
+
+var BaseStore = require('./BaseStore');
 
 var _tags = [];
 var _filteredTags = [];
-var _tagFilter = null;
 
 function _filterTags(tagFilter){
     if (!tagFilter) {
@@ -23,22 +23,10 @@ function _filterTags(tagFilter){
 
 }
 
-var TagStore = assign({}, EventEmitter.prototype, {
+var TagStore = assign({}, BaseStore, {
 
     getTags: function() {
         return _filteredTags;
-    },
-
-    emitChange: function() {
-        this.emit(Constants.CHANGE_EVENT);
-    },
-
-    addChangeListener: function(callback) {
-        this.on(Constants.CHANGE_EVENT, callback);
-    },
-
-    removeChangeListener: function(callback) {
-        this.removeListener(Constants.CHANGE_EVENT, callback);
     }
 
 });

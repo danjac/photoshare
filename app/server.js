@@ -32,16 +32,11 @@ if ('development' == app.get('env')) {
   //app.use(express.errorHandler());
 }
 
-var API_URL = "http://localhost:5000/api";
-
-// JSX components
-
-//var Popular = React.createFactory(require('../assets/js/components/Popular.jsx'));
-// latest, search, detail
-// we also want to render to JSON
+var api_port = process.env.API_PORT || "5000";
+var api_url = "http://localhost:" + api_port;
 
 app.use("/api", function(req, res) {
-  var url = API_URL + req.url;
+  var url = api_url + "/api" + req.url;
   req.pipe(request(url)).pipe(res);
 });
 
@@ -57,11 +52,8 @@ app.get("/", function(req, res){
             });
         });
 
-    }, "http://localhost:5000");
+    }, api_url);
 });
-
-//app.get('/', routes.index);
-//app.get('/users', user.list);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

@@ -21,11 +21,16 @@ var Tag = React.createClass({
 
 var PhotoTitle = React.createClass({
 
-    handleEdit: function() {
+    handleEdit: function(event) {
+        event.preventDefault();
+        if (!this.props.user) {
+            return;
+        }
         Actions.photoEditMode();
     },
 
-    handleSubmit: function() {
+    handleSubmit: function(event) {
+        event.preventDefault();
         var title = this.refs.title.getDOMNode().value;
         Actions.photoEditDone(this.props.photo.id, title);
     },
@@ -175,8 +180,8 @@ var PhotoDetail = React.createClass({
         return (
     <div>
         <div className="row">
-            <PhotoTitle photo={photo} editMode={this.state.editMode} />
-            <PhotoDetailToolbar photo={photo} />
+            <PhotoTitle photo={photo} user={user} editMode={this.state.editMode} />
+            <PhotoDetailToolbar photo={photo} user={user} />
         </div>
 
         <hr />

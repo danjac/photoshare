@@ -41,7 +41,7 @@ type config struct {
 	GoogleClientID string `env:"key=GOOGLE_CLIENT_ID"`
 	GoogleSecret   string `env:"key=GOOGLE_SECRET"`
 
-	ServerPort int `env:"key=PORT default=5000"`
+	ServerPort int `env:"key=API_PORT default=5000"`
 }
 
 func newConfig() (*config, error) {

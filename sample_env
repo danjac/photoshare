@@ -17,7 +17,7 @@ export PUBLIC_KEY = "$(pwd)/keys/sample_key.pub"
 
 # optional, runs on 5000 by default
 
-export PORT = 6000
+export API_PORT = 6000
 
 # optional, will be $(pwd)/public by default
 

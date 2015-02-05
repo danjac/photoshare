@@ -14,6 +14,15 @@ var Actions = {
         });
     },
 
+    getTags: function() {
+        API.getTags(function(data) {
+            AppDispatcher.dispatch({
+                actionType: Constants.GET_TAGS,
+                tags: data
+            });
+        });
+    },
+
     searchPhotos: function(search, page) {
         if (!search) {
             AppDispatcher.dispatch({

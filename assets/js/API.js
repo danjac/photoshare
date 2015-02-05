@@ -71,6 +71,14 @@ var API = {
 
     },
 
+    getTags: function(callback) {
+        request
+            .get(BASE_URL + "/api/tags/")
+            .end(function(res) {
+                callback(res.body);
+            });
+    },
+
     getPhoto: function(photoId, callback) {
         var self = this;
         request

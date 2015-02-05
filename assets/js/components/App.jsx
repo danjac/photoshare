@@ -116,7 +116,7 @@ var Navbar = React.createClass({
                     </li>
                     <li><Link to="latest"><i className="fa fa-clock-o"></i> Latest</Link>
                     </li>
-                    <li><a href="tags"><i className="fa fa-tags"></i> Tags</a>
+                    <li><Link to="tags"><i className="fa fa-tags"></i> Tags</Link>
                     </li>
                     <li><Link to="upload"><i className="fa fa-upload"></i> Upload</Link>
                     </li>

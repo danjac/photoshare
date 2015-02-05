@@ -60,39 +60,51 @@ var PhotoStore = assign({}, EventEmitter.prototype, {
 
 PhotoStore.dispatchToken = AppDispatcher.register(function(action){
 
+    var emitChange = false;
+
     switch(action.actionType){
         case Constants.GET_PHOTOS:
             _photos = action.photos;
+            emitChange = true;
             break;
         case Constants.UPLOAD_STARED:
             _uploadStarted = true;
+            emitChange = true;
             break;
         case Constants.GET_PHOTO_DETAIL:
             _photoDetail = action.photo;
             _newPhoto = null;
             _deleted = false;
             _editMode = false;
+            emitChange = true;
             break;
         case Constants.NEW_PHOTO:
             _newPhoto = action.photo;
             _uploadStarted = false;
+            emitChange = true;
             break;
         case Constants.NEW_PHOTO_PREVIEW:
             _previewUrl = action.url;
+            emitChange = true;
             break;
         case Constants.PHOTO_DELETED:
             _deleted = true;
+            emitChange = true;
             break;
         case Constants.PHOTO_EDIT_MODE:
             _editMode = !(_editMode);
+            emitChange = true;
             break;
         case Constants.PHOTO_EDIT_DONE:
             _editMode = false;
             _photoDetail.title = action.title;
+            emitChange = true;
             break;
         default:
     }
-    PhotoStore.emitChange();
+    if (emitChange) {
+        PhotoStore.emitChange();
+    }
 });
 
 module.exports = PhotoStore;

@@ -1,6 +1,5 @@
 var React = require('react');
 var Router = require('react-router');
-var request = require('superagent');
 
 var PaginationItem = React.createClass({
 

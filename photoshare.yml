@@ -1,0 +1,8 @@
+name: photoshare
+root: ~/go/src/github.com/danjac/photoshare
+
+windows:
+    - api: dotenv ./server
+    - node: dotenv node app/server.js
+    - gulp: gulp
+    - bash: 

@@ -5,6 +5,7 @@ public/css
 public/js
 node_modules
 *.swp
+*.swo
 photoshare
 *.db
 .env

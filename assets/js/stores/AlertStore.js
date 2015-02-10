@@ -18,8 +18,10 @@ AlertStore.dispatchToken = AppDispatcher.register(function(action){
 
     switch(action.actionType){
         case Constants.NEW_ALERT_MESSAGE:
-            _messages.push(action.message);
-            AlertStore.emitChange();
+            if (action.message) {
+                _messages.push(action.message);
+                AlertStore.emitChange();
+            }
             break;
         default:
     }

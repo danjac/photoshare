@@ -5,6 +5,12 @@ var PhotoList = require('./PhotoList.jsx')
 
 var Latest = React.createClass({
 
+    statics: {
+        willTransitionTo: function(transition, params) {
+            Actions.getPhotos();
+        }
+    },
+
     getInitialState: function() {
         return {
             photos: {
@@ -15,10 +21,6 @@ var Latest = React.createClass({
 
     componentWillMount: function() {
         PhotoStore.addChangeListener(this._onChange);
-    },
-
-    componentDidMount: function() {
-        Actions.getPhotos();
     },
 
     componentWillUnmount: function() {

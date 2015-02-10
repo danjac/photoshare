@@ -11,6 +11,9 @@ var Link = Router.Link;
 
 var Alert = React.createClass({
     render: function (){
+        if (!this.props.message) {
+            return <div />;
+        }
         var className = "alert alert-dismissable alert-";
         switch (this.props.message.type) {
             case Constants.ALERT_SUCCESS:
@@ -81,7 +84,8 @@ var Navbar = React.createClass({
 
     mixins: [Router.Navigation],
 
-    handleSearch: function(){
+    handleSearch: function(event){
+        event.preventDefault();
         var node = this.refs.search.getDOMNode();
         var search = node.value.trim();
         if (search){

@@ -22,6 +22,7 @@ var Actions = {
     },
 
     getTags: function() {
+        var self = this;
         API.getTags(function(data) {
             AppDispatcher.handleServerAction({
                 actionType: Constants.Actions.GET_TAGS,

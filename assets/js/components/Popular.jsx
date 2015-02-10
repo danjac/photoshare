@@ -5,6 +5,12 @@ var PhotoList = require('./PhotoList.jsx');
 
 var Popular = React.createClass({
 
+    statics: {
+        willTransitionTo: function(transition, params) {
+            Actions.getPhotos("votes");
+        }
+    },
+
     getInitialState: function() {
         return {
             photos: this.props.photos || {

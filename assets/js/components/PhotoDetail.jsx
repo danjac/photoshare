@@ -130,9 +130,19 @@ var PhotoDetailToolbar = React.createClass({
 
 });
 
+function _fetchData(photoId) {
+    Actions.getPhotoDetail(photoId);
+}
+
 var PhotoDetail = React.createClass({
 
     mixins: [Router.State, Router.Navigation],
+
+    statics: {
+        willTransitionTo: function(transition, params) {
+            _fetchData(params.id);
+        }
+    },
 
     getInitialState: function() {
         return {
@@ -141,14 +151,10 @@ var PhotoDetail = React.createClass({
     },
 
     fetchData: function() {
-        Actions.getPhotoDetail(this.getParams().id);
+        _fetchData(this.getParams().id);
     },
 
     componentWillReceiveProps: function() {
-        this.fetchData();
-    },
-
-    componentDidMount: function() {
         this.fetchData();
     },
 

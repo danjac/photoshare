@@ -21,6 +21,17 @@ func popular(ctx *context, w http.ResponseWriter, r *http.Request) error {
 	return renderToReact(w, r, "", photos)
 }
 
+func latest(ctx *context, w http.ResponseWriter, r *http.Request) error {
+
+	photos, err := ctx.datamapper.getPhotos(newPage(1), "")
+
+	if err != nil {
+		return errgo.Mask(err)
+	}
+
+	return renderToReact(w, r, "Latest", photos)
+}
+
 func renderToReact(w http.ResponseWriter, r *http.Request, route string, props interface{}) error {
 
 	if reactClient == nil {

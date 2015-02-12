@@ -5,18 +5,16 @@ var PhotoList = require('./PhotoList.jsx')
 
 var Latest = React.createClass({
 
-    statics: {
-        willTransitionTo: function(transition, params) {
-            Actions.getPhotos();
-        }
-    },
-
     getInitialState: function() {
         return {
-            photos: {
+            photos: this.props.photos || {
                 photos: []
             }
         }
+    },
+
+    componentDidMount: function() {
+        Actions.getPhotos();
     },
 
     componentWillMount: function() {

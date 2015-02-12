@@ -199,8 +199,8 @@ var PhotoDetail = React.createClass({
 
     <div className="row">
         <div className="col-xs-6 col-md-3">
-            <a target="_blank" className="thumbnail" title={photo.title} href={'uploads/' + photo.photo}>
-                <img alt={photo.title} src={'uploads/thumbnails/' + photo.photo} />
+            <a target="_blank" className="thumbnail" title={photo.title} href={'/static/uploads/' + photo.photo}>
+                <img alt={photo.title} src={'/static/uploads/thumbnails/' + photo.photo} />
             </a>
         </div>
         <div className="col-xs-6">

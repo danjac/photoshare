@@ -5,12 +5,6 @@ var PhotoList = require('./PhotoList.jsx');
 
 var Popular = React.createClass({
 
-    statics: {
-        willTransitionTo: function(transition, params) {
-            Actions.getPhotos("votes");
-        }
-    },
-
     getInitialState: function() {
         return {
             photos: this.props.photos || {
@@ -38,7 +32,6 @@ var Popular = React.createClass({
     },
 
     render: function() {
-        console.log(this.state.photos)
         return (
             <PhotoList photos={this.state.photos} handlePaginationLink={this.handlePaginationLink} />
         )

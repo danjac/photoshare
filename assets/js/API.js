@@ -98,7 +98,6 @@ var API = {
                 page: page
             });
         req.end(function(res) {
-          console.log(base_url)
               callback(res.body);
         });
     },
@@ -111,7 +110,6 @@ var API = {
                 page: page
             });
         req.end(function(res) {
-          console.log(base_url)
               callback(res.body);
         });
     },

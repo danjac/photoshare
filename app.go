@@ -187,6 +187,8 @@ func (app *app) initRouter() {
 	feeds.HandleFunc("popular/", app.handler(popularFeed, authLevelIgnore)).Methods("GET").Name("popularFeed")
 	feeds.HandleFunc("owner/{ownerID:[0-9]+}", app.handler(ownerFeed, authLevelIgnore)).Methods("GET").Name("ownerFeed")
 
-	app.router.PathPrefix("/").Handler(http.FileServer(http.Dir(app.cfg.PublicDir)))
+	app.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(app.cfg.PublicDir))))
 
+	react := app.router.PathPrefix("/").Subrouter()
+	react.HandleFunc("/", app.handler(popular, authLevelIgnore)).Methods("GET").Name("popular")
 }

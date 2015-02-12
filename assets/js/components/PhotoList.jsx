@@ -71,7 +71,7 @@ var PhotoListItem = React.createClass({
 
     render: function(){
         var photo = this.props.photo;
-        var src = 'uploads/thumbnails/' + photo.photo;
+        var src = '/static/uploads/thumbnails/' + photo.photo;
         return (
     <div className="col-xs-6 col-md-3" onClick={this.handleSelectPhoto}>
         <div className="thumbnail">

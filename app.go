@@ -191,5 +191,5 @@ func (app *app) initRouter() {
 
 	react := app.router.PathPrefix("/").Subrouter()
 	react.HandleFunc("/", app.handler(popular, authLevelIgnore)).Methods("GET").Name("popular")
-	react.HandleFunc("/latest/", app.handler(latest, authLevelIgnore)).Methods("GET").Name("latest")
+	react.HandleFunc("/latest", app.handler(latest, authLevelIgnore)).Methods("GET").Name("latest")
 }

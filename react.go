@@ -29,7 +29,7 @@ func latest(ctx *context, w http.ResponseWriter, r *http.Request) error {
 		return errgo.Mask(err)
 	}
 
-	return renderToReact(w, r, "Latest", photos)
+	return renderToReact(w, r, "latest", photos)
 }
 
 func renderToReact(w http.ResponseWriter, r *http.Request, route string, props interface{}) error {

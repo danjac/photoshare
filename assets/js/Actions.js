@@ -22,7 +22,6 @@ var Actions = {
     },
 
     getTags: function() {
-        var self = this;
         API.getTags(function(data) {
             AppDispatcher.handleServerAction({
                 actionType: Constants.Actions.GET_TAGS,
@@ -90,7 +89,6 @@ var Actions = {
     },
 
     uploadPhoto: function(title, tags, photo){
-        var self = this;
         AppDispatcher.handleViewAction({
             actionType: Constants.Actions.UPLOAD_STARTED
         });
@@ -99,8 +97,8 @@ var Actions = {
                 actionType: Constants.Actions.NEW_PHOTO,
                 photo: data
             });
-            self.alertMessage('Your photo has been uploaded', Constants.Alerts.SUCCESS);
-        });
+            this.alertMessage('Your photo has been uploaded', Constants.Alerts.SUCCESS);
+        }).bind(this);
     },
 
     getPhotos: function(orderBy, page) {
@@ -114,7 +112,6 @@ var Actions = {
     },
 
     getPhotoDetail: function(photoId) {
-        var self = this;
         API.getPhoto(photoId, function(data){
             AppDispatcher.handleServerAction({
                 actionType: Constants.Actions.GET_PHOTO_DETAIL,
@@ -124,13 +121,12 @@ var Actions = {
     },
 
     deletePhoto: function(photoId) {
-        var self = this;
         API.deletePhoto(photoId, function() {
-            self.alertMessage("Your photo has been deleted", Constants.Alerts.ALERT_SUCCESS);
+            this.alertMessage("Your photo has been deleted", Constants.Alerts.ALERT_SUCCESS);
             AppDispatcher.handleServerAction({
                 actionType: Constants.Actions.PHOTO_DELETED
             });
-        });
+        }).bind(this);
     },
 
     getUser: function() {
@@ -143,16 +139,15 @@ var Actions = {
     },
 
     login: function(identifier, password) {
-        var self = this;
         API.login(identifier, password, function(data, authToken) {
-            self.alertMessage("Welcome back!", Constants.Alerts.ALERT_SUCCESS);
+            this.alertMessage("Welcome back!", Constants.Alerts.ALERT_SUCCESS);
             AppDispatcher.handleServerAction({
                 actionType: Constants.Actions.LOGIN_SUCCESSFUL,
                 user: data
             });
         }, function(err) {
-            self.alertMessage(err, Constants.Alerts.ALERT_DANGER);
-        });
+            this.alertMessage(err, Constants.Alerts.ALERT_DANGER);
+        }).bind(this);
     },
 
     logout: function() {

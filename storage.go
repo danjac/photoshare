@@ -108,14 +108,12 @@ func (f *defaultFileStorage) store(src readable, filename, contentType string) e
 	switch contentType {
 	case "image/png":
 		img, err = png.Decode(src)
-		break
 	case "image/jpeg":
+		img, err = jpeg.Decode(src)
 	case "image/jpg":
 		img, err = jpeg.Decode(src)
-		break
 	case "image/gif":
 		img, err = gif.Decode(src)
-		break
 	default:
 		return errors.New("invalid content type:" + contentType)
 	}
@@ -144,11 +142,10 @@ func (f *defaultFileStorage) store(src readable, filename, contentType string) e
 	switch contentType {
 	case "image/png":
 		png.Encode(dst, thumb)
-		break
 	case "image/jpeg":
+		jpeg.Encode(dst, thumb, nil)
 	case "image/jpg":
 		jpeg.Encode(dst, thumb, nil)
-		break
 	case "image/gif":
 		gif.Encode(dst, thumb, nil)
 	}

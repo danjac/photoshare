@@ -28,8 +28,8 @@ You need Go (1.3), node.js/npm and PostgreSQL (9.1+).
 - `./build.sh`
 - Set the correct environment variables. See sample_env for a template.
 - `npm install bower && bower install`
-- `go get goose`
-- Copy and edit db/db.yml.sample to point to the correct databases.
+- `go get bitbucket.org/liamstask/goose/cmd/goose`
+- Copy and db/db.yml.sample to db/db.yml and edit to point to the correct databases.
 - `goose -env=development up`
 - `./server`
 

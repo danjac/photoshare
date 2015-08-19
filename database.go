@@ -12,7 +12,7 @@ import (
 )
 
 func dbConnect(user, pwd, name, host string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s",
+	db, err := sql.Open("postgres", fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable",
 		user,
 		name,
 		pwd,

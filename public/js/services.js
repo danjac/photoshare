@@ -59,8 +59,10 @@
                                 content = msg.sender + " has uploaded " + photoLink;
                                 break;
                         }
-                        $this.newMessage = content;
-                        $rootScope.$digest();
+                        if (content) {
+                            $this.newMessage = content;
+                            $rootScope.$digest();
+                        }
                     };
                 }
 

@@ -145,14 +145,19 @@ func (f *defaultFileStorage) store(src readable, filename, contentType string) e
 
 	switch contentType {
 	case "image/png":
-		png.Encode(dst, thumb)
+		err = png.Encode(dst, thumb)
 		break
 	case "image/jpeg":
+		err = jpeg.Encode(dst, thumb, nil)
 	case "image/jpg":
-		jpeg.Encode(dst, thumb, nil)
+		err = jpeg.Encode(dst, thumb, nil)
 		break
 	case "image/gif":
-		gif.Encode(dst, thumb, nil)
+		err = gif.Encode(dst, thumb, nil)
+	}
+
+	if err != nil {
+		return errgo.Mask(err)
 	}
 
 	src.Seek(0, 0)

@@ -83,7 +83,7 @@
                 $state.go('detail', {
                     id: photo.id
                 });
-            }
+            };
 
         }
     ])
@@ -153,7 +153,9 @@
 
                 $scope.nextPage = function() {
                     pageLoaded = false;
-                    apiCall($scope.currentPage).$promise.then(function(result) {
+                    apiCall($scope.currentPage)
+                    .$promise
+                    .then(function(result) {
                         if (result.total == 1) {
                             $scope.getDetail(result.photos[0]);
                         }
@@ -210,7 +212,9 @@
 
             Photo.get({
                 id: $stateParams.id
-            }).$promise.then(function(photo) {
+            })
+            .$promise
+            .then(function(photo) {
                 $scope.photo = photo;
                 $scope.photo.taglist = $scope.photo.tags ? $scope.photo.tags.join(" ") : "";
                 $scope.pageLoaded = true;
@@ -300,7 +304,9 @@
             $scope.orderField = '-numPhotos';
             $scope.pageLoaded = false;
 
-            Tag.query().$promise.then(function(response) {
+            Tag.query()
+            .$promise
+            .then(function(response) {
                 $scope.tags = response;
                 $scope.pageLoaded = true;
                 $scope.filteredTags = $scope.tags;

@@ -11,7 +11,7 @@
                         originalSrc = attrs.src;
                     if (attrs.src != attrs.errSrc) {
                         attrs.$set('src', attrs.errSrc);
-                    };
+                    }
                     $interval(function() {
                         if (imageFound) return;
                         $http.get(originalSrc).success(function(response) {
@@ -22,7 +22,7 @@
 
                 });
             }
-        }
+        };
     }).
     directive('filesModel', function() {
         /* https://github.com/angular/angular.js/issues/1375#issuecomment-21933012 */

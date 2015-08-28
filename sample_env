@@ -3,11 +3,11 @@ export DB_USER=<my database user>
 export DB_PASS=<my database password>
 
 # optional : localhost by default
-export DB_HOST=<my database host>
+#export DB_HOST=<my database host>
 
-export TEST_DB_NAME=<something different from DB_NAME>
-export TEST_DB_USER=<my database user>
-export TEST_DB_PASS=<my database password>
+#export TEST_DB_NAME=<something different from DB_NAME>
+#export TEST_DB_USER=<my database user>
+#export TEST_DB_PASS=<my database password>
 
 # create a private/public keypair using whatever your OS uses
 # this is used for generating JWT tokens
@@ -17,21 +17,21 @@ export PUBLIC_KEY = "$(pwd)/keys/sample_key.pub"
 
 # optional, runs on 5000 by default
 
-export PORT = 6000
+#export PORT = 6000
 
 # optional, will be $(pwd)/public by default
 
-export PUBLIC_DIR = <some dir>
+#export PUBLIC_DIR = <some dir>
 
 # optional, will be $(pwd)/public/uploads by default
 
-export UPLOADS_DIR = <some dir>
+#export UPLOADS_DIR = <some dir>
 
 # optional, will be $(pwd)/public/uploads/thumbnails by default
 
-export THUMBNAILS_DIR = <some dir>
+#export THUMBNAILS_DIR = <some dir>
 
-export TEMPLATES_DIR = "$(pwd)/templates"
+#export TEMPLATES_DIR = "$(pwd)/templates"
 
 # if empty will use fake emailer (just writes messages to stdout)
 

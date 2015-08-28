@@ -3,7 +3,6 @@ package photoshare
 import (
 	"code.google.com/p/graphics-go/graphics"
 	"errors"
-	"fmt"
 	"github.com/dchest/uniuri"
 	"github.com/disintegration/gift"
 	"github.com/juju/errgo"

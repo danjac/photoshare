@@ -32,7 +32,6 @@ var allowedContentTypes = []string{
 	"image/gif"}
 
 func isAllowedContentType(contentType string) bool {
-	fmt.Println("CHECKING", contentType)
 	for _, value := range allowedContentTypes {
 		if contentType == value {
 			return true
@@ -149,6 +148,7 @@ func (f *defaultFileStorage) store(src readable, filename, contentType string) e
 		break
 	case "image/jpeg":
 		err = jpeg.Encode(dst, thumb, nil)
+		break
 	case "image/jpg":
 		err = jpeg.Encode(dst, thumb, nil)
 		break

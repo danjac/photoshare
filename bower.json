@@ -1,13 +1,12 @@
 {
-  "name": "angular-seed",
-  "description": "A starter project for AngularJS",
+  "name": "photoshare",
+  "description": "",
   "version": "0.0.0",
-  "homepage": "https://github.com/angular/angular-seed",
   "license": "MIT",
   "private": true,
   "dependencies": {
     "bootstrap": "*",
-    "bootswatch-dist": "*",
+    "bootswatch-dist": "sandstone",
     "font-awesome": "~4.2.0"
   }
 }

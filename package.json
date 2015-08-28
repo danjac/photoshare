@@ -28,8 +28,10 @@
   "dependencies": {
     "lodash": "^3.10.1",
     "react": "^0.13.3",
+    "react-bootstrap": "^0.25.1",
     "react-redux": "^1.0.1",
     "react-router": "^0.13.3",
+    "react-router-bootstrap": "^0.18.1",
     "redux": "^1.0.1",
     "redux-devtools": "^1.1.2"
   }

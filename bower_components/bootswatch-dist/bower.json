@@ -1,6 +1,6 @@
 {
   "name": "bootswatch-dist",
-  "version": "3.3.1+2-readable",
+  "version": "3.3.5-sandstone",
   "homepage": "https://github.com/dbtek/bootswatch-dist",
   "authors": [
     "İsmail Demirbilek <ce.demirbilek@gmail.com>"
@@ -8,7 +8,12 @@
   "description": "Distribution packages for Bootswatch themes. Just the ones ready to use with Bower.",
   "main": [
     "css/bootstrap.css",
-    "js/bootstrap.js"
+    "js/bootstrap.js",
+    "fonts/glyphicons-halflings-regular.eot",
+    "fonts/glyphicons-halflings-regular.svg",
+    "fonts/glyphicons-halflings-regular.ttf",
+    "fonts/glyphicons-halflings-regular.woff",
+    "fonts/glyphicons-halflings-regular.woff2"
   ],
   "dependencies": {
     "jquery": ">= 1.9.0"

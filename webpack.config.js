@@ -11,7 +11,7 @@ module.exports = {
         './ui/app.js'
     ],
     output: {
-        path: path.join(__dirname, 'static', 'js'),
+        path: path.join(__dirname, 'public', 'js'),
         filename: 'app.js',
         publicPath: 'http://localhost:8090/js/'
     },

@@ -14,14 +14,8 @@ var bowerFiles = require('main-bower-files'),
     WebpackDevServer = require('webpack-dev-server'),
     webpackConfig = require('./webpack.config.js');
 
-var staticDir = path.join(__dirname, 'public'),
-    assetsDir = path.join(__dirname, 'assets', '**/*'),
-    cssFilter = filter('**/*.css', {restore: true}),
-    jsFilter = filter('**/*.js', {restore: true}),
-    htmlFilter = filter('**/*.html', {restore:true}),
-    imgFilter = filter(['**/*.png', '**/*.gif', '**/*.jpg'], {restore:true}),
-    fontFilter = filter(['**/*.eot', '**/*.woff', '**/*.svg', '**/*.ttf'], {restore: true});
 
+var staticDir = path.join(__dirname, 'public');
 
 var dest = {
   js: path.join(staticDir, 'js'),
@@ -31,6 +25,12 @@ var dest = {
 };
 
 gulp.task('assets', function() {
+
+  var assetsDir = path.join(__dirname, 'assets', '**/*'),
+      cssFilter = filter('**/*.css', {restore: true}),
+      imgFilter = filter(['**/*.png', '**/*.gif', '**/*.jpg'], {restore:true}),
+      htmlFilter = filter('**/*.html', {restore:true});
+
   return gulp.src(assetsDir)
   .pipe(debug())
   .pipe(plumber())
@@ -48,6 +48,11 @@ gulp.task('assets', function() {
 });
 
 gulp.task('bower', function() {
+
+  var jsFilter = filter('**/*.js', {restore: true}),
+      cssFilter = filter('**/*.css', {restore: true}),
+      fontFilter = filter(['**/*.eot', '**/*.woff', '**/*.svg', '**/*.ttf'], {restore: true});
+
   // installs all the 3rd party stuffs.
   return gulp.src(bowerFiles({
     debugging: true,

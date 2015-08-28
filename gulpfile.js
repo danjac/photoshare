@@ -5,75 +5,74 @@ var bowerFiles = require('main-bower-files'),
     plumber = require('gulp-plumber'),
     shell = require('gulp-shell'),
     minifyCss = require('gulp-minify-css'),
-    gulpFilter = require('gulp-filter'),
+    filter = require('gulp-filter'),
     concat = require('gulp-concat'),
     uglify = require('gulp-uglify'),
     webpack = require('webpack'),
     WebpackDevServer = require('webpack-dev-server'),
     webpackConfig = require('./webpack.config.js');
 
-var staticDir = './static',
+var staticDir = './public',
     srcDir = './ui',
-    cssFilter = gulpFilter('*.css'),
-    jsFilter = gulpFilter('*.js'),
-    fontFilter = gulpFilter(['*.eot', '*.woff', '*.svg', '*.ttf']);
+    cssFilter = filter('*.css', {restore: true}),
+    jsFilter = filter('*.js', {restore: true}),
+    fontFilter = filter(['*.eot', '*.woff', '*.svg', '*.ttf'], {restore: true});
 
 
 var dest = {
-    js: staticDir + '/js',
-    css: staticDir + '/css',
-    fonts: staticDir + '/fonts'
+  js: staticDir + '/js',
+  css: staticDir + '/css',
+  fonts: staticDir + '/fonts'
 };
 
 gulp.task('pkg', function() {
-    // installs all the 3rd party stuffs.
-
-    return gulp.src(bowerFiles({
-            debugging: true,
-            checkExistence: true,
-            base: 'bower_components'
-        }))
-        .pipe(jsFilter)
-        .pipe(uglify())
-        .pipe(concat('vendor.js'))
-        .pipe(gulp.dest(dest.js))
-        .pipe(jsFilter.restore())
-        .pipe(cssFilter)
-        .pipe(minifyCss())
-        .pipe(concat('vendor.css'))
-        .pipe(gulp.dest(dest.css))
-        .pipe(cssFilter.restore())
-        .pipe(fontFilter)
-        .pipe(gulp.dest(dest.fonts))
-        .pipe(fontFilter.restore());
+  // installs all the 3rd party stuffs.
+  return gulp.src(bowerFiles({
+          debugging: true,
+          checkExistence: true,
+          base: 'bower_components'
+  }))
+  .pipe(plumber())
+  .pipe(jsFilter)
+  .pipe(uglify())
+  .pipe(concat('vendor.js'))
+  .pipe(gulp.dest(dest.js))
+  .pipe(jsFilter.restore)
+  .pipe(cssFilter)
+  .pipe(minifyCss())
+  .pipe(concat('vendor.css'))
+  .pipe(gulp.dest(dest.css))
+  .pipe(cssFilter.restore)
+  .pipe(fontFilter)
+  .pipe(gulp.dest(dest.fonts))
+  .pipe(fontFilter.restore);
 });
 
 gulp.task("build", ["install", "pkg"], function(callback) {
+  var webpackBuildOptions = _.create(webpackConfig, {
+    debug: false,
+    verbose: false,
+    devServer: false,
+    devtool: 'eval',
+    entry: ['./ui/app.js'],
+    plugins: [
+        new webpack.optimize.UglifyJsPlugin({
+            warnings: false
+        })
+    ]
+  });
 
-    var webpackBuildOptions = _.create(webpackConfig, {
-            debug: false,
-            verbose: false,
-            devServer: false,
-            devtool: 'eval',
-            entry: ['./ui/app.js'],
-            plugins: [
-                new webpack.optimize.UglifyJsPlugin({
-                    warnings: false
-                })
-            ]
-        });
-
-    webpack(webpackBuildOptions, function(err, stats) {
-        if (err) {
-            throw new util.PluginError("build", err);
-        }
-        util.log("build", stats.toString());
-        callback();
-    });
+  webpack(webpackBuildOptions, function(err, stats) {
+    if (err) {
+        throw new util.PluginError("build", err);
+    }
+    util.log("build", stats.toString());
+    callback();
+  });
 });
 
 gulp.task("watch", ["build"], function() {
-	gulp.watch(["ui/**/*"], ["build"]);
+  gulp.watch(["ui/**/*"], ["build"]);
 });
 
 
@@ -83,7 +82,9 @@ gulp.task("webpack-dev-server", function(callback) {
         hot: true,
         quiet: false,
         lazy: false,
-        watchDelay: 300,
+        watchOptions: {
+          aggregateTimeout: 300
+        },
         stats: { colors: true },
         historyApiFallback: true
     }).listen(8090, 'localhost', function (err, result) {

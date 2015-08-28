@@ -1,5 +1,7 @@
 var bowerFiles = require('main-bower-files'),
     gulp = require('gulp'),
+    path = require('path'),
+    debug = require('gulp-debug'),
     _ = require('lodash'),
     util = require('gulp-util'),
     plumber = require('gulp-plumber'),
@@ -12,26 +14,47 @@ var bowerFiles = require('main-bower-files'),
     WebpackDevServer = require('webpack-dev-server'),
     webpackConfig = require('./webpack.config.js');
 
-var staticDir = './public',
-    srcDir = './ui',
-    cssFilter = filter('*.css', {restore: true}),
-    jsFilter = filter('*.js', {restore: true}),
-    fontFilter = filter(['*.eot', '*.woff', '*.svg', '*.ttf'], {restore: true});
+var staticDir = path.join(__dirname, 'public'),
+    assetsDir = path.join(__dirname, 'assets', '**/*'),
+    cssFilter = filter('**/*.css', {restore: true}),
+    jsFilter = filter('**/*.js', {restore: true}),
+    htmlFilter = filter('**/*.html', {restore:true}),
+    imgFilter = filter(['**/*.png', '**/*.gif', '**/*.jpg'], {restore:true}),
+    fontFilter = filter(['**/*.eot', '**/*.woff', '**/*.svg', '**/*.ttf'], {restore: true});
 
 
 var dest = {
-  js: staticDir + '/js',
-  css: staticDir + '/css',
-  fonts: staticDir + '/fonts'
+  js: path.join(staticDir, 'js'),
+  img: path.join(staticDir, 'img'),
+  css: path.join(staticDir, 'css'),
+  fonts: path.join(staticDir, 'fonts')
 };
 
-gulp.task('pkg', function() {
+gulp.task('assets', function() {
+  return gulp.src(assetsDir)
+  .pipe(debug())
+  .pipe(plumber())
+  .pipe(cssFilter)
+  .pipe(minifyCss())
+  .pipe(concat('app.css'))
+  .pipe(gulp.dest(dest.css))
+  .pipe(cssFilter.restore)
+  .pipe(imgFilter)
+  .pipe(gulp.dest(staticDir))
+  .pipe(imgFilter.restore)
+  .pipe(htmlFilter)
+  .pipe(gulp.dest(staticDir))
+  .pipe(htmlFilter.restore)
+});
+
+gulp.task('bower', function() {
   // installs all the 3rd party stuffs.
   return gulp.src(bowerFiles({
-          debugging: true,
-          checkExistence: true,
-          base: 'bower_components'
+    debugging: true,
+    checkExistence: true,
+    base: 'bower_components/**/*'
   }))
+  .pipe(debug())
   .pipe(plumber())
   .pipe(jsFilter)
   .pipe(uglify())
@@ -48,7 +71,7 @@ gulp.task('pkg', function() {
   .pipe(fontFilter.restore);
 });
 
-gulp.task("build", ["install", "pkg"], function(callback) {
+gulp.task("build", ["install", "bower", "assets"], function(callback) {
   var webpackBuildOptions = _.create(webpackConfig, {
     debug: false,
     verbose: false,
@@ -69,10 +92,6 @@ gulp.task("build", ["install", "pkg"], function(callback) {
     util.log("build", stats.toString());
     callback();
   });
-});
-
-gulp.task("watch", ["build"], function() {
-  gulp.watch(["ui/**/*"], ["build"]);
 });
 
 
@@ -100,4 +119,4 @@ gulp.task('install', shell.task([
     'bower install'
 ]));
 
-gulp.task('default', ['install', 'pkg', 'webpack-dev-server']);
+gulp.task('default', ['install', 'bower', 'assets', 'webpack-dev-server']);

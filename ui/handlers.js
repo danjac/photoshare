@@ -28,7 +28,7 @@ class Navigation extends React.Component {
           </form>
         </Nav>
         <Nav right>
-          <NavItemLink to="app"><i className="fa fa-login"></i> Login</NavItemLink>
+          <NavItemLink to="app"><i className="fa fa-sign-in"></i> Login</NavItemLink>
           <NavItemLink to="app"><i className="fa fa-user"></i> Signup</NavItemLink>
         </Nav>
       </Navbar>

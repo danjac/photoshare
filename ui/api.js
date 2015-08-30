@@ -9,6 +9,5 @@ function makeURI(uri) {
 
 export function getPhotos(page, orderBy) {
   return fetch(`${makeURI('/photos/')}?page=${page}&orderBy=${orderBy}`)
-  .then(response => response.json())
-  .then(body => body.photos);
+  .then(response => response.json());
 }

@@ -13,6 +13,7 @@ module.exports = {
     output: {
         path: path.join(__dirname, 'public', 'js'),
         filename: 'app.js',
+        devtool: "source-map",
         publicPath: 'http://localhost:8090/js/'
     },
     plugins: [

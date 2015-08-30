@@ -7,7 +7,12 @@ const {
 } = ActionTypes;
 
 
-const initialState = Immutable.List();
+const initialState = Immutable.fromJS({
+  currentPage: 1,
+  numPages: 0,
+  total: 0,
+  photos: [],
+});
 
 export default function(state=initialState, action) {
   switch(action.type) {

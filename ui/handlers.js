@@ -1,8 +1,8 @@
 import React, { PropTypes } from 'react';
 import { bindActionCreators } from 'redux';
 import { Provider, connect } from 'react-redux';
-import { Navbar, Nav, Input, Pagination, Button } from 'react-bootstrap';
-import { NavItemLink } from 'react-router-bootstrap';
+import { Navbar, Nav, Input, Pagination, ButtonInput, NavDropdown, MenuItem } from 'react-bootstrap';
+import { NavItemLink, MenuItemLink } from 'react-router-bootstrap';
 import { RouteHandler, Link } from 'react-router';
 import moment from 'moment';
 
@@ -12,10 +12,38 @@ import configureStore from './store';
 const store = configureStore();
 
 
+@connect(state => state.auth.toJS())
 class Navigation extends React.Component {
+
+  static propTypes = {
+    loggedIn: PropTypes.bool.isRequired,
+    name: PropTypes.string
+  }
+
+  rightNav() {
+    const { name, loggedIn } = this.props;
+    if (loggedIn) {
+      return (
+        <Nav right>
+          <NavDropdown title={name}>
+            <MenuItem>My photos</MenuItem>
+            <MenuItem>Change my password</MenuItem>
+            <MenuItem>Logout</MenuItem>
+          </NavDropdown>
+        </Nav>
+      );
+    }
+    return (
+      <Nav right>
+        <NavItemLink to="login"><i className="fa fa-sign-in"></i> Login</NavItemLink>
+        <NavItemLink to="app"><i className="fa fa-user"></i> Signup</NavItemLink>
+      </Nav>
+    );
+  }
 
   render() {
 
+    console.log(this.props);
     const brand = <Link to="app"><i className="fa fa-camera"></i> Wallshare</Link>;
     const searchIcon = <i className="fa fa-search"></i>;
 
@@ -34,10 +62,7 @@ class Navigation extends React.Component {
             <Input type="text" addonAfter={searchIcon} bsSize="small" placeholder="Search" />
           </form>
         </Nav>
-        <Nav right>
-          <NavItemLink to="login"><i className="fa fa-sign-in"></i> Login</NavItemLink>
-          <NavItemLink to="app"><i className="fa fa-user"></i> Signup</NavItemLink>
-        </Nav>
+        {this.rightNav()}
       </Navbar>
     );
   }
@@ -49,28 +74,77 @@ export class App extends React.Component {
   render() {
     return (
       <Provider store={store}>
-      {() => {
-        return (
-        <div className="container-fluid">
-          <Navigation />
-          <RouteHandler />
-        </div>
-        );
-      }}
+      {() => <Container dispatch={store.dispatch} />}
       </Provider>
     );
   }
 }
 
+export class Container extends React.Component {
 
+  constructor(props) {
+    super(props);
+    const { dispatch } = this.props;
+    this.actions = bindActionCreators(ActionCreators.auth, dispatch);
+  }
+
+  componentDidMount() {
+    this.actions.getUser();
+  }
+  
+  render() {
+    console.log(this.actions);
+    return (
+    <div className="container-fluid">
+      <Navigation />
+      <RouteHandler />
+    </div>
+    );
+  }
+}
+
+@connect(state => state.auth.toJS())
 export class Login extends React.Component {
+
+  static propTypes = {
+    dispatch: PropTypes.func.isRequired
+  }
+
+  static contextTypes = {
+    router: PropTypes.func.isRequired
+  }
+
+  constructor(props) {
+    super(props);
+    const { dispatch } = this.props;
+    this.actions = bindActionCreators(ActionCreators.auth, dispatch);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  shouldComponentUpdate(nextProps) {
+    if (nextProps.loggedIn) {
+      this.context.router.transitionTo("app");
+      return true;
+    }
+    return false;
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+    const identifier = this.refs.identifier.getValue(),
+          password = this.refs.password.getValue();
+
+    this.refs.password.getInputDOMNode().value = "";
+    this.actions.login(identifier, password);
+  }
+
   render() {
     return (
-      <div>
-        <form role="form" name="form">
+      <div className="col-md-6 col-md-offset-3">
+        <form role="form" method="POST" onSubmit={this.handleSubmit}>
             <Input type="text" ref="identifier" required placeholder="Name or email address" />
-            <Input type="password" ref="password" required placeholder="Name or email address" />
-            <Button bsStyle="primary">Login</Button>
+            <Input type="password" ref="password" required placeholder="Password" />
+            <ButtonInput bsStyle="primary" type="submit">Login</ButtonInput>
         </form>
 
         <a href="#/recoverpass">Forgot your password?</a> 
@@ -101,11 +175,12 @@ class PhotoListItem extends React.Component {
   render() {
 
     const photo = this.props.photo;
+    const src = photo.photo ? `/uploads/thumbnails/${photo.photo}` : '/img/ajax-loader.gif';
 
     return (
       <div className="col-xs-6 col-md-3">
           <div className="thumbnail" onClick={this.handleClick}>
-              <img alt={photo.title} className="img-responsive" src={`/uploads/thumbnails/${photo.photo}`} />
+              <img alt={photo.title} className="img-responsive" src={src} />
               <div className="caption">
                   <h3>{photo.title.substring(0, 20)}</h3>
               </div>
@@ -248,6 +323,8 @@ export class PhotoDetail extends React.Component {
 
   render() {
     const photo = this.props.photo;
+    const src = photo.photo ? `/uploads/thumbnails/${photo.photo}` : '/img/ajax-loader.gif';
+
     return (
     <div>
       <h3>{photo.title}</h3>

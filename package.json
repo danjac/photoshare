@@ -28,6 +28,7 @@
   "dependencies": {
     "isomorphic-fetch": "^2.1.1",
     "lodash": "^3.10.1",
+    "moment": "^2.10.6",
     "normalizr": "^1.0.0",
     "react": "^0.13.3",
     "react-bootstrap": "^0.25.1",

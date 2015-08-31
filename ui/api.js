@@ -71,3 +71,20 @@ export function login(identifier, password) {
     return response.json()
   });
 }
+
+export function upload(title, tags, photo) {
+  const data = new window.FormData();
+  data.append("photo", photo);
+  data.append("title", title);
+  data.append("tags", tags);
+
+  return fetch(makeURI('/photos/'), {
+    method: 'POST',
+    headers: {
+      [AUTH_TOKEN]: getToken()
+    },
+    body: data
+  })
+  .then(response => response.json());
+
+}

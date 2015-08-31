@@ -1,13 +1,42 @@
 import React from 'react';
-import Router from 'react-router';
+import { Router, Route } from 'react-router';
+import HashHistory from 'react-router/lib/HashHistory';
+import { Provider } from 'react-redux';
 
-import routes from './routes';
+import { 
+  App, 
+  Popular, 
+  Latest,
+  PhotoDetail,
+  Login
+} from './components';
 
-Router.run(routes, Router.HashLocation, function(Handler) {
-  React.render(<Handler />, document.body);
-});
-/*
-Router.run(routes, Router.HistoryLocation, function(Handler) {
-  React.render(<Handler />, document.body);
-});
-*/
+import configureStore from './store';
+
+
+const store = configureStore(), 
+      history = new HashHistory();
+
+
+class Container extends React.Component {
+  render() {
+    return (
+    <div>
+    <Provider store={store}>
+    {() =>
+      <Router history={history}>
+        <Route component={App}>
+          <Route path="/" component={Popular} />
+          <Route path="/latest/" component={Latest} />
+          <Route path="/detail/:id" component={PhotoDetail} />
+          <Route path="/login/" component={Login} />
+        </Route>
+      </Router>
+    }
+    </Provider>
+    </div>
+    );
+  }
+}
+
+React.render(<Container />, document.body);

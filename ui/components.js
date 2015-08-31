@@ -1,16 +1,18 @@
 import React, { PropTypes } from 'react';
 import { bindActionCreators } from 'redux';
-import { Provider, connect } from 'react-redux';
-import { Navbar, Nav, Input, Pagination, ButtonInput, NavDropdown, MenuItem } from 'react-bootstrap';
-import { NavItemLink, MenuItemLink } from 'react-router-bootstrap';
-import { RouteHandler, Link } from 'react-router';
+import { connect } from 'react-redux';
+import { Navbar, 
+         Nav, 
+         Input, 
+         Pagination, 
+         ButtonInput, 
+         NavDropdown, 
+         NavItem, 
+         MenuItem } from 'react-bootstrap';
+import { Link } from 'react-router';
 import moment from 'moment';
 
 import * as ActionCreators from './actions';
-import configureStore from './store';
-
-const store = configureStore();
-
 
 @connect(state => state.auth.toJS())
 class Navigation extends React.Component {
@@ -20,8 +22,14 @@ class Navigation extends React.Component {
     name: PropTypes.string
   }
 
+  static contextTypes = {
+    router: PropTypes.func.isRequired
+  }
+
   rightNav() {
     const { name, loggedIn } = this.props;
+    const makeHref = this.context.router.makeHref; 
+
     if (loggedIn) {
       return (
         <Nav right>
@@ -35,27 +43,27 @@ class Navigation extends React.Component {
     }
     return (
       <Nav right>
-        <NavItemLink to="login"><i className="fa fa-sign-in"></i> Login</NavItemLink>
-        <NavItemLink to="app"><i className="fa fa-user"></i> Signup</NavItemLink>
+        <NavItem href={makeHref('/login/')}><i className="fa fa-sign-in"></i> Login</NavItem>
+        <NavItem href="/"><i className="fa fa-user"></i> Signup</NavItem>
       </Nav>
     );
   }
 
   render() {
 
-    console.log(this.props);
-    const brand = <Link to="app"><i className="fa fa-camera"></i> Wallshare</Link>;
+    const brand = <Link to="/"><i className="fa fa-camera"></i> Wallshare</Link>;
     const searchIcon = <i className="fa fa-search"></i>;
+    const makeHref = this.context.router.makeHref; 
 
     return (
 
       <Navbar fixedTop inverse brand={brand}>
 
         <Nav>
-          <NavItemLink to="app"><i className="fa fa-fire"></i> Popular</NavItemLink>
-          <NavItemLink to="latest"><i className="fa fa-clock-o"></i> Latest</NavItemLink>
-          <NavItemLink to="app"><i className="fa fa-tags"></i> Tags</NavItemLink>
-          <NavItemLink to="app"><i className="fa fa-upload"></i> Upload</NavItemLink>
+          <NavItem href={makeHref("/")}><i className="fa fa-fire"></i> Popular</NavItem>
+          <NavItem href={makeHref("/latest/")}><i className="fa fa-clock-o"></i> Latest</NavItem>
+          <NavItem href="/"><i className="fa fa-tags"></i> Tags</NavItem>
+          <NavItem href="/"><i className="fa fa-upload"></i> Upload</NavItem>
         </Nav>
         <Nav>
           <form className="navbar-form navbar-left" role="search" name="searchForm">
@@ -70,17 +78,8 @@ class Navigation extends React.Component {
 
 }
 
+@connect(state => state.auth.toJS())
 export class App extends React.Component {
-  render() {
-    return (
-      <Provider store={store}>
-      {() => <Container dispatch={store.dispatch} />}
-      </Provider>
-    );
-  }
-}
-
-export class Container extends React.Component {
 
   constructor(props) {
     super(props);
@@ -93,11 +92,10 @@ export class Container extends React.Component {
   }
   
   render() {
-    console.log(this.actions);
     return (
     <div className="container-fluid">
-      <Navigation />
-      <RouteHandler />
+      <Navigation auth={this.props.auth} />
+      {this.props.children}
     </div>
     );
   }
@@ -123,7 +121,7 @@ export class Login extends React.Component {
 
   shouldComponentUpdate(nextProps) {
     if (nextProps.loggedIn) {
-      this.context.router.transitionTo("app");
+      this.context.router.transitionTo("/");
       return true;
     }
     return false;
@@ -169,7 +167,7 @@ class PhotoListItem extends React.Component {
 
   handleClick(event) {
     event.preventDefault();
-    this.context.router.transitionTo('detail', {id: this.props.photo.id});
+    this.context.router.transitionTo('/detail/' + this.props.photo.id);
   }
 
   render() {

@@ -1,9 +1,11 @@
 import React, { PropTypes } from 'react';
+import _ from 'lodash';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Navbar, 
          Nav, 
          Input, 
+         Alert,
          Pagination, 
          ButtonInput, 
          NavDropdown, 
@@ -14,21 +16,54 @@ import moment from 'moment';
 
 import * as ActionCreators from './actions';
 
-@connect(state => state.auth.toJS())
+
+class Messages extends React.Component {
+
+  static propTypes = {
+    messages: PropTypes.array.isRequired,
+    actions: PropTypes.object.isRequired
+  }
+
+  render() {
+    return (
+    <div>
+    {this.props.messages.map((msg, index) => {
+
+      const handleDelete = () => {
+        this.props.actions.deleteMessage(index);
+      }
+
+      return <Alert key={index} 
+                    onDismiss={handleDelete} 
+                    dismissAfter={2000} 
+                    bsStyle={msg.level}>{msg.msg}</Alert>;
+    })}
+    </div>
+    );
+  }
+
+}
+
 class Navigation extends React.Component {
 
   static propTypes = {
-    loggedIn: PropTypes.bool.isRequired,
-    name: PropTypes.string
+    auth: PropTypes.object.isRequired
   }
 
   static contextTypes = {
-    router: PropTypes.func.isRequired
+    router: PropTypes.object.isRequired
+  }
+
+  handleLogout(event) {
+    event.preventDefault();
+    this.props.actions.newMessage("Bye for now!", "success");
+    this.props.actions.logout();
   }
 
   rightNav() {
-    const { name, loggedIn } = this.props;
+    const { name, loggedIn } = this.props.auth;
     const makeHref = this.context.router.makeHref; 
+    const handleLogout  = this.handleLogout.bind(this);
 
     if (loggedIn) {
       return (
@@ -36,7 +71,7 @@ class Navigation extends React.Component {
           <NavDropdown title={name}>
             <MenuItem>My photos</MenuItem>
             <MenuItem>Change my password</MenuItem>
-            <MenuItem>Logout</MenuItem>
+            <MenuItem onSelect={handleLogout}>Logout</MenuItem>
           </NavDropdown>
         </Nav>
       );
@@ -78,13 +113,21 @@ class Navigation extends React.Component {
 
 }
 
-@connect(state => state.auth.toJS())
+@connect(state => {
+  return {
+    auth: state.auth.toJS(),
+    messages: state.messages.toJS()
+  }
+})
 export class App extends React.Component {
 
   constructor(props) {
     super(props);
     const { dispatch } = this.props;
-    this.actions = bindActionCreators(ActionCreators.auth, dispatch);
+    this.actions = Object.assign({},
+      bindActionCreators(ActionCreators.auth, dispatch),
+      bindActionCreators(ActionCreators.messages, dispatch)
+    );
   }
 
   componentDidMount() {
@@ -94,7 +137,8 @@ export class App extends React.Component {
   render() {
     return (
     <div className="container-fluid">
-      <Navigation auth={this.props.auth} />
+      <Navigation actions={this.actions} {...this.props} />
+      <Messages actions={this.actions} {...this.props} />
       {this.props.children}
     </div>
     );
@@ -109,18 +153,22 @@ export class Login extends React.Component {
   }
 
   static contextTypes = {
-    router: PropTypes.func.isRequired
+    router: PropTypes.object.isRequired
   }
 
   constructor(props) {
     super(props);
     const { dispatch } = this.props;
-    this.actions = bindActionCreators(ActionCreators.auth, dispatch);
+    this.actions = Object.assign({},
+      bindActionCreators(ActionCreators.messages, dispatch),
+      bindActionCreators(ActionCreators.auth, dispatch)
+    );
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   shouldComponentUpdate(nextProps) {
     if (nextProps.loggedIn) {
+      this.actions.newMessage(`Welcome back, ${nextProps.name}`, "success");
       this.context.router.transitionTo("/");
       return true;
     }
@@ -157,7 +205,7 @@ class PhotoListItem extends React.Component {
   }
 
   static contextTypes = {
-    router: PropTypes.func.isRequired
+    router: PropTypes.object.isRequired
   }
 
   constructor(props) {
@@ -216,6 +264,7 @@ class PhotoList extends React.Component {
       {pagination}
       <div className="row">
           {photos.map(photo => {
+
             return <PhotoListItem key={photo.id} photo={photo} />
           })}
       </div>
@@ -331,10 +380,8 @@ export class PhotoDetail extends React.Component {
               <a target="_blank" className="thumbnail" title={photo.title} href={`/uploads/${photo.photo}`}>
                   <img alt={photo.title} src={`/uploads/thumbnails/${photo.photo}`} />
               </a>
-              <div class="btn-group">
-              </div>
           </div>
-          <div class="col-xs-6">
+          <div className="col-xs-6">
               <dl>
                   <dt>Score <span className="badge">{photo.score}</span></dt>
                   <dd>

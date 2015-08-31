@@ -21,7 +21,7 @@ export default function(state=initialState, action) {
   switch(action.type) {
     case LOGIN_SUCCESS:
     case GET_USER:
-      return Immutable.fromJS(action.user);
+      return Immutable.fromJS(action.user || {});
     default:
       return state;
   }

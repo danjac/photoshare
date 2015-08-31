@@ -4,11 +4,11 @@ import { ActionTypes } from '../constants';
 const {
   LOGIN_SUCCESS,
   LOGIN_FAILURE,
-  GET_USER
+  GET_USER,
+  LOGOUT
 } = ActionTypes;
 
 export function getUser() {
-  console.log("getUser")
   return dispatch => {
     api.getUser()
     .then(user => dispatch(getUserComplete(user)));
@@ -16,10 +16,17 @@ export function getUser() {
 }
 
 export function getUserComplete(user) {
-  console.log("getUserComplete", user);
   return {
     type: GET_USER,
     user: user || {}
+  }
+}
+
+export function logout() {
+  api.logout();
+  return {
+    type: GET_USER,
+    user: {}
   }
 }
 

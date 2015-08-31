@@ -14,6 +14,10 @@ function setToken(token) {
   }
 }
 
+function deleteToken() {
+  window.localStorage.removeItem(AUTH_TOKEN);
+}
+
 function makeURI(uri) {
   return `${API_URI}${uri}`;
 }
@@ -32,10 +36,6 @@ export function getPhotoDetail(id) {
   .then(response => response.json());
 }
 
-export function isSignedIn() {
-  return typeof(getToken()) !== 'undefined';
-}
-
 export function getUser() {
   const token = getToken();
   if (!token) {
@@ -47,6 +47,11 @@ export function getUser() {
       [AUTH_TOKEN]: getToken()
     }})
     .then(response => response.json())
+}
+
+export function logout() {
+  deleteToken();
+  fetch(makeURI("/auth/"), { method: "DELETE" });
 }
 
 export function login(identifier, password) {

@@ -3,7 +3,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Pagination } from 'react-bootstrap';
 
-import * as ActionCreators from './actions';
+import * as ActionCreators from '../actions';
 
 
 class PhotoListItem extends React.Component {

@@ -8,7 +8,8 @@ import {
   Popular, 
   Latest,
   PhotoDetail,
-  Login
+  Login,
+  Upload
 } from './components';
 
 import configureStore from './store';
@@ -23,16 +24,25 @@ class Container extends React.Component {
     return (
     <div>
     <Provider store={store}>
-    {() =>
+    {() => {
+      const requireAuth = (nextState, transition) => {
+        const auth = store.getState().auth.toJS();
+        if (!auth.loggedIn) {
+          transition.to('/login/', { nextPath: nextState.location.pathname });
+        }
+      }
+      return (
       <Router history={history}>
         <Route component={App}>
           <Route path="/" component={Popular} />
+          <Route path="/upload/" component={Upload} onEnter={requireAuth} />
           <Route path="/latest/" component={Latest} />
           <Route path="/detail/:id" component={PhotoDetail} />
           <Route path="/login/" component={Login} />
         </Route>
       </Router>
-    }
+      );
+    }}
     </Provider>
     </div>
     );

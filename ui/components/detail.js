@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router';
 import moment from 'moment';
 
-import * as ActionCreators from './actions';
+import * as ActionCreators from '../actions';
 
 @connect(state => {
   return {
@@ -20,7 +20,7 @@ export default class PhotoDetail extends React.Component {
 
   constructor(props) {
     super(props);
-    const {dispatch} = this.props; 
+    const {dispatch} = this.props;
     this.actions = bindActionCreators(ActionCreators.photoDetail, dispatch);
   }
 

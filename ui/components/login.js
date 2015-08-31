@@ -6,7 +6,7 @@ import { Input,
          ButtonInput 
         } from 'react-bootstrap';
 
-import * as ActionCreators from './actions';
+import * as ActionCreators from '../actions';
 
 
 @connect(state => state.auth.toJS())
@@ -33,7 +33,9 @@ export default class Login extends React.Component {
   shouldComponentUpdate(nextProps) {
     if (nextProps.loggedIn) {
       this.actions.newMessage(`Welcome back, ${nextProps.name}`, "success");
-      this.context.router.transitionTo("/");
+      //const nextPath = this.props.query.nextPath || "/";
+      //console.log("query", this.props.query);
+      this.context.router.transitionTo("/upload/");
       return true;
     }
     return false;

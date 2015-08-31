@@ -5,12 +5,13 @@ import { connect } from 'react-redux';
 import { Navbar, 
          Nav, 
          Alert,
+         Input,
          NavDropdown, 
          NavItem, 
          MenuItem } from 'react-bootstrap';
 import { Link } from 'react-router';
 
-import * as ActionCreators from './actions';
+import * as ActionCreators from '../actions';
 import { Facon } from './util';
 
 class Messages extends React.Component {
@@ -86,16 +87,19 @@ class Navigation extends React.Component {
     const searchIcon = <Facon name='search' />
     const makeHref = this.context.router.makeHref; 
 
+    const isActive = (path, q) => this.context.router.isActive(path, q);
+
     return (
 
       <Navbar fixedTop inverse brand={brand}>
 
         <Nav>
-          <NavItem href={makeHref("/")}><Facon name='fire' /> Popular</NavItem>
-          <NavItem href={makeHref("/latest/")}>Facon name='clock-o' /> Latest</NavItem>
-          <NavItem href="/"><Facon name='tags' /> Tags</NavItem>
-          <NavItem href="/"><Facon name='upload' /> Upload</NavItem>
+          <NavItem active={isActive('/')} href={makeHref("/")}><Facon name='fire' /> Popular</NavItem>
+          <NavItem active={isActive('/latest/')} href={makeHref("/latest/")}><Facon name='clock-o' /> Latest</NavItem>
+          <NavItem active={isActive('/tags/')} href="/"><Facon name='tags' /> Tags</NavItem>
+          <NavItem active={isActive('/upload/')} href={makeHref("/upload/")}><Facon name='upload' /> Upload</NavItem>
         </Nav>
+
         <Nav>
           <form className="navbar-form navbar-left" role="search" name="searchForm">
             <Input type="text" addonAfter={searchIcon} bsSize="small" placeholder="Search" />

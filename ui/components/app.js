@@ -11,6 +11,7 @@ import { Navbar,
 import { Link } from 'react-router';
 
 import * as ActionCreators from './actions';
+import { Facon } from './util';
 
 class Messages extends React.Component {
 
@@ -73,16 +74,16 @@ class Navigation extends React.Component {
     }
     return (
       <Nav right>
-        <NavItem href={makeHref('/login/')}><i className="fa fa-sign-in"></i> Login</NavItem>
-        <NavItem href="/"><i className="fa fa-user"></i> Signup</NavItem>
+        <NavItem href={makeHref('/login/')}><Facon name='sign-in' /> Login</NavItem>
+        <NavItem href="/"><Facon name='user' /> Signup</NavItem>
       </Nav>
     );
   }
 
   render() {
 
-    const brand = <Link to="/"><i className="fa fa-camera"></i> Wallshare</Link>;
-    const searchIcon = <i className="fa fa-search"></i>;
+    const brand = <Link to="/"><Facon name='camera' /> Wallshare</Link>;
+    const searchIcon = <Facon name='search' />
     const makeHref = this.context.router.makeHref; 
 
     return (
@@ -90,10 +91,10 @@ class Navigation extends React.Component {
       <Navbar fixedTop inverse brand={brand}>
 
         <Nav>
-          <NavItem href={makeHref("/")}><i className="fa fa-fire"></i> Popular</NavItem>
-          <NavItem href={makeHref("/latest/")}><i className="fa fa-clock-o"></i> Latest</NavItem>
-          <NavItem href="/"><i className="fa fa-tags"></i> Tags</NavItem>
-          <NavItem href="/"><i className="fa fa-upload"></i> Upload</NavItem>
+          <NavItem href={makeHref("/")}><Facon name='fire' /> Popular</NavItem>
+          <NavItem href={makeHref("/latest/")}>Facon name='clock-o' /> Latest</NavItem>
+          <NavItem href="/"><Facon name='tags' /> Tags</NavItem>
+          <NavItem href="/"><Facon name='upload' /> Upload</NavItem>
         </Nav>
         <Nav>
           <form className="navbar-form navbar-left" role="search" name="searchForm">

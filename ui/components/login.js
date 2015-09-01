@@ -38,7 +38,7 @@ export default class Login extends React.Component {
       this.context.router.transitionTo("/upload/");
       return true;
     }
-    return false;
+    return nextProps !== this.props;
   }
 
   handleSubmit(event) {

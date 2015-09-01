@@ -1,13 +1,14 @@
+/* jslint ignore:start */
 import React, { PropTypes } from 'react';
 import _ from 'lodash';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { Navbar, 
-         Nav, 
+import { Navbar,
+         Nav,
          Alert,
          Input,
-         NavDropdown, 
-         NavItem, 
+         NavDropdown,
+         NavItem,
          MenuItem } from 'react-bootstrap';
 import { Link } from 'react-router';
 
@@ -30,9 +31,9 @@ class Messages extends React.Component {
         this.props.actions.deleteMessage(index);
       }
 
-      return <Alert key={index} 
-                    onDismiss={handleDelete} 
-                    dismissAfter={2000} 
+      return <Alert key={index}
+                    onDismiss={handleDelete}
+                    dismissAfter={2000}
                     bsStyle={msg.level}>{msg.msg}</Alert>;
     })}
     </div>
@@ -55,6 +56,7 @@ class Navigation extends React.Component {
     event.preventDefault();
     this.props.actions.newMessage("Bye for now!", "success");
     this.props.actions.logout();
+    this.context.router.transitionTo("/");
   }
 
   handleSearch(event) {
@@ -66,7 +68,7 @@ class Navigation extends React.Component {
 
   rightNav() {
     const { name, loggedIn } = this.props.auth;
-    const makeHref = this.context.router.makeHref; 
+    const makeHref = this.context.router.makeHref;
     const handleLogout  = this.handleLogout.bind(this);
 
     if (loggedIn) {
@@ -92,7 +94,7 @@ class Navigation extends React.Component {
 
     const brand = <Link to="/"><Facon name='camera' /> Wallshare</Link>;
     const searchIcon = <Facon name='search' />
-    const makeHref = this.context.router.makeHref; 
+    const makeHref = this.context.router.makeHref;
     const handleSearch = this.handleSearch.bind(this);
 
     const isActive = (path, q) => this.context.router.isActive(path, q);
@@ -141,7 +143,7 @@ export default class App extends React.Component {
   componentDidMount() {
     this.actions.getUser();
   }
-  
+
   render() {
     return (
     <div className="container-fluid">
@@ -152,5 +154,3 @@ export default class App extends React.Component {
     );
   }
 }
-
-

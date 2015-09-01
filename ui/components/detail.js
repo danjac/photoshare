@@ -1,3 +1,4 @@
+/* jslint ignore:start */
 import React, { PropTypes } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';

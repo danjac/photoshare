@@ -1,8 +1,9 @@
+/* jslint ignore:start */
 import React, { PropTypes } from 'react';
 import _ from 'lodash';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { Input, 
+import { Input,
          ButtonInput,
          ProgressBar
         } from 'react-bootstrap';
@@ -25,7 +26,7 @@ export default class Upload extends React.Component {
     super(props);
     this.actions = bindActionCreators(ActionCreators.upload, this.props.dispatch);
   }
-  
+
   handlePhotoSelect(event) {
 
     event.preventDefault();
@@ -60,8 +61,24 @@ export default class Upload extends React.Component {
           tags = this.refs.tags.getValue().trim(),
           photo = this.refs.photo.getInputDOMNode().files[0];
 
-    if (!_.every([title, tags, photo])) {
-      return;
+    this.actions.formSubmitted();
+
+    const errors = new Map();
+
+    if (!title) {
+        errors.set("title", "You must provide a title");
+    }
+
+    if (!photo) {
+        errors.set("photo", "You must provide a photo");
+    } else if (!photo.type.match('image.*')) {
+        errors.set("photo", "Photo must be an image")
+    }
+
+    this.actions.formErrors(errors);
+
+    if (errors.size > 0) {
+        return;
     }
 
     this.refs.title.getInputDOMNode().value = "";
@@ -79,15 +96,26 @@ export default class Upload extends React.Component {
       this.actions.reset();
       this.context.router.transitionTo("/detail/" + id);
       return true;
-    } 
+    }
     return nextProps !== this.props;
   }
 
   progressBar() {
     if (this.props.progress) {
-      return <ProgressBar min={0} max={100} now={progress} />;
-    } 
+      return <ProgressBar min={0} max={100} now={this.props.progress} />;
+    }
     return '';
+  }
+
+  errorStatus(name) {
+      if (!this.props.formSubmitted) {
+          return;
+      }
+      return this.props.errors.has(name) ? 'error' : 'success';
+  }
+
+  errorMsg(name) {
+      return this.props.errors.get(name) || '';
   }
 
   render() {
@@ -98,15 +126,31 @@ export default class Upload extends React.Component {
       <div className="row">
           <div className="col-md-6">
               <form name="form" role="form" encType="multipart/form-data" onSubmit={handleSubmit}>
-                <Input name="title" type="text" ref="title" label="Title" />
-                <Input name="tags" type="text" ref="tags" label="Tags" placeholder="Separate with spaces" />
-                <Input name="photo" type="file" onChange={handlePhotoSelect} ref="photo" label="Photo" />
+                <Input name="title"
+                       type="text"
+                       ref="title"
+                       label="Title"
+                       hasFeedback
+                       bsStyle={this.errorStatus('title')}
+                       help={this.errorMsg('title')} />
+                <Input name="tags"
+                       type="text"
+                       ref="tags"
+                       label="Tags"
+                       placeholder="Separate with spaces" />
+                <Input name="photo"
+                       type="file"
+                       onChange={handlePhotoSelect}
+                       ref="photo" label="Photo"
+                       hasFeedback
+                       bsStyle={this.errorStatus('photo')}
+                       help={this.errorMsg('photo')} />
                 <ButtonInput type="submit" bsStyle="primary">Upload</ButtonInput>
               </form>
           </div>
           <div className="col-md-6">
               {this.progressBar()}
-              {this.previewPhoto()} 
+              {this.previewPhoto()}
           </div>
       </div>
     );

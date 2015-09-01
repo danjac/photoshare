@@ -1,3 +1,5 @@
+/* jslint ignore:start */
+
 import * as api from '../api';
 import { ActionTypes } from '../constants';
 
@@ -5,7 +7,9 @@ const {
   PHOTO_PREVIEW,
   PHOTO_UPLOAD,
   UPLOAD_RESET,
-  UPLOAD_PROGRESS
+  UPLOAD_PROGRESS,
+  UPLOAD_ERRORS,
+  UPLOAD_SUBMITTED
 } = ActionTypes;
 
 
@@ -16,6 +20,19 @@ export function upload(title, tags, photo) {
     .then(photo => dispatch(uploadDone(photo)));
   }
 
+}
+
+export function formSubmitted() {
+    return {
+        type: UPLOAD_SUBMITTED
+    }
+}
+
+export function formErrors(errors){
+    return {
+        type: UPLOAD_ERRORS,
+        errors: errors
+    };
 }
 
 export function uploadDone(photo) {

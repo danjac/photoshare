@@ -12,8 +12,29 @@ const {
   UPLOAD_SUBMITTED
 } = ActionTypes;
 
+function validate(title, tags, photo) {
+  const errors = new Map();
+
+  if (!title) {
+    errors.set("title", "You must provide a title");
+  }
+
+  if (!photo) {
+    errors.set("photo", "You must provide a photo");
+  } else if (!photo.type.match('image.*')) {
+    errors.set("photo", "Photo must be an image")
+  }
+
+  return errors;
+}
 
 export function upload(title, tags, photo) {
+
+  const errors = validate(title, tags, photo);
+
+  if (errors.size > 0) {
+    return dispatch => dispatch(formErrors(errors));
+  }
 
   return dispatch => {
     api.upload(title, tags, photo)

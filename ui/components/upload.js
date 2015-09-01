@@ -63,27 +63,6 @@ export default class Upload extends React.Component {
 
     this.actions.formSubmitted();
 
-    const errors = new Map();
-
-    if (!title) {
-        errors.set("title", "You must provide a title");
-    }
-
-    if (!photo) {
-        errors.set("photo", "You must provide a photo");
-    } else if (!photo.type.match('image.*')) {
-        errors.set("photo", "Photo must be an image")
-    }
-
-    this.actions.formErrors(errors);
-
-    if (errors.size > 0) {
-        return;
-    }
-
-    this.refs.title.getInputDOMNode().value = "";
-    this.refs.tags.getInputDOMNode().value = "";
-
     window.setInterval(this.actions.progressUpdate, 100);
     this.actions.upload(title, tags, photo);
 
@@ -92,6 +71,10 @@ export default class Upload extends React.Component {
   shouldComponentUpdate(nextProps) {
     if (nextProps.uploadedPhoto) {
       window.clearInterval();
+
+      this.refs.title.getInputDOMNode().value = "";
+      this.refs.tags.getInputDOMNode().value = "";
+
       const { id } = nextProps.uploadedPhoto;
       this.actions.reset();
       this.context.router.transitionTo("/detail/" + id);
@@ -101,7 +84,7 @@ export default class Upload extends React.Component {
   }
 
   progressBar() {
-    if (this.props.progress) {
+    if (this.props.progress > 0) {
       return <ProgressBar min={0} max={100} now={this.props.progress} />;
     }
     return '';

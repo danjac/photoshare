@@ -7,6 +7,7 @@ import {
   App, 
   Popular, 
   Latest,
+  Search,
   PhotoDetail,
   Login,
   Upload
@@ -37,6 +38,7 @@ class Container extends React.Component {
           <Route path="/" component={Popular} />
           <Route path="/upload/" component={Upload} onEnter={requireAuth} />
           <Route path="/latest/" component={Latest} />
+          <Route path="/search/" component={Search} />
           <Route path="/detail/:id" component={PhotoDetail} />
           <Route path="/login/" component={Login} />
         </Route>

@@ -3,7 +3,8 @@ import _ from 'lodash';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Input, 
-         ButtonInput 
+         ButtonInput,
+         ProgressBar
         } from 'react-bootstrap';
 
 import * as ActionCreators from '../actions';
@@ -66,18 +67,27 @@ export default class Upload extends React.Component {
     this.refs.title.getInputDOMNode().value = "";
     this.refs.tags.getInputDOMNode().value = "";
 
+    window.setInterval(this.actions.progressUpdate, 100);
     this.actions.upload(title, tags, photo);
 
   }
 
   shouldComponentUpdate(nextProps) {
     if (nextProps.uploadedPhoto) {
+      window.clearInterval();
       const { id } = nextProps.uploadedPhoto;
       this.actions.reset();
       this.context.router.transitionTo("/detail/" + id);
       return true;
-    }
+    } 
     return nextProps !== this.props;
+  }
+
+  progressBar() {
+    if (this.props.progress) {
+      return <ProgressBar min={0} max={100} now={progress} />;
+    } 
+    return '';
   }
 
   render() {
@@ -95,6 +105,7 @@ export default class Upload extends React.Component {
               </form>
           </div>
           <div className="col-md-6">
+              {this.progressBar()}
               {this.previewPhoto()} 
           </div>
       </div>

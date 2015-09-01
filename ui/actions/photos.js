@@ -14,6 +14,15 @@ export function getPhotos(page, orderBy) {
   }
 }
 
+export function searchPhotos(page, query) {
+  return dispatch => {
+    api.searchPhotos(page, query)
+    .then(photos => {
+      dispatch(getPhotosDone(photos));
+    })
+  }
+}
+
 export function getPhotosDone(photos) {
   return {
     type: GET_PHOTOS,

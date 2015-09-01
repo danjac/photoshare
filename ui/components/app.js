@@ -57,6 +57,13 @@ class Navigation extends React.Component {
     this.props.actions.logout();
   }
 
+  handleSearch(event) {
+    event.preventDefault();
+    const query = this.refs.query.getValue();
+    this.refs.query.getInputDOMNode().value = "";
+    this.context.router.transitionTo('/search/', { q: query });
+  }
+
   rightNav() {
     const { name, loggedIn } = this.props.auth;
     const makeHref = this.context.router.makeHref; 
@@ -86,6 +93,7 @@ class Navigation extends React.Component {
     const brand = <Link to="/"><Facon name='camera' /> Wallshare</Link>;
     const searchIcon = <Facon name='search' />
     const makeHref = this.context.router.makeHref; 
+    const handleSearch = this.handleSearch.bind(this);
 
     const isActive = (path, q) => this.context.router.isActive(path, q);
 
@@ -101,8 +109,8 @@ class Navigation extends React.Component {
         </Nav>
 
         <Nav>
-          <form className="navbar-form navbar-left" role="search" name="searchForm">
-            <Input type="text" addonAfter={searchIcon} bsSize="small" placeholder="Search" />
+          <form onSubmit={handleSearch} className="navbar-form navbar-left" role="search" name="searchForm">
+            <Input type="text" ref="query" addonAfter={searchIcon} bsSize="small" placeholder="Search" />
           </form>
         </Nav>
         {this.rightNav()}

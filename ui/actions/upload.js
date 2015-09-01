@@ -4,7 +4,8 @@ import { ActionTypes } from '../constants';
 const {
   PHOTO_PREVIEW,
   PHOTO_UPLOAD,
-  UPLOAD_RESET
+  UPLOAD_RESET,
+  UPLOAD_PROGRESS
 } = ActionTypes;
 
 
@@ -27,6 +28,12 @@ export function uploadDone(photo) {
 export function reset() {
   return {
     type: UPLOAD_RESET
+  }
+}
+
+export function progress() {
+  return {
+    type: UPLOAD_PROGRESS
   }
 }
 

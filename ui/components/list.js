@@ -50,13 +50,14 @@ class PhotoList extends React.Component {
     total: PropTypes.number.isRequired,
     numPages: PropTypes.number.isRequired,
     currentPage: PropTypes.number.isRequired,
-    handlePageClick: PropTypes.func.isRequired
+    handlePageSelect: PropTypes.func.isRequired
   }
 
-  render() {
-    const { handlePageClick, total, numPages, currentPage, photos } = this.props;
-    const pagination = (
-      <Pagination onSelect={handlePageClick}
+  pagination() {
+    const { handlePageSelect, numPages, currentPage } = this.props;
+    if (numPages > 1) {
+      return (
+      <Pagination onSelect={handlePageSelect}
                   items={numPages}
                   ellipsis={true}
                   first={true}
@@ -65,7 +66,14 @@ class PhotoList extends React.Component {
                   prev={true}
                   maxButtons={12}
                   activePage={currentPage} />
-    );
+      );
+     }
+     return '';
+  }
+
+  render() {
+    const { photos } = this.props;
+    const pagination = this.pagination();
     return (
     <div>
       {pagination}
@@ -99,10 +107,10 @@ export class Popular extends React.Component {
     super(props);
     const {dispatch} = this.props;
     this.actions = bindActionCreators(ActionCreators.photos, dispatch);
-    this.handlePageClick = this.handlePageClick.bind(this);
+    this.handlePageSelect = this.handlePageSelect.bind(this);
   }
 
-  handlePageClick(event, selectedEvent) {
+  handlePageSelect(event, selectedEvent) {
     event.preventDefault();
     const page = selectedEvent.eventKey;
     this.actions.getPhotos(page, "votes");
@@ -113,7 +121,7 @@ export class Popular extends React.Component {
   }
 
   render() {
-    return <PhotoList handlePageClick={this.handlePageClick} {...this.props.photos} />;
+    return <PhotoList handlePageSelect={this.handlePageSelect} {...this.props.photos} />;
   }
 
 }
@@ -134,10 +142,10 @@ export class Latest extends React.Component {
     super(props);
     const {dispatch} = this.props;
     this.actions = bindActionCreators(ActionCreators.photos, dispatch);
-    this.handlePageClick = this.handlePageClick.bind(this);
+    this.handlePageSelect = this.handlePageSelect.bind(this);
   }
 
-  handlePageClick(event, selectedEvent) {
+  handlePageSelect(event, selectedEvent) {
     event.preventDefault();
     const page = selectedEvent.eventKey;
     this.actions.getPhotos(page, "created");
@@ -148,7 +156,71 @@ export class Latest extends React.Component {
   }
 
   render() {
-    return <PhotoList handlePageClick={this.handlePageClick} {...this.props.photos} />;
+    return <PhotoList handlePageSelect={this.handlePageSelect} {...this.props.photos} />;
   }
+
+}
+
+@connect(state => {
+  return {
+    photos: state.photos.toJS()
+  }
+})
+export class Search extends React.Component {
+   static propTypes = {
+    photos: PropTypes.object.isRequired,
+    dispatch: PropTypes.func.isRequired
+  }
+
+  constructor(props) {
+    super(props);
+    const {dispatch} = this.props;
+    this.actions = bindActionCreators(ActionCreators.photos, dispatch);
+    this.handlePageSelect = this.handlePageSelect.bind(this);
+  }
+
+  handlePageSelect(event, selectedEvent) {
+    event.preventDefault();
+    this.searchPhotos(selectedEvent.eventKey);
+  }
+
+  componentDidMount() {
+    this.searchPhotos();
+  }
+
+  shouldComponentUpdate(nextProps) {
+    const nextQuery  = this.getQuery(nextProps);
+    if (nextQuery !== this.getQuery()) {
+      this.searchPhotos(1, nextQuery);
+    }
+    return nextProps !== this.props;
+  }
+
+  searchPhotos(page=1, query) {
+    query = query || this.getQuery();
+    if (query) {
+      this.actions.searchPhotos(page, query);
+    }
+  }
+
+  getQuery(props) {
+    props = props || this.props;
+    if (props.location) {
+      return props.location.query.q || '';
+    }
+    return '';
+  }
+
+  render() {
+    const query = this.getQuery();
+    return (
+      <div>
+        <h3>{query ? `${this.props.photos.total} results for ${query}` : ''}</h3>
+        <PhotoList handlePageSelect={this.handlePageSelect} {...this.props.photos} />
+      </div>
+    );
+
+  }
+
 
 }

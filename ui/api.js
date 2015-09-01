@@ -27,6 +27,12 @@ export function getPhotos(page, orderBy) {
   .then(response => response.json());
 }
 
+export function searchPhotos(page, query) {
+  return fetch(`${makeURI('/photos/search')}?page=${page}&q=${query}`)
+  .then(response => response.json());
+}
+
+
 export function getPhotoDetail(id) {
   const url  = `${makeURI('/photos/' + id)}`;
   return fetch(url, {

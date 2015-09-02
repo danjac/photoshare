@@ -6,7 +6,7 @@
   "private": true,
   "dependencies": {
     "bootstrap": "*",
-    "bootswatch-dist": "simplex",
+    "bootswatch-dist": "paper",
     "font-awesome": "~4.2.0"
   }
 }

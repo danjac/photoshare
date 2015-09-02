@@ -36,12 +36,7 @@ export default class Upload extends React.Component {
       return;
     }
 
-    const file = files[0];
-    if (!file.type.match('image.*')) {
-      return;
-    }
-
-    this.actions.previewPhoto(file);
+    this.actions.previewPhoto(files[0]);
   }
 
   previewPhoto() {
@@ -63,7 +58,7 @@ export default class Upload extends React.Component {
 
     this.actions.formSubmitted();
 
-    window.setInterval(this.actions.progressUpdate, 100);
+    window.setInterval(this.actions.progressUpdate, 1);
     this.actions.upload(title, tags, photo);
 
   }
@@ -84,7 +79,7 @@ export default class Upload extends React.Component {
   }
 
   progressBar() {
-    if (this.props.progress > 0) {
+    if (this.props.progress > 0 && this.props.formSubmitted) {
       return <ProgressBar min={0} max={100} now={this.props.progress} />;
     }
     return '';

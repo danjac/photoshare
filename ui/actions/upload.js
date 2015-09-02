@@ -77,20 +77,14 @@ export function progress() {
 
 export function previewPhoto(file) {
 
-  return dispatch => {
-    const reader = new window.FileReader();
-    reader.onload = ((f) => {
-      return (event) => {
-        dispatch(previewPhotoDone(event.target.result));
-      };
-    })(file);
-    reader.readAsDataURL(file);
-  }
-}
+  let url = null;
 
-export function previewPhotoDone(url) {
+  if (file.type.match('image.*')) {
+    url = URL.createObjectURL(file);
+  }
+
   return {
     type: PHOTO_PREVIEW,
     url: url
-  };
+  }
 }

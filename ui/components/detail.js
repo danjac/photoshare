@@ -6,7 +6,9 @@ import { Link } from 'react-router';
 import moment from 'moment';
 
 import {
-  Button
+  Button,
+  ButtonInput,
+  Input
 } from 'react-bootstrap';
 
 import * as ActionCreators from '../actions';
@@ -19,7 +21,8 @@ export default class PhotoDetail extends React.Component {
 
   static propTypes = {
     photo: PropTypes.object.isRequired,
-    isEditing: PropTypes.bool.isRequired,
+    isEditingTitle: PropTypes.bool.isRequired,
+    isEditingTags: PropTypes.bool.isRequired,
     dispatch: PropTypes.func.isRequired
   }
 
@@ -30,12 +33,16 @@ export default class PhotoDetail extends React.Component {
   constructor(props) {
     super(props);
     const {dispatch} = this.props;
+
     this.actions = bindActionCreators(ActionCreators.photoDetail, dispatch);
 
-    this.handleToggleEdit = this.handleToggleEdit.bind(this);
     this.handleVoteUp = this.handleVoteUp.bind(this);
     this.handleVoteDown = this.handleVoteDown.bind(this);
     this.handleDelete = this.handleDelete.bind(this);
+    this.handleToggleEditTitle = this.handleToggleEditTitle.bind(this);
+    this.handleToggleEditTags = this.handleToggleEditTags.bind(this);
+    this.handleUpdateTitle = this.handleUpdateTitle.bind(this);
+    this.handleUpdateTags = this.handleUpdateTags.bind(this);
 
   }
 
@@ -43,8 +50,30 @@ export default class PhotoDetail extends React.Component {
     this.actions.getPhotoDetail(this.props.params.id);
   }
 
-  handleToggleEdit(event) {
+  handleUpdateTitle(event) {
     event.preventDefault();
+    const title = this.refs.title.getValue().trim();
+    if (title) {
+      this.actions.updateTitle(this.props.photo.id, title);
+    }
+  }
+
+  handleUpdateTags(event) {
+    event.preventDefault();
+    const tags = this.refs.tags.getValue().trim().split(" ");
+    this.actions.updateTags(this.props.photo.id, tags);
+  }
+
+  handleToggleEditTitle(event) {
+    event.preventDefault();
+    this.actions.toggleEditTitle();
+  }
+
+  handleToggleEditTags(event) {
+    event.preventDefault();
+    if (this.props.photo.perms.edit) {
+      this.actions.toggleEditTags();
+    }
   }
 
   handleVoteUp(event) {
@@ -57,8 +86,18 @@ export default class PhotoDetail extends React.Component {
 
   handleDelete(event) {
     event.preventDefault();
-    this.actions.deletePhoto(this.props.photo);
+    this.actions.deletePhoto(this.props.photo.id);
     this.context.router.goBack();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (!prevProps.isEditingTitle && this.props.isEditingTitle) {
+      this.refs.title.getInputDOMNode().focus();
+    }
+    if (!prevProps.isEditingTags && this.props.isEditingTags) {
+      this.refs.tags.getInputDOMNode().focus();
+    }
+    return prevProps !== this.props;
   }
 
   renderButtons() {
@@ -70,16 +109,16 @@ export default class PhotoDetail extends React.Component {
     const buttons = [];
 
     if (this.props.photo.perms.edit) {
-      buttons.push(<Button onClick={this.handleToggleEdit}><Facon name="pencil" /></Button>);
+      buttons.push(<Button key="edit" onClick={this.handleToggleEditTitle}><Facon name="pencil" /></Button>);
     }
 
     if (this.props.photo.perms.vote) {
-      buttons.push(<Button onClick={this.handleVoteUp}><Facon name="thumbsUp" /></Button>);
-      buttons.push(<Button onClick={this.handleVoteDown}><Facon name="thumbsDown" /></Button>);
+      buttons.push(<Button key="voteUp" onClick={this.handleVoteUp}><Facon name="thumbsUp" /></Button>);
+      buttons.push(<Button key="voteDown" onClick={this.handleVoteDown}><Facon name="thumbsDown" /></Button>);
     }
 
     if (this.props.photo.perms.delete) {
-      buttons.push(<Button bsStyle="danger" onClick={this.handleDelete}><Facon name="trash" /></Button>);
+      buttons.push(<Button key="delete" bsStyle="danger" onClick={this.handleDelete}><Facon name="trash" /></Button>);
     }
 
     if (!buttons) {
@@ -93,14 +132,55 @@ export default class PhotoDetail extends React.Component {
     );
   }
 
+  renderTitle() {
+    if (this.props.isEditingTitle) {
+      return (
+        <div>
+          <form className="form-inline" onSubmit={this.handleUpdateTitle}>
+            <Input ref="title" type="text" defaultValue={this.props.photo.title} />
+            <Button type="submit"><Facon name="floppy-o" /></Button>
+          </form>
+        </div>
+      );
+    }
+    return <h3 onClick={this.handleToggleEditTitle}>{this.props.photo.title}</h3>;
+  }
+
+  renderTags() {
+    const tags = this.props.photo.tags || [];
+    if (this.props.isEditingTags) {
+      return (
+          <div>
+            <form className="form-inline" onSubmit={this.handleUpdateTags}>
+              <Input ref="tags" type="text" defaultValue={tags.join(" ")} />
+              <Button type="submit"><Facon name="floppy-o" /></Button>
+            </form>
+          </div>
+      );
+    }
+    if (!tags) {
+      return "";
+    }
+    return (
+        <div>
+        {tags.map(tag => {
+          return <span><a href="#"><span className="label label-md label-default">#{tag}</span></a>&nbsp;</span>;
+        })}
+        {this.props.photo.perms.edit ? <Button bsSize="small" onClick={this.handleToggleEditTags}>Edit tags <Facon name="pencil" /></Button> : ''}
+        </div>
+    );
+
+  }
+
   render() {
     const photo = this.props.photo;
     const src = photo.photo ? `/uploads/thumbnails/${photo.photo}` : '/img/ajax-loader.gif';
 
     return (
     <div>
-      <h3>{photo.title}</h3>
+      {this.renderTitle()}
       {this.renderButtons()}
+      {this.renderTags()}
       <div className="row">
           <div className="col-xs-6 col-md-3">
               <a target="_blank" className="thumbnail" title={photo.title} href={`/uploads/${photo.photo}`}>
@@ -111,14 +191,15 @@ export default class PhotoDetail extends React.Component {
               <dl>
                   <dt>Score <span className="badge">{photo.score}</span></dt>
                   <dd>
-                      <i className="fa fa-thumbs-up"></i> {photo.upVotes}
+                      <Facon name="thumbs-up" /> {photo.upVotes}
                       &nbsp;
-                      <i className="fa fa-thumbs-down"></i> {photo.downVotes}
+                      <Facon name="thumbs-down" /> {photo.downVotes}
                   </dd>
                   <dt>Uploaded by</dt>
                   <dd>
                       <a href="#">{photo.ownerName}</a>
-                  </dd>	<dt>Uploaded on</dt>
+                  </dd>
+                  <dt>Uploaded on</dt>
                   <dd>{moment(photo.createdAt).format('MMMM Do YYYY h:mm')}</dd>
               </dl>
 

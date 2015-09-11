@@ -32,6 +32,32 @@ export function searchPhotos(page, query) {
   .then(response => response.json());
 }
 
+export function updatePhotoTitle(id, title) {
+  const url = makeURI(`/photos/${id}/title`);
+  return fetch(url, {
+    method: 'PATCH',
+    headers: {
+      [AUTH_TOKEN]: getToken()
+    },
+    body: JSON.stringify({
+      title: title
+    })
+  });
+}
+
+export function updatePhotoTags(id, tags) {
+  const url = makeURI(`/photos/${id}/tags`);
+  return fetch(url, {
+    method: 'PATCH',
+    headers: {
+      [AUTH_TOKEN]: getToken()
+    },
+    body: JSON.stringify({
+      tags: tags
+    })
+  });
+}
+
 
 export function getPhotoDetail(id) {
   const url  = makeURI('/photos/' + id);

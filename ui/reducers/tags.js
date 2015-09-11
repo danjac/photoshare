@@ -17,7 +17,7 @@ const initialState = Immutable.fromJS({
 export default function(state=initialState, action) {
   switch(action.type) {
     case GET_TAGS:
-      return state.set("source", action.tags);
+      return state.set("source", Immutable.List(action.tags));
     case FILTER_TAGS:
       return state.set("filter", action.filter);
     case ORDER_TAGS:

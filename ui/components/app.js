@@ -54,7 +54,6 @@ class Navigation extends React.Component {
 
   handleLogout(event) {
     event.preventDefault();
-    this.props.actions.newMessage("Bye for now!", "success");
     this.props.actions.logout();
     this.context.router.transitionTo("/");
   }

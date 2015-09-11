@@ -25,8 +25,7 @@ export function getUserComplete(user) {
 export function logout() {
   api.logout();
   return {
-    type: GET_USER,
-    user: {}
+    type: LOGOUT
   }
 }
 

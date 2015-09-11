@@ -2,8 +2,8 @@ import React, { PropTypes } from 'react';
 import _ from 'lodash';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { Input, 
-         ButtonInput 
+import { Input,
+         ButtonInput
         } from 'react-bootstrap';
 
 import * as ActionCreators from '../actions';
@@ -24,7 +24,6 @@ export default class Login extends React.Component {
     super(props);
     const { dispatch } = this.props;
     this.actions = Object.assign({},
-      bindActionCreators(ActionCreators.messages, dispatch),
       bindActionCreators(ActionCreators.auth, dispatch)
     );
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -32,9 +31,6 @@ export default class Login extends React.Component {
 
   shouldComponentUpdate(nextProps) {
     if (nextProps.loggedIn) {
-      this.actions.newMessage(`Welcome back, ${nextProps.name}`, "success");
-      //const nextPath = this.props.query.nextPath || "/";
-      //console.log("query", this.props.query);
       this.context.router.transitionTo("/upload/");
       return true;
     }
@@ -59,7 +55,7 @@ export default class Login extends React.Component {
             <ButtonInput bsStyle="primary" type="submit">Login</ButtonInput>
         </form>
 
-        <a href="#/recoverpass">Forgot your password?</a> 
+        <a href="#/recoverpass">Forgot your password?</a>
       </div>
     );
   }

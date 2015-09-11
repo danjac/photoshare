@@ -20,7 +20,7 @@ class Tag extends React.Component {
 
   constructor(props) {
     super(props);
-    this.handleClick = this.handleClick.bind(this);
+    this.handleSearch = this.handleSearch.bind(this);
   }
 
   handleSearch(event) {
@@ -45,16 +45,15 @@ class Tag extends React.Component {
 }
 
 @connect(state => {
-  let tags = state.tags.toJS().source;
-  if (state.tags.filter) {
-    tags = tags.filter(tag => tag.name.match(state.tags.filter))
+  let { source, filter, orderBy } = state.tags.toJS();
+  if (filter) {
+    source = source.filter(tag => tag.name.match(filter))
   }
-  tags = tags.sort((left, right) => {
-    const orderBy = state.tags.orderBy;
+  source.sort((left, right) => {
     return left[orderBy] > right[orderBy] ? 1 : ( left[orderBy] === right[orderBy] ? 0 : -1 );
   });
   return {
-    tags: tags
+    tags: source
   };
 })
 export default class TagList extends React.Component {

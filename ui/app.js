@@ -3,20 +3,21 @@ import { Router, Route } from 'react-router';
 import HashHistory from 'react-router/lib/HashHistory';
 import { Provider } from 'react-redux';
 
-import { 
-  App, 
-  Popular, 
+import {
+  App,
+  Popular,
   Latest,
   Search,
   PhotoDetail,
   Login,
-  Upload
+  Upload,
+  TagList
 } from './components';
 
 import configureStore from './store';
 
 
-const store = configureStore(), 
+const store = configureStore(),
       history = new HashHistory();
 
 
@@ -39,6 +40,7 @@ class Container extends React.Component {
           <Route path="/upload/" component={Upload} onEnter={requireAuth} />
           <Route path="/latest/" component={Latest} />
           <Route path="/search/" component={Search} />
+          <Route path="/tags/" component={TagList} />
           <Route path="/detail/:id" component={PhotoDetail} />
           <Route path="/login/" component={Login} />
         </Route>

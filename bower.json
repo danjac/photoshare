@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "bootstrap": "*",
+    "bootstrap-css": "*",
     "bootswatch-dist": "paper",
     "font-awesome": "~4.2.0"
   }

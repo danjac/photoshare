@@ -1,5 +1,6 @@
 Godeps
 public
+bin
 bower_components
 node_modules
 *.swp
@@ -8,7 +9,5 @@ photoshare
 .env
 db/dbconf.yml
 logs
-server
-import
 *.sublime-project
 *.sublime-workspace

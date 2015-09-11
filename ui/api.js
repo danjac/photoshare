@@ -61,7 +61,7 @@ export function logout() {
 }
 
 export function login(identifier, password) {
-  return fetch(makeURI("/auth/"), { 
+  return fetch(makeURI("/auth/"), {
     method: "POST",
     headers: {
       "Accept": "application/json",
@@ -76,6 +76,11 @@ export function login(identifier, password) {
     setToken(response.headers.get(AUTH_TOKEN));
     return response.json()
   });
+}
+
+export function getTags() {
+  return fetch(makeURI("/tags/"))
+      .then(response => response.json());
 }
 
 export function upload(title, tags, photo) {

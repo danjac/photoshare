@@ -106,7 +106,7 @@ class Navigation extends React.Component {
         <Nav>
           <NavItem active={isActive('/')} href={makeHref("/")}><Facon name='fire' /> Popular</NavItem>
           <NavItem active={isActive('/latest/')} href={makeHref("/latest/")}><Facon name='clock-o' /> Latest</NavItem>
-          <NavItem active={isActive('/tags/')} href="/"><Facon name='tags' /> Tags</NavItem>
+          <NavItem active={isActive('/tags/')} href={makeHref("/tags/")}><Facon name='tags' /> Tags</NavItem>
           <NavItem active={isActive('/upload/')} href={makeHref("/upload/")}><Facon name='upload' /> Upload</NavItem>
         </Nav>
 

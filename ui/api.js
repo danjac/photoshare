@@ -34,12 +34,21 @@ export function searchPhotos(page, query) {
 
 
 export function getPhotoDetail(id) {
-  const url  = `${makeURI('/photos/' + id)}`;
+  const url  = makeURI('/photos/' + id);
   return fetch(url, {
     headers: {
       [AUTH_TOKEN]: getToken()
   }})
   .then(response => response.json());
+}
+
+export function deletePhoto(id) {
+  return fetch(makeURI('/photos/' +id), {
+    method: 'DELETE',
+    headers: {
+      [AUTH_TOKEN]: getToken()
+    }
+  });
 }
 
 export function getUser() {

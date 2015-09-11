@@ -3,7 +3,8 @@ import * as api from '../api';
 import { ActionTypes } from '../constants';
 
 const {
-  GET_PHOTO_DETAIL 
+  GET_PHOTO_DETAIL,
+  DELETE_PHOTO
 } = ActionTypes;
 
 export function getPhotoDetail(id) {
@@ -12,6 +13,14 @@ export function getPhotoDetail(id) {
     .then(photo => {
       dispatch(getPhotoDetailDone(photo));
     });
+  }
+}
+
+export function deletePhoto(photo) {
+  api.deletePhoto(photo.id);
+  return {
+    type: DELETE_PHOTO,
+    photo: photo
   }
 }
 

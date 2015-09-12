@@ -96,14 +96,13 @@ class Navigation extends React.Component {
     const makeHref = this.context.router.makeHref;
     const handleSearch = this.handleSearch.bind(this);
 
-    const isActive = (path, q) => this.context.router.isActive(path, q);
+    const isActive = path => this.context.router.isActive(path);
 
     return (
 
       <Navbar fixedTop inverse brand={brand}>
 
         <Nav>
-          <NavItem active={isActive('/')} href={makeHref("/")}><Facon name='fire' /> Popular</NavItem>
           <NavItem active={isActive('/latest/')} href={makeHref("/latest/")}><Facon name='clock-o' /> Latest</NavItem>
           <NavItem active={isActive('/tags/')} href={makeHref("/tags/")}><Facon name='tags' /> Tags</NavItem>
           <NavItem active={isActive('/upload/')} href={makeHref("/upload/")}><Facon name='upload' /> Upload</NavItem>

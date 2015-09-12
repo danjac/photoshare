@@ -18,104 +18,93 @@ function deleteToken() {
   window.localStorage.removeItem(AUTH_TOKEN);
 }
 
-function makeURI(uri) {
-  return `${API_URI}${uri}`;
+function callAPI(endpoint, method, data) {
+
+  const args = { method: method };
+  const token = getToken();
+  let headers = {};
+
+  if (token) {
+    headers[AUTH_TOKEN] = token;
+  }
+
+  if (data) {
+      // check if window.FormData
+      if (data instanceof window.FormData) {
+        args.body= data;
+      } else {
+        args.body  = JSON.stringify(data);
+        headers = Object.assign({}, headers, {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        });
+      }
+  }
+
+  if (headers) {
+    args.headers = headers;
+  }
+
+  return fetch(API_URI + endpoint, args)
+    .then(response => {
+      if (response.headers.has(AUTH_TOKEN)) {
+        const token = response.headers.get(AUTH_TOKEN);
+        if (token) {
+          setToken(token);
+        }
+      }
+      return response.json();
+    });
+
 }
 
 export function getPhotos(page, orderBy) {
-  return fetch(`${makeURI('/photos/')}?page=${page}&orderBy=${orderBy}`)
-  .then(response => response.json());
+  return callAPI(`/photos/?page=${page}&orderBy=${orderBy}`);
 }
 
 export function searchPhotos(page, query) {
-  return fetch(`${makeURI('/photos/search')}?page=${page}&q=${query}`)
-  .then(response => response.json());
+  return callAPI(`/photos/search?page=${page}&q=${query}`);
 }
 
 export function updatePhotoTitle(id, title) {
-  const url = makeURI(`/photos/${id}/title`);
-  return fetch(url, {
-    method: 'PATCH',
-    headers: {
-      [AUTH_TOKEN]: getToken()
-    },
-    body: JSON.stringify({
-      title: title
-    })
+  return callAPI(`/photos/${id}/title`, 'PATCH', {
+    title: title
   });
 }
 
 export function updatePhotoTags(id, tags) {
-  const url = makeURI(`/photos/${id}/tags`);
-  return fetch(url, {
-    method: 'PATCH',
-    headers: {
-      [AUTH_TOKEN]: getToken()
-    },
-    body: JSON.stringify({
-      tags: tags
-    })
+  return callAPI(`/photos/${id}/tags`, 'PATCH', {
+    tags: tags
   });
 }
-
 
 export function getPhotoDetail(id) {
-  const url  = makeURI('/photos/' + id);
-  return fetch(url, {
-    headers: {
-      [AUTH_TOKEN]: getToken()
-  }})
-  .then(response => response.json());
+  return callAPI('/photos/' + id);
 }
 
-export function deletePhoto(id) {
-  return fetch(makeURI('/photos/' +id), {
-    method: 'DELETE',
-    headers: {
-      [AUTH_TOKEN]: getToken()
-    }
-  });
+export function deletePhoto(id)  {
+  return callAPI('/photos/' + id, 'DELETE');
 }
 
 export function getUser() {
-  const token = getToken();
-  if (!token) {
-    return new Promise(resolve => null);
-  }
-
-  return fetch(makeURI("/auth/"), {
-    headers: {
-      [AUTH_TOKEN]: getToken()
-    }})
-    .then(response => response.json())
+  return callAPI('/auth/');
 }
+
 
 export function logout() {
   deleteToken();
-  fetch(makeURI("/auth/"), { method: "DELETE" });
+  return callAPI('/auth/', 'DELETE')
 }
 
 export function login(identifier, password) {
-  return fetch(makeURI("/auth/"), {
-    method: "POST",
-    headers: {
-      "Accept": "application/json",
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      identifier: identifier,
-      password: password
-    })
-  })
-  .then(response => {
-    setToken(response.headers.get(AUTH_TOKEN));
-    return response.json()
+  return callAPI('/auth/', 'POST', {
+    identifier: identifier,
+    password: password
   });
 }
 
 export function getTags() {
-  return fetch(makeURI("/tags/"))
-      .then(response => response.json());
+  return callAPI('/tags/');
 }
 
 export function upload(title, tags, photo) {
@@ -124,13 +113,7 @@ export function upload(title, tags, photo) {
   data.append("title", title);
   data.append("tags", tags);
 
-  return fetch(makeURI('/photos/'), {
-    method: 'POST',
-    headers: {
-      [AUTH_TOKEN]: getToken()
-    },
-    body: data
-  })
-  .then(response => response.json());
+  return callAPI('/photos/', 'POST', data);
 
 }
+

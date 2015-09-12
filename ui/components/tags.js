@@ -50,10 +50,14 @@ class Tag extends React.Component {
     source = source.filter(tag => tag.name.match(filter))
   }
   source.sort((left, right) => {
-    return left[orderBy] > right[orderBy] ? 1 : ( left[orderBy] === right[orderBy] ? 0 : -1 );
+    const up = orderBy === 'numPhotos' ? -1 : 1;
+    const down = orderBy === 'numPhotos' ? 1 : -1;
+    return left[orderBy] > right[orderBy] ? up : ( left[orderBy] === right[orderBy] ? 0 : down );
   });
   return {
-    tags: source
+    tags: source,
+    filter: filter,
+    orderBy: orderBy
   };
 })
 export default class TagList extends React.Component {
@@ -91,8 +95,10 @@ export default class TagList extends React.Component {
             <form className="form-inline">
                 <div className="form-group">
                     <Input ref="filterStr" type="text" placeholder="Find a tag" onChange={this.handleFilter.bind(this)} />
-                    <Button onClick={this.handleOrderBy.bind(this, "numPhotos")}><i className="fa fa-sort-numeric-desc"></i></Button>
-                    <Button onClick={this.handleOrderBy.bind(this, "name")}><i className="fa fa-sort-alpha-desc"></i></Button>
+                    <Button bsStyle={this.props.orderBy === 'numPhotos' ? 'primary': 'default'}
+                            onClick={this.handleOrderBy.bind(this, "numPhotos")}><i className="fa fa-sort-numeric-desc"></i></Button>
+                    <Button bsStyle={this.props.orderBy === 'name' ? 'primary': 'default'}
+                            onClick={this.handleOrderBy.bind(this, "name")}><i className="fa fa-sort-alpha-desc"></i></Button>
                 </div>
             </form>
           </div>

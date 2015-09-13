@@ -67,8 +67,10 @@ class Navigation extends React.Component {
 
   rightNav() {
     const { name, loggedIn } = this.props.auth;
-    const makeHref = this.context.router.makeHref;
+    const router = this.context.router;
+    const makeHref = router.makeHref;
     const handleLogout  = this.handleLogout.bind(this);
+    const currentPath = router.state.location.pathname;
 
     if (loggedIn) {
       return (
@@ -83,7 +85,7 @@ class Navigation extends React.Component {
     }
     return (
       <Nav right>
-        <NavItem active={this.isActive('/login/')} href={makeHref('/login/')}><Facon name='sign-in' /> Login</NavItem>
+        <NavItem active={this.isActive('/login/')} href={makeHref('/login/', { nextPath: currentPath })}><Facon name='sign-in' /> Login</NavItem>
         <NavItem active={this.isActive('/signup/')} href={makeHref('/signup/')}><Facon name='user' /> Signup</NavItem>
       </Nav>
     );

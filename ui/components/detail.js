@@ -94,7 +94,7 @@ export default class PhotoDetail extends React.Component {
 
   componentDidUpdate(prevProps) {
     if (!prevProps.isEditingTitle && this.props.isEditingTitle) {
-      this.refs.title.getInputDOMNode().focus();
+      this.refs.title.getInputDOMNode().select();
     }
     if (!prevProps.isEditingTags && this.props.isEditingTags) {
       this.refs.tags.getInputDOMNode().focus();

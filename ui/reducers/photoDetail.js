@@ -36,7 +36,7 @@ export default function(state=initialState, action) {
   switch(action.type) {
     case FETCH_PHOTO_DETAIL_SUCCESS:
 
-      return state
+      return initialState
         .set("photo", Immutable.fromJS(action.payload))
         .set("isLoaded", true);
 

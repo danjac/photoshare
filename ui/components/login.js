@@ -31,7 +31,14 @@ export default class Login extends React.Component {
 
   shouldComponentUpdate(nextProps) {
     if (nextProps.loggedIn) {
-      this.context.router.transitionTo("/upload/");
+
+      let nextPath = '/upload/';
+
+      const query  = this.context.router.state.location.query;
+      if (query && query.nextPath && !query.nextPath.match("login")) {
+        nextPath = query.nextPath;
+      }
+      this.context.router.transitionTo(nextPath);
       return true;
     }
     return nextProps !== this.props;

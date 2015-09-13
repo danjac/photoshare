@@ -28,10 +28,10 @@ class Container extends React.Component {
     <div>
     <Provider store={store}>
     {() => {
-      const requireAuth = (nextState, transition) => {
+      const requireAuth = (nextState, replaceState) => {
         const auth = store.getState().auth.toJS();
         if (!auth.loggedIn) {
-          transition.to('/login/', { nextPath: nextState.location.pathname });
+          replaceState.to('/login/', { nextPath: nextState.location.pathname });
         }
       }
       return (

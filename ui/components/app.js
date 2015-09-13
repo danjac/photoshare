@@ -66,7 +66,7 @@ class Navigation extends React.Component {
   }
 
   rightNav() {
-    const { name, loggedIn } = this.props.auth;
+    const { id, name, loggedIn } = this.props.auth;
     const router = this.context.router;
     const makeHref = router.makeHref;
     const handleLogout  = this.handleLogout.bind(this);
@@ -76,7 +76,7 @@ class Navigation extends React.Component {
       return (
         <Nav right>
           <NavDropdown title={name}>
-            <MenuItem>My photos</MenuItem>
+            <MenuItem href={makeHref(`/user/${id}/${name}`)}>My photos</MenuItem>
             <MenuItem>Change my password</MenuItem>
             <MenuItem onSelect={handleLogout}>Logout</MenuItem>
           </NavDropdown>

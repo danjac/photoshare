@@ -1,4 +1,4 @@
-import { Popular, Latest, Search } from './list';
+import { Popular, Latest, Search, User } from './list';
 import PhotoDetail from './detail';
 import Login from './login';
 import Signup from './signup';
@@ -10,6 +10,7 @@ export default {
   Popular,
   Latest,
   Search,
+  User,
   PhotoDetail,
   App,
   Login,

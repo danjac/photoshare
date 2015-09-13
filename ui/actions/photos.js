@@ -25,6 +25,10 @@ export function getPhotos(page, orderBy) {
   return fetchPhotos(api.getPhotos(page, orderBy));
 }
 
+export function getPhotosForOwner(ownerID, page) {
+  return fetchPhotos(api.getPhotosForOwner(ownerID, page));
+}
+
 export function searchPhotos(page, query) {
   return fetchPhotos(api.searchPhotos(page, query));
 }

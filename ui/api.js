@@ -77,6 +77,10 @@ export function searchPhotos(page, query) {
   return callAPI(`/photos/search?page=${page}&q=${query}`);
 }
 
+export function getPhotosForOwner(ownerID, page) {
+  return callAPI(`/photos/owner/${ownerID}?page=${page}`);
+}
+
 export function updatePhotoTitle(id, title) {
   return callAPI(`/photos/${id}/title`, 'PATCH', {
     title: title

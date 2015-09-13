@@ -8,6 +8,7 @@ import {
   Popular,
   Latest,
   Search,
+  User,
   PhotoDetail,
   Login,
   Signup,
@@ -45,6 +46,7 @@ class Container extends React.Component {
           <Route path="/login/" component={Login} />
           <Route path="/signup/" component={Signup} />
           <Route path="/detail/:id" component={PhotoDetail} />
+          <Route path="/user/:userID/:username" component={User} />
         </Route>
       </Router>
       );

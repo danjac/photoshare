@@ -40,7 +40,7 @@ class PhotoListItem extends React.Component {
           </div>
       </div>
       );
-  } 
+  }
 }
 
 class PhotoList extends React.Component {
@@ -161,6 +161,7 @@ export class Latest extends React.Component {
 
 }
 
+
 @connect(state => {
   return {
     photos: state.photos.toJS()
@@ -216,6 +217,52 @@ export class Search extends React.Component {
     return (
       <div>
         <h3>{query ? `${this.props.photos.total} results for ${query}` : ''}</h3>
+        <PhotoList handlePageSelect={this.handlePageSelect} {...this.props.photos} />
+      </div>
+    );
+
+  }
+
+}
+
+@connect(state => {
+  return {
+    photos: state.photos.toJS()
+  }
+})
+export class User extends React.Component {
+
+  static propTypes = {
+    photos: PropTypes.object.isRequired,
+    dispatch: PropTypes.func.isRequired
+  }
+
+  constructor(props) {
+    super(props);
+    const {dispatch} = this.props;
+    this.actions = bindActionCreators(ActionCreators.photos, dispatch);
+    this.handlePageSelect = this.handlePageSelect.bind(this);
+  }
+
+  handlePageSelect(event, selectedEvent) {
+    event.preventDefault();
+    this.getPhotos(selectedEvent.eventKey);
+  }
+
+  getPhotos(page=1) {
+    const userID = this.props.params.userID;
+    this.actions.getPhotosForOwner(userID, page);
+  }
+
+  componentDidMount() {
+    this.getPhotos();
+  }
+
+  render() {
+    const username = this.props.params.username;
+    return (
+      <div>
+        <h3>{this.props.photos.total} Photos for {username}</h3>
         <PhotoList handlePageSelect={this.handlePageSelect} {...this.props.photos} />
       </div>
     );

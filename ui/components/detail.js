@@ -171,6 +171,9 @@ export default class PhotoDetail extends React.Component {
   }
 
   render() {
+
+    const makeHref = this.context.router.makeHref;
+
     const photo = this.props.photo;
     const src = photo.photo ? `/uploads/thumbnails/${photo.photo}` : '/img/ajax-loader.gif';
 
@@ -199,7 +202,7 @@ export default class PhotoDetail extends React.Component {
                   </dd>
                   <dt>Uploaded by</dt>
                   <dd>
-                      <a href="#">{photo.ownerName}</a>
+                      <a href={makeHref(`/user/${photo.ownerId}/${photo.ownerName}`)}>{photo.ownerName}</a>
                   </dd>
                   <dt>Uploaded on</dt>
                   <dd>{moment(photo.createdAt).format('MMMM Do YYYY h:mm')}</dd>

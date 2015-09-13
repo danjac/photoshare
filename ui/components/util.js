@@ -1,6 +1,14 @@
 import React from 'react';
 
 
+export class Loader extends React.Component {
+  render() {
+    return (
+      <div><img src="/img/ajax-loader.gif" alt="" /></div>
+    );
+  }
+}
+
 export class Facon extends React.Component {
 
   static propTypes = {

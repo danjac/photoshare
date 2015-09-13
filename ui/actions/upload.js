@@ -5,11 +5,10 @@ import { ActionTypes } from '../constants';
 
 const {
   PHOTO_PREVIEW,
-  PHOTO_UPLOAD,
-  UPLOAD_RESET,
-  UPLOAD_PROGRESS,
-  UPLOAD_ERRORS,
-  UPLOAD_SUBMITTED
+  UPLOAD_FORM_INVALID,
+  UPLOAD_PENDING,
+  UPLOAD_SUCCESS,
+  UPLOAD_FAILURE
 } = ActionTypes;
 
 function validate(title, tags, photo) {
@@ -33,46 +32,21 @@ export function upload(title, tags, photo) {
   const errors = validate(title, tags, photo);
 
   if (errors.size > 0) {
-    return dispatch => dispatch(formErrors(errors));
+    return dispatch => dispatch({
+      type: UPLOAD_FORM_INVALID,
+      errors: errors
+    });
   }
 
-  return dispatch => {
-    api.upload(title, tags, photo)
-    .then(photo => dispatch(uploadDone(photo)));
-  }
-
-}
-
-export function formSubmitted() {
-    return {
-        type: UPLOAD_SUBMITTED
-    }
-}
-
-export function formErrors(errors){
-    return {
-        type: UPLOAD_ERRORS,
-        errors: errors
-    };
-}
-
-export function uploadDone(photo) {
   return {
-    type: PHOTO_UPLOAD,
-    photo: photo
-  };
-}
-
-export function reset() {
-  return {
-    type: UPLOAD_RESET
+    types: [
+      UPLOAD_PENDING,
+      UPLOAD_SUCCESS,
+      UPLOAD_FAILURE
+    ],
+    payload: api.upload(title, tags, photo)
   }
-}
 
-export function progress() {
-  return {
-    type: UPLOAD_PROGRESS
-  }
 }
 
 export function previewPhoto(file) {

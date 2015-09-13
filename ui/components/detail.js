@@ -12,7 +12,7 @@ import {
 } from 'react-bootstrap';
 
 import * as ActionCreators from '../actions';
-import { Facon } from './util';
+import { Facon, Loader } from './util';
 
 @connect(state => {
   return state.photoDetail.toJS();
@@ -102,10 +102,6 @@ export default class PhotoDetail extends React.Component {
 
   renderButtons() {
 
-    if (!this.props.photo) {
-      return '';
-    }
-
     const buttons = [];
 
     if (this.props.photo.perms.edit) {
@@ -175,6 +171,10 @@ export default class PhotoDetail extends React.Component {
   render() {
     const photo = this.props.photo;
     const src = photo.photo ? `/uploads/thumbnails/${photo.photo}` : '/img/ajax-loader.gif';
+
+    if (!this.props.isLoaded) {
+      return <Loader />
+    }
 
     return (
     <div>

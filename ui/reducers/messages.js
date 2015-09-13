@@ -22,7 +22,7 @@ export default function(state=initialState, action) {
     case DELETE_MESSAGE:
       return state.delete(action.key);
     case LOGIN_SUCCESS:
-      return newMessage(state, `Welcome back, ${action.user.name}`, "success");
+      return newMessage(state, `Welcome back, ${action.payload.name}`, "success");
     case LOGOUT:
       return newMessage(state, "Bye for now", "info");
     case DELETE_PHOTO:

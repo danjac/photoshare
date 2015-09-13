@@ -4,8 +4,7 @@ import { ActionTypes }  from '../constants';
 
 const {
   LOGIN_SUCCESS,
-  LOGIN_FAILURE,
-  GET_USER,
+  FETCH_USER_SUCCESS,
   LOGOUT
 } = ActionTypes;
 
@@ -21,10 +20,9 @@ const initialState = Immutable.fromJS({
 export default function(state=initialState, action) {
   switch(action.type) {
     case LOGIN_SUCCESS:
-      console.log("login success:", action.user);
-      return Immutable.fromJS(action.user);
-    case GET_USER:
-      return Immutable.fromJS(action.user || {});
+      return Immutable.fromJS(action.payload);
+    case FETCH_USER_SUCCESS:
+      return Immutable.fromJS(action.payload || {});
     case LOGOUT:
       return initialState;
     default:

@@ -2,31 +2,30 @@ import * as api from '../api';
 import { ActionTypes } from '../constants';
 
 const {
-  GET_TAGS,
+  FETCH_TAGS_PENDING,
+  FETCH_TAGS_SUCCESS,
+  FETCH_TAGS_FAILURE,
   FILTER_TAGS,
   ORDER_TAGS
 } = ActionTypes;
 
 export function getTags() {
-  return dispatch => {
-    api.getTags()
-    .then(tags => {
-      dispatch(getTagsDone(tags));
-    });
-  };
-}
-
-export function getTagsDone(tags) {
   return {
-    type: GET_TAGS,
-    tags: tags
+    types: [
+      FETCH_TAGS_PENDING,
+      FETCH_TAGS_SUCCESS,
+      FETCH_TAGS_FAILURE
+    ],
+    payload: {
+      promise: api.getTags()
+    }
   }
 }
 
-export function filterTags(filterStr) {
+export function filterTags(filter) {
   return {
     type: FILTER_TAGS,
-    filter: filterStr
+    filter: filter
   };
 }
 

@@ -38,6 +38,7 @@
     "redux": "^1.0.1",
     "redux-devtools": "^1.1.2",
     "redux-logger": "^1.0.6",
+    "redux-promise-middleware": "^0.2.1",
     "redux-thunk": "^0.1.0"
   }
 }

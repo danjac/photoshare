@@ -56,11 +56,7 @@ export default class Upload extends React.Component {
           tags = this.refs.tags.getValue().trim(),
           photo = this.refs.photo.getInputDOMNode().files[0];
 
-    this.actions.formSubmitted();
-
-    window.setInterval(this.actions.progressUpdate, 1);
     this.actions.upload(title, tags, photo);
-
   }
 
   shouldComponentUpdate(nextProps) {
@@ -78,22 +74,16 @@ export default class Upload extends React.Component {
     return nextProps !== this.props;
   }
 
-  progressBar() {
-    if (this.props.progress > 0 && this.props.formSubmitted) {
-      return <ProgressBar min={0} max={100} now={this.props.progress} />;
-    }
-    return '';
-  }
-
   errorStatus(name) {
-      if (!this.props.formSubmitted) {
-          return;
-      }
-      return this.props.errors.has(name) ? 'error' : 'success';
+    console.log("formsubmitted", this.props.formSubmitted, this.props.errors);
+    if (!this.props.formSubmitted) {
+        return;
+    }
+    return this.props.errors.has(name) ? 'error' : 'success';
   }
 
   errorMsg(name) {
-      return this.props.errors.get(name) || '';
+    return this.props.errors.get(name) || '';
   }
 
   render() {
@@ -127,7 +117,6 @@ export default class Upload extends React.Component {
               </form>
           </div>
           <div className="col-md-6">
-              {this.progressBar()}
               {this.previewPhoto()}
           </div>
       </div>

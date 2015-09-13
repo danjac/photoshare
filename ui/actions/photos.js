@@ -2,30 +2,29 @@ import * as api from '../api';
 import { ActionTypes } from '../constants';
 
 const {
-  GET_PHOTOS 
+  FETCH_PHOTOS_PENDING,
+  FETCH_PHOTOS_SUCCESS,
+  FETCH_PHOTOS_FAILURE
 } = ActionTypes;
 
-export function getPhotos(page, orderBy) {
-  return dispatch => {
-    api.getPhotos(page, orderBy)
-    .then(photos => {
-      dispatch(getPhotosDone(photos));
-    });
+
+function fetchPhotos(promise) {
+  return {
+    types: [
+      FETCH_PHOTOS_PENDING,
+      FETCH_PHOTOS_SUCCESS,
+      FETCH_PHOTOS_FAILURE
+    ],
+    payload: {
+      promise: promise
+    }
   }
+}
+
+export function getPhotos(page, orderBy) {
+  return fetchPhotos(api.getPhotos(page, orderBy));
 }
 
 export function searchPhotos(page, query) {
-  return dispatch => {
-    api.searchPhotos(page, query)
-    .then(photos => {
-      dispatch(getPhotosDone(photos));
-    })
-  }
-}
-
-export function getPhotosDone(photos) {
-  return {
-    type: GET_PHOTOS,
-    photos: photos
-  };
+  return fetchPhotos(api.searchPhotos(page, query));
 }

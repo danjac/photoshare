@@ -3,7 +3,7 @@ import Immutable from 'immutable';
 import { ActionTypes } from '../constants';
 
 const {
-  GET_TAGS,
+  FETCH_TAGS_SUCCESS,
   FILTER_TAGS,
   ORDER_TAGS
 } = ActionTypes;
@@ -16,8 +16,8 @@ const initialState = Immutable.fromJS({
 
 export default function(state=initialState, action) {
   switch(action.type) {
-    case GET_TAGS:
-      return initialState.set("source", Immutable.fromJS(action.tags));
+    case FETCH_TAGS_SUCCESS:
+      return initialState.set("source", Immutable.fromJS(action.payload));
     case FILTER_TAGS:
       return state.set("filter", action.filter);
     case ORDER_TAGS:

@@ -20,8 +20,11 @@ function deleteToken() {
 
 function callAPI(endpoint, method, data) {
 
+  method = method || "GET";
+
   const args = { method: method };
   const token = getToken();
+
   let headers = {};
 
   if (token) {
@@ -53,7 +56,10 @@ function callAPI(endpoint, method, data) {
           setToken(token);
         }
       }
-      return response.json();
+      if (response.headers.get('Content-Type').match('application/json')) {
+        return response.json();
+      }
+      return response;
     });
 
 }
@@ -90,10 +96,8 @@ export function getUser() {
   return callAPI('/auth/');
 }
 
-
 export function logout() {
-  deleteToken();
-  return callAPI('/auth/', 'DELETE')
+  return callAPI('/auth/', 'DELETE').then(() => deleteToken());
 }
 
 export function login(identifier, password) {

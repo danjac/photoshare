@@ -3,7 +3,7 @@ import Immutable from 'immutable';
 import { ActionTypes } from '../constants';
 
 const {
-  GET_PHOTOS
+  FETCH_PHOTOS_SUCCESS
 } = ActionTypes;
 
 
@@ -16,8 +16,8 @@ const initialState = Immutable.fromJS({
 
 export default function(state=initialState, action) {
   switch(action.type) {
-    case GET_PHOTOS:
-      return Immutable.fromJS(action.photos);
+    case FETCH_PHOTOS_SUCCESS:
+      return Immutable.fromJS(action.payload);
     default:
       return state;
   }

@@ -4,14 +4,14 @@ import Immutable from 'immutable';
 import { ActionTypes } from '../constants';
 
 const {
-  GET_PHOTO_DETAIL,
-  EDIT_PHOTO_TITLE,
-  EDIT_PHOTO_TAGS,
-  UPDATE_PHOTO_TAGS,
-  UPDATE_PHOTO_TITLE,
-  DELETE_PHOTO,
-  VOTE_UP,
-  VOTE_DOWN
+  FETCH_PHOTO_DETAIL_SUCCESS,
+  UPDATE_PHOTO_TAGS_PENDING,
+  UPDATE_PHOTO_TITLE_PENDING,
+  DELETE_PHOTO_PENDING,
+  TOGGLE_PHOTO_TITLE_EDIT,
+  TOGGLE_PHOTO_TAGS_EDIT,
+  VOTE_UP_PENDING,
+  VOTE_DOWN_PENDING
 } = ActionTypes;
 
 
@@ -21,37 +21,44 @@ const initialState = Immutable.Map({
     tags: [],
     perms: {}
   },
+  isLoaded: false,
   isEditingTitle: false,
   isEditingTags: false
 });
 
 export default function(state=initialState, action) {
   switch(action.type) {
-    case GET_PHOTO_DETAIL:
-      return state.set("photo", Immutable.Map(action.photo));
+    case FETCH_PHOTO_DETAIL_SUCCESS:
 
-    case VOTE_UP:
-    case VOTE_DOWN:
+      return state
+        .set("photo", Immutable.Map(action.payload))
+        .set("isLoaded", true);
+
+    case TOGGLE_PHOTO_TITLE_EDIT:
+      return state
+        .set("isEditingTitle",
+            !state.get("isEditingTitle"));
+
+    case TOGGLE_PHOTO_TAGS_EDIT:
+      return state
+        .set("isEditingTags",
+            !state.get("isEditingTags"));
+
+    case VOTE_UP_PENDING:
+    case VOTE_DOWN_PENDING:
       return state.setIn(["photo", "perms", "canVote"], false);
 
-    case EDIT_PHOTO_TITLE:
-      return state.set("isEditingTitle", !state.get("isEditingTitle"));
-
-    case EDIT_PHOTO_TAGS:
-      return state.set("isEditingTags", !state.get("isEditingTags"));
-
-    case UPDATE_PHOTO_TITLE:
-
+    case UPDATE_PHOTO_TITLE_PENDING:
       return state
         .set("isEditingTitle", false)
-        .setIn(["photo", "title"], action.title);
+        .setIn(["photo", "title"], action.payload);
 
-    case UPDATE_PHOTO_TAGS:
+    case UPDATE_PHOTO_TAGS_PENDING:
       return state
         .set("isEditingTags", false)
-        .setIn(["photo", "tags"], action.tags);
+        .setIn(["photo", "tags"], action.payload);
 
-    case DELETE_PHOTO:
+    case DELETE_PHOTO_PENDING:
       return initialState;
 
     default:

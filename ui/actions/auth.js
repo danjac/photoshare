@@ -2,23 +2,25 @@ import * as api from '../api';
 import { ActionTypes } from '../constants';
 
 const {
+  LOGOUT,
+  LOGIN_PENDING,
   LOGIN_SUCCESS,
   LOGIN_FAILURE,
-  GET_USER,
-  LOGOUT
+  FETCH_USER_PENDING,
+  FETCH_USER_SUCCESS,
+  FETCH_USER_FAILURE
 } = ActionTypes;
 
 export function getUser() {
-  return dispatch => {
-    api.getUser()
-    .then(user => dispatch(getUserComplete(user)));
-  }
-}
-
-export function getUserComplete(user) {
   return {
-    type: GET_USER,
-    user: user || {}
+    types: [
+      FETCH_USER_PENDING,
+      FETCH_USER_SUCCESS,
+      FETCH_USER_FAILURE
+    ],
+    payload: {
+      promise: api.getUser()
+    }
   }
 }
 
@@ -30,27 +32,15 @@ export function logout() {
 }
 
 export function login(identifier, password) {
-  return dispatch => {
-    api.login(identifier, password)
-    .then(user => {
-      dispatch(loginSuccess(user));
-    })
-    .catch(err => {
-      dispatch(loginFailure(err));
-    });
-  };
-}
-
-export function loginSuccess(user) {
   return {
-    type: LOGIN_SUCCESS,
-    user: user
+    types: [
+      LOGIN_PENDING,
+      LOGIN_SUCCESS,
+      LOGIN_FAILURE
+    ],
+    payload: {
+      promise: api.login(identifier, password)
+    }
   }
-}
 
-export function loginFailure(err) {
-  return {
-    type: LOGIN_FAILURE,
-    error: err
-  }
 }

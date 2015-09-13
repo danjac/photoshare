@@ -15,7 +15,13 @@ const {
   UPDATE_PHOTO_TITLE_FAILURE,
   UPDATE_PHOTO_TAGS_PENDING,
   UPDATE_PHOTO_TAGS_SUCCESS,
-  UPDATE_PHOTO_TAGS_FAILURE
+  UPDATE_PHOTO_TAGS_FAILURE,
+  VOTE_UP_PHOTO_PENDING,
+  VOTE_UP_PHOTO_SUCCESS,
+  VOTE_UP_PHOTO_FAILURE,
+  VOTE_DOWN_PHOTO_PENDING,
+  VOTE_DOWN_PHOTO_SUCCESS,
+  VOTE_DOWN_PHOTO_FAILURE
 } = ActionTypes;
 
 export function getPhotoDetail(id) {
@@ -30,6 +36,33 @@ export function getPhotoDetail(id) {
     }
   };
 }
+
+export function voteUp(id) {
+  return {
+    types: [
+      VOTE_UP_PHOTO_PENDING,
+      VOTE_UP_PHOTO_SUCCESS,
+      VOTE_UP_PHOTO_FAILURE
+    ],
+    payload: {
+      promise: api.votePhotoUp(id)
+    }
+  }
+}
+
+export function voteDown(id) {
+  return {
+    types: [
+      VOTE_DOWN_PHOTO_PENDING,
+      VOTE_DOWN_PHOTO_SUCCESS,
+      VOTE_DOWN_PHOTO_FAILURE
+    ],
+    payload: {
+      promise: api.votePhotoDown(id)
+    }
+  }
+}
+
 
 export function toggleEditTitle() {
   return {

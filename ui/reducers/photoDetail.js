@@ -10,8 +10,8 @@ const {
   DELETE_PHOTO_PENDING,
   TOGGLE_PHOTO_TITLE_EDIT,
   TOGGLE_PHOTO_TAGS_EDIT,
-  VOTE_UP_PENDING,
-  VOTE_DOWN_PENDING
+  VOTE_UP_PHOTO_PENDING,
+  VOTE_DOWN_PHOTO_PENDING
 } = ActionTypes;
 
 
@@ -19,7 +19,13 @@ const initialState = Immutable.Map({
   photo: {
     title: "",
     tags: [],
-    perms: {}
+    perms: {
+      vote: false,
+      edit: false,
+      delete: false
+    },
+    upVotes: 0,
+    downVotes: 0
   },
   isLoaded: false,
   isEditingTitle: false,
@@ -31,7 +37,7 @@ export default function(state=initialState, action) {
     case FETCH_PHOTO_DETAIL_SUCCESS:
 
       return state
-        .set("photo", Immutable.Map(action.payload))
+        .set("photo", Immutable.fromJS(action.payload))
         .set("isLoaded", true);
 
     case TOGGLE_PHOTO_TITLE_EDIT:
@@ -44,9 +50,15 @@ export default function(state=initialState, action) {
         .set("isEditingTags",
             !state.get("isEditingTags"));
 
-    case VOTE_UP_PENDING:
-    case VOTE_DOWN_PENDING:
-      return state.setIn(["photo", "perms", "canVote"], false);
+    case VOTE_UP_PHOTO_PENDING:
+      return state
+        .setIn(["photo", "perms", "vote"], false)
+        .updateIn(["photo", "upVotes"], value => value + 1);
+
+    case VOTE_DOWN_PHOTO_PENDING:
+      return state
+        .setIn(["photo", "perms", "vote"], false)
+        .updateIn(["photo", "downVotes"], value => value - 1);
 
     case UPDATE_PHOTO_TITLE_PENDING:
       return state

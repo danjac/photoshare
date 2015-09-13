@@ -1,7 +1,7 @@
 import React from 'react';
+import { Provider } from 'react-redux';
 import { Router, Route } from 'react-router';
 import HashHistory from 'react-router/lib/HashHistory';
-import { Provider } from 'react-redux';
 
 import {
   App,
@@ -10,6 +10,7 @@ import {
   Search,
   PhotoDetail,
   Login,
+  Signup,
   Upload,
   TagList
 } from './components';
@@ -41,8 +42,9 @@ class Container extends React.Component {
           <Route path="/latest/" component={Latest} />
           <Route path="/search/" component={Search} />
           <Route path="/tags/" component={TagList} />
-          <Route path="/detail/:id" component={PhotoDetail} />
           <Route path="/login/" component={Login} />
+          <Route path="/signup/" component={Signup} />
+          <Route path="/detail/:id" component={PhotoDetail} />
         </Route>
       </Router>
       );

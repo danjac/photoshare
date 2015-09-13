@@ -44,7 +44,9 @@ export function upload(title, tags, photo) {
       UPLOAD_SUCCESS,
       UPLOAD_FAILURE
     ],
-    payload: api.upload(title, tags, photo)
+    payload: {
+      promise: api.upload(title, tags, photo)
+    }
   }
 
 }

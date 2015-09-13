@@ -5,7 +5,6 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Input,
          ButtonInput,
-         ProgressBar
         } from 'react-bootstrap';
 
 import * as ActionCreators from '../actions';
@@ -61,13 +60,11 @@ export default class Upload extends React.Component {
 
   shouldComponentUpdate(nextProps) {
     if (nextProps.uploadedPhoto) {
-      window.clearInterval();
 
       this.refs.title.getInputDOMNode().value = "";
       this.refs.tags.getInputDOMNode().value = "";
 
       const { id } = nextProps.uploadedPhoto;
-      this.actions.reset();
       this.context.router.transitionTo("/detail/" + id);
       return true;
     }
@@ -75,7 +72,6 @@ export default class Upload extends React.Component {
   }
 
   errorStatus(name) {
-    console.log("formsubmitted", this.props.formSubmitted, this.props.errors);
     if (!this.props.formSubmitted) {
         return;
     }
@@ -94,6 +90,7 @@ export default class Upload extends React.Component {
       <div className="row">
           <div className="col-md-6">
               <form name="form" role="form" encType="multipart/form-data" onSubmit={handleSubmit}>
+
                 <Input name="title"
                        type="text"
                        ref="title"
@@ -101,11 +98,13 @@ export default class Upload extends React.Component {
                        hasFeedback
                        bsStyle={this.errorStatus('title')}
                        help={this.errorMsg('title')} />
+
                 <Input name="tags"
                        type="text"
                        ref="tags"
                        label="Tags"
                        placeholder="Separate with spaces" />
+
                 <Input name="photo"
                        type="file"
                        onChange={handlePhotoSelect}
@@ -113,6 +112,7 @@ export default class Upload extends React.Component {
                        hasFeedback
                        bsStyle={this.errorStatus('photo')}
                        help={this.errorMsg('photo')} />
+
                 <ButtonInput type="submit" bsStyle="primary">Upload</ButtonInput>
               </form>
           </div>

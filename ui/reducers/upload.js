@@ -14,21 +14,27 @@ const {
 const initialState = Immutable.fromJS({
   previewURL: null,
   uploadedPhoto: null,
-  progress: 0,
   formSubmitted: false,
   errors: new Map()
 });
 
 export default function(state=initialState, action) {
   switch(action.type) {
-    case UPLOAD_PENDING:
-      return state.set('formSubmitted', true);
-    case UPLOAD_FORM_INVALID:
-      return state.merge({'errors': action.errors, 'formSubmitted': true});
     case PHOTO_PREVIEW:
       return state.set('previewURL', action.url);
+    case UPLOAD_PENDING:
+      return state.merge({
+          errors: new Map(),
+          formSubmitted: true,
+          previewURL: null
+      });
+    case UPLOAD_FORM_INVALID:
+      return state.merge({
+          errors: action.errors,
+          formSubmitted: true
+      });
     case UPLOAD_SUCCESS:
-      return state.set('uploadedPhoto', action.photo);
+      return state.set('uploadedPhoto', action.payload);
     default:
       return state;
   }

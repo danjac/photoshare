@@ -78,10 +78,12 @@ export default class PhotoDetail extends React.Component {
 
   handleVoteUp(event) {
     event.preventDefault();
+    this.actions.voteUp(this.props.photo.id);
   }
 
   handleVoteDown(event) {
     event.preventDefault();
+    this.actions.voteDown(this.props.photo.id);
   }
 
   handleDelete(event) {
@@ -109,8 +111,8 @@ export default class PhotoDetail extends React.Component {
     }
 
     if (this.props.photo.perms.vote) {
-      buttons.push(<Button key="voteUp" onClick={this.handleVoteUp}><Facon name="thumbsUp" /></Button>);
-      buttons.push(<Button key="voteDown" onClick={this.handleVoteDown}><Facon name="thumbsDown" /></Button>);
+      buttons.push(<Button key="voteUp" onClick={this.handleVoteUp}><Facon name="thumbs-up" /></Button>);
+      buttons.push(<Button key="voteDown" onClick={this.handleVoteDown}><Facon name="thumbs-down" /></Button>);
     }
 
     if (this.props.photo.perms.delete) {

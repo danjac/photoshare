@@ -83,10 +83,14 @@ class Navigation extends React.Component {
     }
     return (
       <Nav right>
-        <NavItem href={makeHref('/login/')}><Facon name='sign-in' /> Login</NavItem>
-        <NavItem href="/"><Facon name='user' /> Signup</NavItem>
+        <NavItem active={this.isActive('/login/')} href={makeHref('/login/')}><Facon name='sign-in' /> Login</NavItem>
+        <NavItem active={this.isActive('/signup/')} href={makeHref('/signup/')}><Facon name='user' /> Signup</NavItem>
       </Nav>
     );
+  }
+
+  isActive(path) {
+    return this.context.router.isActive(path);
   }
 
   render() {
@@ -96,16 +100,15 @@ class Navigation extends React.Component {
     const makeHref = this.context.router.makeHref;
     const handleSearch = this.handleSearch.bind(this);
 
-    const isActive = path => this.context.router.isActive(path);
 
     return (
 
       <Navbar fixedTop inverse brand={brand}>
 
         <Nav>
-          <NavItem active={isActive('/latest/')} href={makeHref("/latest/")}><Facon name='clock-o' /> Latest</NavItem>
-          <NavItem active={isActive('/tags/')} href={makeHref("/tags/")}><Facon name='tags' /> Tags</NavItem>
-          <NavItem active={isActive('/upload/')} href={makeHref("/upload/")}><Facon name='upload' /> Upload</NavItem>
+          <NavItem active={this.isActive('/latest/')} href={makeHref("/latest/")}><Facon name='clock-o' /> Latest</NavItem>
+          <NavItem active={this.isActive('/tags/')} href={makeHref("/tags/")}><Facon name='tags' /> Tags</NavItem>
+          <NavItem active={this.isActive('/upload/')} href={makeHref("/upload/")}><Facon name='upload' /> Upload</NavItem>
         </Nav>
 
         <Nav>

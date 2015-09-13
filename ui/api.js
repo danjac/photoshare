@@ -50,6 +50,11 @@ function callAPI(endpoint, method, data) {
 
   return fetch(API_URI + endpoint, args)
     .then(response => {
+
+      if(!response.ok) {
+        throw new Error(response.statusText);
+      }
+
       if (response.headers.has(AUTH_TOKEN)) {
         const token = response.headers.get(AUTH_TOKEN);
         if (token) {
@@ -107,6 +112,14 @@ export function login(identifier, password) {
   });
 }
 
+export function signup(name, email, password) {
+  return callAPI('/auth/signup', 'POST', {
+    name: name,
+    email: email,
+    password: password
+  });
+}
+
 export function getTags() {
   return callAPI('/tags/');
 }
@@ -118,6 +131,13 @@ export function upload(title, tags, photo) {
   data.append("tags", tags);
 
   return callAPI('/photos/', 'POST', data);
+}
 
+export function votePhotoUp(id) {
+  return callAPI(`/photos/${id}/upvote`, 'PATCH');
+}
+
+export function votePhotoDown(id) {
+  return callAPI(`/photos/${id}/downvote`, 'PATCH');
 }
 

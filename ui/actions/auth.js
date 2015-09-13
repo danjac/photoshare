@@ -6,6 +6,9 @@ const {
   LOGIN_PENDING,
   LOGIN_SUCCESS,
   LOGIN_FAILURE,
+  SIGNUP_PENDING,
+  SIGNUP_SUCCESS,
+  SIGNUP_FAILURE,
   FETCH_USER_PENDING,
   FETCH_USER_SUCCESS,
   FETCH_USER_FAILURE
@@ -21,17 +24,32 @@ export function getUser() {
     payload: {
       promise: api.getUser()
     }
-  }
+  };
 }
 
 export function logout() {
   api.logout();
   return {
     type: LOGOUT
-  }
+  };
+}
+
+export function signup(name, email, password) {
+  return {
+    types: [
+      SIGNUP_PENDING,
+      SIGNUP_SUCCESS,
+      SIGNUP_FAILURE
+    ],
+    payload: {
+      promise: api.signup(name, email, password)
+    }
+  };
+
 }
 
 export function login(identifier, password) {
+
   return {
     types: [
       LOGIN_PENDING,
@@ -41,6 +59,6 @@ export function login(identifier, password) {
     payload: {
       promise: api.login(identifier, password)
     }
-  }
+  };
 
 }

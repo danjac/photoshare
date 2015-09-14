@@ -1,5 +1,6 @@
 /* jslint ignore:start */
 import React, { PropTypes } from 'react';
+//import CSSModules from 'react-css-modules';
 import _ from 'lodash';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
@@ -11,6 +12,8 @@ import { Navbar,
          NavItem,
          MenuItem } from 'react-bootstrap';
 import { Link } from 'react-router';
+
+// import styles from '../app.css';
 
 import * as ActionCreators from '../actions';
 import { Facon } from './util';
@@ -126,6 +129,7 @@ class Navigation extends React.Component {
 
 }
 
+//@CSSModules(styles)
 @connect(state => {
   return {
     auth: state.auth.toJS(),

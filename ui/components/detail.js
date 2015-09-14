@@ -8,7 +8,8 @@ import moment from 'moment';
 import {
   Button,
   ButtonInput,
-  Input
+  Input,
+  Label
 } from 'react-bootstrap';
 
 import * as ActionCreators from '../actions';
@@ -21,6 +22,7 @@ export default class PhotoDetail extends React.Component {
 
   static propTypes = {
     photo: PropTypes.object.isRequired,
+    isLoaded: PropTypes.bool.isRequired,
     isEditingTitle: PropTypes.bool.isRequired,
     isEditingTags: PropTypes.bool.isRequired,
     dispatch: PropTypes.func.isRequired
@@ -160,12 +162,12 @@ export default class PhotoDetail extends React.Component {
       return "";
     }
     return (
-        <div>
+      <div>
         {tags.map(tag => {
-          return <span><a href="#"><span className="label label-md label-default">#{tag}</span></a>&nbsp;</span>;
+        return <span key={tag}><Link to='/search/' query={{q: tag}}><Label default>#{tag}</Label></Link>&nbsp;</span>;
         })}
-        {this.props.photo.perms.edit ? <Button bsSize="small" onClick={this.handleToggleEditTags}>Edit tags <Facon name="pencil" /></Button> : ''}
-        </div>
+        {this.props.photo.perms.edit ? <Label bsStyle="primary" onClick={this.handleToggleEditTags}>Edit tags <Facon name="pencil" /></Label> : ''}
+      </div>
     );
 
   }
@@ -185,7 +187,6 @@ export default class PhotoDetail extends React.Component {
     <div>
       {this.renderTitle()}
       {this.renderButtons()}
-      {this.renderTags()}
       <div className="row">
           <div className="col-xs-6 col-md-3">
               <a target="_blank" className="thumbnail" title={photo.title} href={`/uploads/${photo.photo}`}>
@@ -207,7 +208,7 @@ export default class PhotoDetail extends React.Component {
                   <dt>Uploaded on</dt>
                   <dd>{moment(photo.createdAt).format('MMMM Do YYYY h:mm')}</dd>
               </dl>
-
+              {this.renderTags()}
           </div>
       </div>
     </div>

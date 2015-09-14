@@ -42,7 +42,7 @@ body { padding-top: 70px; }
 }
 
 .spinner {
-    background: url('../img/ajax-loader.gif') no-repeat center center;
+    background: url('/img/ajax-loader.gif') no-repeat center center;
     padding: 30px;
     text-align:center;
     vertical-align: middle;

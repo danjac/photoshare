@@ -3,6 +3,8 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Pagination } from 'react-bootstrap';
 
+import { Loader } from './util';
+
 import * as ActionCreators from '../actions';
 
 
@@ -54,7 +56,10 @@ class PhotoList extends React.Component {
   }
 
   pagination() {
-    const { handlePageSelect, numPages, currentPage } = this.props;
+    const { handlePageSelect, numPages, currentPage, isLoaded } = this.props;
+    if (!isLoaded) {
+      return '';
+    }
     if (numPages > 1) {
       return (
       <Pagination onSelect={handlePageSelect}
@@ -72,7 +77,10 @@ class PhotoList extends React.Component {
   }
 
   render() {
-    const { photos } = this.props;
+    const { photos, isLoaded } = this.props;
+    if (!isLoaded) {
+      return <Loader />;
+    }
     const pagination = this.pagination();
     return (
     <div>
@@ -89,6 +97,7 @@ class PhotoList extends React.Component {
   }
 
 }
+
 
 
 @connect(state => {
@@ -168,9 +177,14 @@ export class Latest extends React.Component {
   }
 })
 export class Search extends React.Component {
-   static propTypes = {
+
+  static propTypes = {
     photos: PropTypes.object.isRequired,
     dispatch: PropTypes.func.isRequired
+  }
+
+  static contextTypes = {
+    router: PropTypes.object.isRequired
   }
 
   constructor(props) {
@@ -190,6 +204,10 @@ export class Search extends React.Component {
   }
 
   shouldComponentUpdate(nextProps) {
+    if (nextProps.photos.total !== this.props.photos.total && nextProps.photos.total === 1) {
+      this.context.router.transitionTo("/detail/" + nextProps.photos.photos[0].id);
+      return true;
+    }
     const nextQuery  = this.getQuery(nextProps);
     if (nextQuery !== this.getQuery()) {
       this.searchPhotos(1, nextQuery);
@@ -214,6 +232,14 @@ export class Search extends React.Component {
 
   render() {
     const query = this.getQuery();
+    if (!this.props.photos.isLoaded && query) {
+      return (
+        <div>
+          <h3>Searching for {query}...</h3>
+          <Loader />
+        </div>
+      );
+    }
     return (
       <div>
         <h3>{query ? `${this.props.photos.total} results for ${query}` : ''}</h3>

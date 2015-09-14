@@ -132,7 +132,7 @@ export function upload(title, tags, photo) {
   const data = new window.FormData();
   data.append("photo", photo);
   data.append("title", title);
-  data.append("tags", tags);
+  data.append("taglist", tags);
 
   return callAPI('/photos/', 'POST', data);
 }

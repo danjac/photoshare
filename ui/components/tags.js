@@ -67,6 +67,10 @@ export default class TagList extends React.Component {
     dispatch: PropTypes.func.isRequired
   }
 
+  static contextTypes = {
+    router: PropTypes.object.isRequired
+  }
+
   constructor(props) {
     super(props);
     const { dispatch } = this.props;
@@ -84,15 +88,35 @@ export default class TagList extends React.Component {
     this.actions.filterTags(filter);
   }
 
+  handleSearch(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const filter = this.refs.filterStr.getValue().trim();
+
+    if (filter) {
+      this.context.router.transitionTo("/search/", { q: filter });
+    }
+
+  }
+
   componentDidMount() {
     this.actions.getTags();
+  }
+
+  shouldComponentUpdate(nextProps) {
+    if (nextProps.tags.length !== this.props.tags.length && nextProps.tags.length === 1) {
+      this.context.router.transitionTo("/search/", { q: nextProps.tags[0].name });
+      return true;
+    }
+    return this.props !== nextProps;
   }
 
   render() {
     return (
       <div>
           <div className="tag-control-box">
-            <form className="form-inline">
+            <form className="form-inline" onSubmit={this.handleSearch.bind(this)}>
                 <div className="form-group">
                     <Input ref="filterStr" type="text" placeholder="Find a tag" onChange={this.handleFilter.bind(this)} />
                     <Button bsStyle={this.props.orderBy === 'numPhotos' ? 'primary': 'default'}

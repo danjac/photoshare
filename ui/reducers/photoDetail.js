@@ -4,6 +4,7 @@ import Immutable from 'immutable';
 import { ActionTypes } from '../constants';
 
 const {
+  FETCH_PHOTO_DETAIL_PENDING,
   FETCH_PHOTO_DETAIL_SUCCESS,
   UPDATE_PHOTO_TAGS_PENDING,
   UPDATE_PHOTO_TITLE_PENDING,
@@ -34,6 +35,9 @@ const initialState = Immutable.Map({
 
 export default function(state=initialState, action) {
   switch(action.type) {
+    case FETCH_PHOTO_DETAIL_PENDING:
+      return state.set('isLoaded', false);
+
     case FETCH_PHOTO_DETAIL_SUCCESS:
 
       return initialState

@@ -8,6 +8,7 @@ var bowerFiles = require('main-bower-files'),
     shell = require('gulp-shell'),
     minifyCss = require('gulp-minify-css'),
     filter = require('gulp-filter'),
+    replace = require('gulp-replace'),
     concat = require('gulp-concat'),
     uglify = require('gulp-uglify'),
     webpack = require('webpack'),
@@ -24,12 +25,21 @@ var dest = {
   fonts: path.join(staticDir, 'fonts')
 };
 
-gulp.task('assets', function() {
+gulp.task('assets-dev', function() {
+  return assets(true);
+});
 
+gulp.task('assets-build', function() {
+  return assets(false);
+});
+
+function assets(useDevServer) {
   var assetsDir = path.join(__dirname, 'assets', '**/*'),
       cssFilter = filter('**/*.css', {restore: true}),
       imgFilter = filter(['**/*.png', '**/*.gif', '**/*.jpg'], {restore:true}),
       htmlFilter = filter('**/*.html', {restore:true});
+
+  var appJs = useDevServer ? 'http://localhost:8090/js/app.js' : '/js/app.js';
 
   return gulp.src(assetsDir)
   .pipe(debug())
@@ -43,9 +53,12 @@ gulp.task('assets', function() {
   .pipe(gulp.dest(staticDir))
   .pipe(imgFilter.restore)
   .pipe(htmlFilter)
+  .pipe(replace('[APP_JS]', appJs))
   .pipe(gulp.dest(staticDir))
-  .pipe(htmlFilter.restore)
-});
+  .pipe(htmlFilter.restore);
+
+}
+
 
 gulp.task('bower', function() {
 
@@ -76,7 +89,7 @@ gulp.task('bower', function() {
   .pipe(fontFilter.restore);
 });
 
-gulp.task("build", ["install", "bower", "assets"], function(callback) {
+gulp.task("build", ["install", "bower", "assets-build"], function(callback) {
   var webpackBuildOptions = _.create(webpackConfig, {
     debug: false,
     verbose: false,
@@ -124,4 +137,4 @@ gulp.task('install', shell.task([
     'bower install'
 ]));
 
-gulp.task('default', ['install', 'bower', 'assets', 'webpack-dev-server']);
+gulp.task('default', ['install', 'bower', 'assets-dev', 'webpack-dev-server']);

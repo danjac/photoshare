@@ -23,6 +23,8 @@ export default class PhotoDetail extends React.Component {
   static propTypes = {
     photo: PropTypes.object.isRequired,
     isLoaded: PropTypes.bool.isRequired,
+    isDeleted: PropTypes.bool.isRequired,
+    isNotFound: PropTypes.bool.isRequired,
     isEditingTitle: PropTypes.bool.isRequired,
     isEditingTags: PropTypes.bool.isRequired,
     dispatch: PropTypes.func.isRequired
@@ -104,6 +106,13 @@ export default class PhotoDetail extends React.Component {
     return prevProps !== this.props;
   }
 
+  shouldComponentUpdate(nextProps) {
+    if (nextProps.isDeleted && !this.props.isDeleted) {
+      this.context.router.transitionTo("/");
+    }
+    return nextProps !== this.props;
+  }
+
   renderButtons() {
 
     const buttons = [];
@@ -180,7 +189,11 @@ export default class PhotoDetail extends React.Component {
     const src = photo.photo ? `/uploads/thumbnails/${photo.photo}` : '/img/ajax-loader.gif';
 
     if (!this.props.isLoaded) {
-      return <Loader />
+      return <Loader />;
+    }
+
+    if (this.props.isNotFound) {
+      return <div>Photo not found</div>;
     }
 
     return (

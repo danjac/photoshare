@@ -6,6 +6,7 @@ import { ActionTypes } from '../constants';
 const {
   FETCH_PHOTO_DETAIL_PENDING,
   FETCH_PHOTO_DETAIL_SUCCESS,
+  FETCH_PHOTO_DETAIL_FAILURE,
   UPDATE_PHOTO_TAGS_PENDING,
   UPDATE_PHOTO_TITLE_PENDING,
   DELETE_PHOTO_PENDING,
@@ -19,6 +20,7 @@ const {
 const initialState = Immutable.Map({
   photo: {
     title: "",
+    photo: "",
     tags: [],
     perms: {
       vote: false,
@@ -28,7 +30,9 @@ const initialState = Immutable.Map({
     upVotes: 0,
     downVotes: 0
   },
+  isDeleted: false,
   isLoaded: false,
+  isNotFound: false,
   isEditingTitle: false,
   isEditingTags: false
 });
@@ -43,6 +47,12 @@ export default function(state=initialState, action) {
       return initialState
         .set("photo", Immutable.fromJS(action.payload))
         .set("isLoaded", true);
+
+    case FETCH_PHOTO_DETAIL_FAILURE:
+
+      return initialState
+        .set("isLoaded", true)
+        .set("isNotFound", true);
 
     case TOGGLE_PHOTO_TITLE_EDIT:
       return state
@@ -75,7 +85,7 @@ export default function(state=initialState, action) {
         .setIn(["photo", "tags"], action.payload);
 
     case DELETE_PHOTO_PENDING:
-      return initialState;
+      return state.set("isDeleted", true);
 
     default:
       return state;

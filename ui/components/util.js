@@ -4,7 +4,9 @@ import React from 'react';
 export class Loader extends React.Component {
   render() {
     return (
-      <div><img src="/img/ajax-loader.gif" alt="" /></div>
+      <div className="col-md-6 col-md-offset-6">
+        <img src="/img/ajax-loader.gif" alt="" />
+      </div>
     );
   }
 }

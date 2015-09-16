@@ -16,7 +16,7 @@ import { Link } from 'react-router';
 // import styles from '../app.css';
 
 import * as ActionCreators from '../actions';
-import { Facon } from './util';
+import { Facon } from './widgets';
 
 class Messages extends React.Component {
 

@@ -8,7 +8,7 @@ import { Input,
          Well
         } from 'react-bootstrap';
 
-import { Loader } from './util';
+import { Loader } from './widgets';
 
 import * as ActionCreators from '../actions';
 

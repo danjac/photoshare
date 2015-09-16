@@ -3,7 +3,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { Pagination } from 'react-bootstrap';
 
-import { Loader } from './util';
+import { Loader } from './widgets';
 
 import * as ActionCreators from '../actions';
 

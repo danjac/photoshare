@@ -13,7 +13,7 @@ import {
 } from 'react-bootstrap';
 
 import * as ActionCreators from '../actions';
-import { Facon, Loader } from './util';
+import { Facon, Loader } from './widgets';
 
 @connect(state => {
   return state.photoDetail.toJS();

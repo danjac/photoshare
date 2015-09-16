@@ -8,7 +8,7 @@ import { Input,
         } from 'react-bootstrap';
 
 import * as ActionCreators from '../actions';
-import { Loader } from './util';
+import { Loader } from './widgets';
 
 
 @connect(state => state.upload.toJS())

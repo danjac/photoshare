@@ -1,3 +1,3 @@
 export default {
-  DELETE_MESSAGE: "DELETE_MESSAGE"
+  DELETE_MESSAGE: Symbol("DELETE_MESSAGE")
 };

@@ -78,7 +78,7 @@ class Navigation extends React.Component {
     if (loggedIn) {
       return (
         <Nav right>
-          <NavDropdown title={name}>
+          <NavDropdown title={name} id="userDropdown">
             <MenuItem href={makeHref(`/user/${id}/${name}`)}>My photos</MenuItem>
             <MenuItem>Change my password</MenuItem>
             <MenuItem onSelect={handleLogout}>Logout</MenuItem>

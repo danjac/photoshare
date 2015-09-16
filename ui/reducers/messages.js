@@ -3,6 +3,7 @@ import Immutable from 'immutable';
 import MessageActionTypes from '../actionTypes/messages';
 import AuthActionTypes from '../actionTypes/auth';
 import PhotoDetailActionTypes from '../actionTypes/photoDetail';
+import ChangePasswordActionTypes from '../actionTypes/changePassword';
 
 const { DELETE_MESSAGE } = MessageActionTypes;
 
@@ -14,6 +15,8 @@ const {
 } = AuthActionTypes;
 
 const { DELETE_PHOTO_SUCCESS } = PhotoDetailActionTypes;
+
+const { CHANGE_PASSWORD_SUCCESS } = ChangePasswordActionTypes;
 
 const initialState = Immutable.List();
 
@@ -74,6 +77,13 @@ export default function(state=initialState, action) {
           `Signup failed: ${action.payload.message}`,
           MessageLevel.WARNING
           );
+
+    case CHANGE_PASSWORD_SUCCESS:
+      return newMessage(
+        state,
+        action.meta.loggedIn ? 'Your password has been changed' : 'Please sign in with your new password',
+        MessageLevel.SUCCESS
+      );
 
     default:
       return state;

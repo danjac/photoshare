@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
+import { Input } from 'react-bootstrap';
 
 
 export class Loader extends React.Component {

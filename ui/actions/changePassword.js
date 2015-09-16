@@ -16,6 +16,10 @@ function validate(password, passwordConfirm) {
     errors.set("password", "Password is required");
   }
 
+  if (password && password.length < 6) {
+    errors.set("password", "Password must be at least 6 characters long");
+  }
+
   if (!passwordConfirm) {
     errors.set("passwordConfirm", "Please confirm your new password");
   }
@@ -33,7 +37,7 @@ export function resetForm() {
   return { type: CHANGE_PASSWORD_RESET };
 }
 
-export function submitForm(password, passwordConfirm, code) {
+export function submitForm(password, passwordConfirm, code, loggedIn) {
 
   const errors = validate(password, passwordConfirm);
 
@@ -51,9 +55,12 @@ export function submitForm(password, passwordConfirm, code) {
       CHANGE_PASSWORD_FAILURE
     ],
     payload: {
-      promise: api.changePassword(password, code)
+      promise: api.changePassword(password, code),
+    },
+    meta: {
+      loggedIn: loggedIn
     }
-  }
+  };
 }
 
 

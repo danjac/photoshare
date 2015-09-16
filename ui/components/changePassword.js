@@ -42,7 +42,8 @@ export default class ChangePassword extends React.Component {
 
   shouldComponentUpdate(nextProps) {
     if (nextProps.isSuccess) {
-      this.context.router.transitionTo("/login/");
+      const nextPath = this.props.loggedIn ? "/" : "/login/";
+      this.context.router.transitionTo(nextPath);
     }
     return nextProps !== this.props;
   }
@@ -59,7 +60,7 @@ export default class ChangePassword extends React.Component {
     this.refs.passwordConfirm.getInputDOMNode().value = "";
 
     if (password && passwordConfirm) {
-        this.actions.submitForm(password, passwordConfirm, code);
+        this.actions.submitForm(password, passwordConfirm, code, this.props.loggedIn);
     }
   }
 
@@ -67,9 +68,20 @@ export default class ChangePassword extends React.Component {
     return this.props.location.query ? this.props.location.query.code : null;
   }
 
+  errorStatus(name) {
+    if (!this.props.formSubmitted) {
+        return;
+    }
+    return this.props.errors.has(name) ? 'error' : 'success';
+  }
+
+  errorMsg(name) {
+    return this.props.errors.get(name) || '';
+  }
+
   render() {
 
-    if (this.props.formSubmitted) {
+    if (this.props.isWaiting) {
       return <Loader />;
     }
 
@@ -88,12 +100,20 @@ export default class ChangePassword extends React.Component {
           <form role="form" method="POST" onSubmit={this.handleSubmit}>
             <Input type="password"
               ref="password"
+              placeholder="Password"
               required
-              placeholder="Password" />
+              hasFeedback
+              bsStyle={this.errorStatus('password')}
+              help={this.errorMsg('password')} />
+
             <Input type="password"
                ref="passwordConfirm"
+               placeholder="Repeat password"
                required
-               placeholder="Repeat password" />
+               hasFeedback
+               bsStyle={this.errorStatus('passwordConfirm')}
+               help={this.errorMsg('passwordConfirm')} />
+
             <ButtonInput bsStyle="primary" type="submit">Continue</ButtonInput>
           </form>
       </div>

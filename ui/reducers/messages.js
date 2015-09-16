@@ -1,15 +1,20 @@
 import Immutable from 'immutable';
 
-import { ActionTypes }  from '../constants';
+import MessageActionTypes from '../actionTypes/messages';
+import AuthActionTypes from '../actionTypes/auth';
+import PhotoDetailActionTypes from '../actionTypes/photoDetail';
+
+const { DELETE_MESSAGE } = MessageActionTypes;
 
 const {
-  DELETE_MESSAGE,
   LOGOUT,
   LOGIN_SUCCESS,
   SIGNUP_SUCCESS,
   SIGNUP_FAILURE,
-  DELETE_PHOTO_SUCCESS
-} = ActionTypes;
+} = AuthActionTypes;
+
+const { DELETE_PHOTO_SUCCESS } = PhotoDetailActionTypes;
+
 const initialState = Immutable.List();
 
 function newMessage(state, msg, level) {

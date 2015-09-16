@@ -1,5 +1,5 @@
 import * as api from '../api';
-import { ActionTypes } from '../constants';
+import ActionTypes from '../actionTypes/photoDetail';
 
 const {
   TOGGLE_PHOTO_TITLE_EDIT,

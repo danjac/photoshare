@@ -1,7 +1,7 @@
 /* jslint ignore:start */
 import Immutable from 'immutable';
 
-import { ActionTypes } from '../constants';
+import ActionTypes from '../actionTypes/upload';
 
 const {
   PHOTO_PREVIEW,

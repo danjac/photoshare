@@ -1,6 +1,6 @@
 import Immutable from 'immutable';
 
-import { ActionTypes }  from '../constants';
+import ActionTypes from '../actionTypes/auth';
 
 const {
   LOGIN_SUCCESS,

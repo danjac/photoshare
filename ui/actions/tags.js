@@ -1,5 +1,5 @@
 import * as api from '../api';
-import { ActionTypes } from '../constants';
+import ActionTypes from '../actionTypes/tags';
 
 const {
   FETCH_TAGS_PENDING,

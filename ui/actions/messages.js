@@ -1,4 +1,4 @@
-import { ActionTypes } from '../constants';
+import ActionTypes from '../actionTypes/messages';
 
 const {
   DELETE_MESSAGE

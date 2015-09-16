@@ -143,12 +143,9 @@ func upload(ctx *context, w http.ResponseWriter, r *http.Request) error {
 		Tags:     tags,
 	}
 
-	go func() {
-		err := ctx.filestore.store(src, photo.Filename, contentType)
-		if err != nil {
-			logError(err)
-		}
-	}()
+	if err := ctx.filestore.store(src, photo.Filename, contentType); err != nil {
+		return err
+	}
 
 	if err := ctx.validate(photo, r); err != nil {
 		return err

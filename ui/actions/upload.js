@@ -6,6 +6,7 @@ import { ActionTypes } from '../constants';
 const {
   PHOTO_PREVIEW,
   UPLOAD_FORM_INVALID,
+  UPLOAD_RESET,
   UPLOAD_PENDING,
   UPLOAD_SUCCESS,
   UPLOAD_FAILURE
@@ -25,6 +26,10 @@ function validate(title, tags, photo) {
   }
 
   return errors;
+}
+
+export function resetForm() {
+  return { type: UPLOAD_RESET };
 }
 
 export function upload(title, tags, photo) {

@@ -32,7 +32,7 @@ class Tag extends React.Component {
     return (
         <div className="col-xs-6 col-md-3 ">
             <div className="thumbnail " onClick={this.handleSearch}>
-                <img alt={this.props.tag.name} class="img-responsive " src={`uploads/thumbnails/${this.props.tag.photo}`} />
+                <img alt={this.props.tag.name} className="img-responsive " src={`uploads/thumbnails/${this.props.tag.photo}`} />
                 <div className="caption ">
                     <h3>#{this.props.tag.name}</h3>
                 </div>
@@ -127,7 +127,7 @@ export default class TagList extends React.Component {
             </form>
           </div>
 
-          {this.props.tags.map(tag => <Tag tag={tag} />)}
+          {this.props.tags.map(tag => <Tag key={tag.name} tag={tag} />)}
       </div>
     );
   }

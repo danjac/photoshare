@@ -8,6 +8,7 @@ import { Input,
         } from 'react-bootstrap';
 
 import * as ActionCreators from '../actions';
+import { Loader } from './util';
 
 
 @connect(state => state.upload.toJS())
@@ -58,15 +59,14 @@ export default class Upload extends React.Component {
     this.actions.upload(title, tags, photo);
   }
 
+  componentDidMount() {
+    this.actions.resetForm();
+  }
+
   shouldComponentUpdate(nextProps) {
     if (nextProps.uploadedPhoto) {
-
-      this.refs.title.getInputDOMNode().value = "";
-      this.refs.tags.getInputDOMNode().value = "";
-
       const { id } = nextProps.uploadedPhoto;
       this.context.router.transitionTo("/detail/" + id);
-      return true;
     }
     return nextProps !== this.props;
   }
@@ -83,6 +83,11 @@ export default class Upload extends React.Component {
   }
 
   render() {
+
+    if (this.props.isWaiting) {
+      return <Loader />;
+    }
+
     const handlePhotoSelect = this.handlePhotoSelect.bind(this);
     const handleSubmit = this.handleSubmit.bind(this);
 

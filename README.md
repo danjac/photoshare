@@ -23,16 +23,16 @@ Of course not all of the above will happen at once, rather incremental steps.
 Getting started
 ---------------
 
-You need Go (1.3), node.js/npm and PostgreSQL (9.1+).
+You need Go (1.5), node.js/npm and PostgreSQL (9.1+).
 
-- `./build.sh`
+- `make`
 - Set the correct environment variables. See sample_env for a template.
 - `npm install bower && bower install`
 - `go get bitbucket.org/liamstask/goose/cmd/goose`
 - Copy and db/db.yml.sample to db/db.yml and edit to point to the correct databases.
 - `goose -env=development up`
-- `./server`
+- `./bin/serve`
 
-Tested on Chrome and Firefox 30+.
+Tested on Chrome and Firefox 40+.
 
 Loading image (img/image-loading.png) created using http://dummyimage.com/

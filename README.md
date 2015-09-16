@@ -1,4 +1,3 @@
-![ScreenShot](/screenshot.png)
 
 Photoshare is a learning app for Go and ReactJS.
 

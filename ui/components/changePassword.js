@@ -24,9 +24,11 @@ export default class ChangePassword extends React.Component {
   constructor(props) {
     super(props);
     const { dispatch } = this.props;
+    /*
     this.actions = Object.assign({},
       bindActionCreators(ActionCreators.changePassword, dispatch)
     );
+    */
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 

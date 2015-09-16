@@ -11,6 +11,7 @@ import {
   Login,
   Signup,
   RecoverPassword,
+  ChangePassword,
   Upload,
   TagList
 } from './components';
@@ -33,6 +34,7 @@ export default function(store, history) {
         <Route path="/login/" component={Login} />
         <Route path="/signup/" component={Signup} />
         <Route path="/recoverpass/" component={RecoverPassword} />
+        <Route path="/changepass/" component={ChangePassword} />
         <Route path="/detail/:id" component={PhotoDetail} />
         <Route path="/user/:userID/:username" component={User} />
       </Route>

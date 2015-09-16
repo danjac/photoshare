@@ -37,10 +37,10 @@ export function upload(title, tags, photo) {
   const errors = validate(title, tags, photo);
 
   if (errors.size > 0) {
-    return dispatch => dispatch({
+    return {
       type: UPLOAD_FORM_INVALID,
       errors: errors
-    });
+    };
   }
 
   return {

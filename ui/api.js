@@ -130,6 +130,13 @@ export function recoverPassword(email) {
   });
 }
 
+export function changePassword(password, code) {
+  return callAPI('/auth/changepass', 'PUT', {
+    password: password,
+    code: code || ''
+  });
+}
+
 export function getTags() {
   return callAPI('/tags/');
 }

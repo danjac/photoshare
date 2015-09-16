@@ -80,7 +80,7 @@ class Navigation extends React.Component {
         <Nav right>
           <NavDropdown title={name} id="userDropdown">
             <MenuItem href={makeHref(`/user/${id}/${name}`)}>My photos</MenuItem>
-            <MenuItem>Change my password</MenuItem>
+            <MenuItem href={makeHref('/changepass/')}>Change my password</MenuItem>
             <MenuItem onSelect={handleLogout}>Logout</MenuItem>
           </NavDropdown>
         </Nav>

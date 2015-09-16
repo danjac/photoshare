@@ -7,6 +7,7 @@ import messages from './messages';
 import upload from './upload';
 import tags from './tags';
 import recoverPassword from './recoverPassword';
+import changePassword from './changePassword';
 
 export default combineReducers({
   photos,
@@ -15,7 +16,8 @@ export default combineReducers({
   messages,
   upload,
   tags,
-  recoverPassword
+  recoverPassword,
+  changePassword
 });
 
 

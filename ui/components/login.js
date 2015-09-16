@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 import _ from 'lodash';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { Link } from 'react-router';
 import { Input,
          ButtonInput
         } from 'react-bootstrap';
@@ -62,7 +63,7 @@ export default class Login extends React.Component {
             <ButtonInput bsStyle="primary" type="submit">Login</ButtonInput>
         </form>
 
-        <a href="#/recoverpass">Forgot your password?</a>
+        <Link to="/recoverpass/">Forgot your password</Link>
       </div>
     );
   }

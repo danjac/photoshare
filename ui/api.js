@@ -124,6 +124,12 @@ export function signup(name, email, password) {
   });
 }
 
+export function recoverPassword(email) {
+  return callAPI('/auth/recoverpass', 'PUT', {
+    email: email
+  });
+}
+
 export function getTags() {
   return callAPI('/tags/');
 }

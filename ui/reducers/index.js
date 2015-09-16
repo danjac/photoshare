@@ -6,6 +6,7 @@ import auth from './auth';
 import messages from './messages';
 import upload from './upload';
 import tags from './tags';
+import recoverPassword from './recoverPassword';
 
 export default combineReducers({
   photos,
@@ -13,7 +14,8 @@ export default combineReducers({
   auth,
   messages,
   upload,
-  tags
+  tags,
+  recoverPassword
 });
 
 

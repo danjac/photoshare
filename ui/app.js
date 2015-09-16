@@ -13,6 +13,7 @@ import {
   PhotoDetail,
   Login,
   Signup,
+  RecoverPassword,
   Upload,
   TagList
 } from './components';
@@ -46,6 +47,7 @@ class Container extends React.Component {
           <Route path="/tags/" component={TagList} />
           <Route path="/login/" component={Login} />
           <Route path="/signup/" component={Signup} />
+          <Route path="/recoverpass/" component={RecoverPassword} />
           <Route path="/detail/:id" component={PhotoDetail} />
           <Route path="/user/:userID/:username" component={User} />
         </Route>

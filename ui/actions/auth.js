@@ -1,25 +1,28 @@
 import Immutable from 'immutable';
 import * as api from '../api';
 import ActionTypes from '../actionTypes/auth';
+import FormActionTypes from '../actionTypes/forms';
 
 const {
   LOGOUT,
   LOGIN_PENDING,
   LOGIN_SUCCESS,
   LOGIN_FAILURE,
-  SIGNUP_FIELD_ERROR,
-  SIGNUP_FIELD_OK,
   SIGNUP_PENDING,
   SIGNUP_SUCCESS,
   SIGNUP_FAILURE,
-  SIGNUP_CHECK_ASYNC_PENDING,
-  SIGNUP_CHECK_ASYNC_SUCCESS,
-  SIGNUP_CHECK_ASYNC_FAILURE,
   FETCH_USER_PENDING,
   FETCH_USER_SUCCESS,
   FETCH_USER_FAILURE
 } = ActionTypes;
 
+const {
+  OK,
+  ERROR,
+  ASYNC_PENDING,
+  ASYNC_SUCCESS,
+  ASYNC_FAILURE
+} = FormActionTypes;
 
 
 export function checkName(name) {
@@ -31,13 +34,15 @@ export function checkName(name) {
   }
   if (error) {
     return {
-      type: SIGNUP_FIELD_ERROR,
+      type: ERROR,
       error: error,
+      form: "signup",
       field: "name"
     }
   }
   return {
-    type: SIGNUP_FIELD_OK,
+    type: OK,
+    form: "signup",
     field: "name"
   }
 }
@@ -49,13 +54,15 @@ export function checkPassword(password) {
   }
   if (error) {
     return {
-      type: SIGNUP_FIELD_ERROR,
+      type: ERROR,
       error: error,
+      form: "signup",
       field: "password"
     }
   }
   return {
-    type: SIGNUP_FIELD_OK,
+    type: OK,
+    form: "signup",
     field: "password"
   }
 }
@@ -65,17 +72,19 @@ export function checkEmail(email) {
 
   if (!email || email.indexOf("@") === -1) {
     return {
-      type: SIGNUP_FIELD_ERROR,
+      type: ERROR,
       field: "email",
+      form: "signup",
       error: "You must provide a valid email address"
+
     };
   }
 
   return {
     types: [
-      SIGNUP_CHECK_ASYNC_PENDING,
-      SIGNUP_CHECK_ASYNC_SUCCESS,
-      SIGNUP_CHECK_ASYNC_FAILURE,
+      ASYNC_PENDING,
+      ASYNC_SUCCESS,
+      ASYNC_FAILURE
     ],
     payload: {
       promise: api.emailExists(email),
@@ -83,7 +92,8 @@ export function checkEmail(email) {
     meta: {
       resolve: result => result.exists,
       error: "Email already exists",
-      field: "email"
+      field: "email",
+      form: "signup"
     }
   }
 }

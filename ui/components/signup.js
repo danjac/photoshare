@@ -9,7 +9,13 @@ import { Input,
 import * as ActionCreators from '../actions';
 
 
-@connect(state => state.auth.toJS())
+@connect(state => {
+  let props = state.auth.toJS();
+  let forms = state.forms.toJS();
+  props.signupPrechecks = forms.signup ? forms.signup.checked : [];
+  props.signupErrors = forms.signup ? forms.signup.errors : {};
+  return props;
+})
 export default class Signup extends React.Component {
 
   static propTypes = {
@@ -78,6 +84,7 @@ export default class Signup extends React.Component {
   }
 
   errorStatus(name) {
+    console.log(this.props.signupErrors);
     if (this.props.signupPrechecks.indexOf(name) === -1) {
         return;
     }

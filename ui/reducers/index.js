@@ -8,6 +8,7 @@ import upload from './upload';
 import tags from './tags';
 import recoverPassword from './recoverPassword';
 import changePassword from './changePassword';
+import forms from './forms';
 
 export default combineReducers({
   photos,
@@ -17,7 +18,8 @@ export default combineReducers({
   upload,
   tags,
   recoverPassword,
-  changePassword
+  changePassword,
+  forms
 });
 
 

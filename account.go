@@ -179,6 +179,26 @@ func changePassword(ctx *context, w http.ResponseWriter, r *http.Request) error 
 	return renderString(w, http.StatusOK, "Password changed")
 }
 
+func emailExists(ctx *context, w http.ResponseWriter, r *http.Request) error {
+
+	email := r.FormValue("email")
+	if email == "" {
+		return httpError{http.StatusBadRequest, "Missing email address"}
+	}
+	u := &user{Email: email}
+	used, err := ctx.datamapper.isUserEmailAvailable(u)
+	if err != nil {
+		return err
+	}
+
+	s := &struct {
+		Exists bool `json:"exists"`
+	}{!used}
+
+	return renderJSON(w, s, http.StatusOK)
+
+}
+
 func recoverPassword(ctx *context, w http.ResponseWriter, r *http.Request) error {
 
 	s := &struct {

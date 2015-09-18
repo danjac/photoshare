@@ -137,6 +137,10 @@ export function changePassword(password, code) {
   });
 }
 
+export function emailExists(email) {
+  return callAPI(`/auth/emailExists?email=${email}`);
+}
+
 export function getTags() {
   return callAPI('/tags/');
 }

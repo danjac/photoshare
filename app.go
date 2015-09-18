@@ -171,6 +171,7 @@ func (app *app) initRouter() {
 	auth.HandleFunc("/", app.handler(getSessionInfo, authLevelCheck)).Methods("GET").Name("sessionInfo")
 	auth.HandleFunc("/", app.handler(login, authLevelIgnore)).Methods("POST").Name("login")
 	auth.HandleFunc("/", app.handler(logout, authLevelLogin)).Methods("DELETE").Name("logout")
+	auth.HandleFunc("/emailExists", app.handler(emailExists, authLevelIgnore)).Methods("GET").Name("emailExists")
 	auth.HandleFunc("/signup", app.handler(signup, authLevelIgnore)).Methods("POST").Name("signup")
 	auth.HandleFunc("/recoverpass", app.handler(recoverPassword, authLevelIgnore)).Methods("PUT").Name("recoverPassword")
 	auth.HandleFunc("/changepass", app.handler(changePassword, authLevelIgnore)).Methods("PUT").Name("changePassword")

@@ -5,11 +5,10 @@ import ActionTypes from '../actionTypes';
 
 const {
   PHOTO_PREVIEW,
-  UPLOAD_FORM_INVALID,
-  UPLOAD_RESET,
   UPLOAD_SUCCESS,
   UPLOAD_FAILURE,
-  UPLOAD_PENDING
+  UPLOAD_PENDING,
+  OK
 } = ActionTypes;
 
 
@@ -17,28 +16,21 @@ const initialState = Immutable.fromJS({
   previewURL: null,
   uploadedPhoto: null,
   formSubmitted: false,
-  isWaiting: false,
-  errors: new Map()
+  isWaiting: false
 });
 
 export default function(state=initialState, action) {
   switch(action.type) {
-    case UPLOAD_RESET:
-       return initialState;
-    case PHOTO_PREVIEW:
-      return state.set('previewURL', action.url);
+    case OK:
+      if(action.form === 'upload' && action.field === 'photo') {
+        return state.set('previewURL', action.previewURL);
+      }
+      return state;
     case UPLOAD_PENDING:
       return state.merge({
-          errors: new Map(),
           formSubmitted: true,
           isWaiting: true,
           previewURL: null
-      });
-
-    case UPLOAD_FORM_INVALID:
-      return state.merge({
-          errors: action.errors,
-          formSubmitted: true
       });
     case UPLOAD_SUCCESS:
       return state

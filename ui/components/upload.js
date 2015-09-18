@@ -11,7 +11,13 @@ import * as ActionCreators from '../actions';
 import { Loader } from './widgets';
 
 
-@connect(state => state.upload.toJS())
+@connect(state => {
+  let props = state.upload.toJS();
+  let forms = state.forms.toJS();
+  props.errors = forms.upload ? forms.upload.errors : {};
+  props.checked = forms.upload ? forms.upload.checked: [];
+  return props;
+})
 export default class Upload extends React.Component {
 
   static propTypes = {
@@ -52,6 +58,11 @@ export default class Upload extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
+
+    if(!_.isEmpty(this.props.errors)) {
+      return;
+    }
+
     const title = this.refs.title.getValue().trim(),
           tags = this.refs.tags.getValue().trim(),
           photo = this.refs.photo.getInputDOMNode().files[0];
@@ -71,15 +82,27 @@ export default class Upload extends React.Component {
     return nextProps !== this.props;
   }
 
-  errorStatus(name) {
-    if (!this.props.formSubmitted) {
-        return;
-    }
-    return this.props.errors.has(name) ? 'error' : 'success';
+  handleCheckTitle(event) {
+    event.preventDefault();
+    const title = this.refs.title.getValue().trim();
+    this.actions.checkTitle(title);
   }
 
-  errorMsg(name) {
-    return this.props.errors.get(name) || '';
+  handleCheckPhoto(event) {
+    event.preventDefault();
+    const photo = this.refs.photo.getInputDOMNode().files[0];
+    this.actions.checkPhoto(photo);
+  }
+
+  errorStatus(field) {
+    if (this.props.checked.indexOf(field) === -1) {
+        return;
+    }
+    return this.props.errors[field] ? 'error' : 'success';
+  }
+
+  errorMsg(field) {
+    return this.props.errors[field] || '';
   }
 
   render() {
@@ -89,6 +112,8 @@ export default class Upload extends React.Component {
     }
 
     const handlePhotoSelect = this.handlePhotoSelect.bind(this);
+    const handleCheckTitle = this.handleCheckTitle.bind(this);
+    const handleCheckPhoto = this.handleCheckPhoto.bind(this);
     const handleSubmit = this.handleSubmit.bind(this);
 
     return (
@@ -101,6 +126,7 @@ export default class Upload extends React.Component {
                        ref="title"
                        label="Title"
                        hasFeedback
+                       onBlur={handleCheckTitle}
                        bsStyle={this.errorStatus('title')}
                        help={this.errorMsg('title')} />
 
@@ -112,7 +138,7 @@ export default class Upload extends React.Component {
 
                 <Input name="photo"
                        type="file"
-                       onChange={handlePhotoSelect}
+                       onChange={handleCheckPhoto}
                        ref="photo" label="Photo"
                        hasFeedback
                        bsStyle={this.errorStatus('photo')}

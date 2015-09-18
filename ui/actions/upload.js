@@ -4,44 +4,71 @@ import * as api from '../api';
 import ActionTypes from '../actionTypes';
 
 const {
-  PHOTO_PREVIEW,
-  UPLOAD_FORM_INVALID,
-  UPLOAD_RESET,
   UPLOAD_PENDING,
   UPLOAD_SUCCESS,
-  UPLOAD_FAILURE
+  UPLOAD_FAILURE,
+  OK,
+  ERROR,
+  RESET
 } = ActionTypes;
 
-function validate(title, tags, photo) {
-  const errors = new Map();
+
+export function checkTitle(title) {
+  let error;
 
   if (!title) {
-    errors.set("title", "You must provide a title");
+    error = "You must provide a title";
+  } else if (title.length > 100) {
+    error = "Title is too long(100 chars max)";
   }
-
-  if (!photo) {
-    errors.set("photo", "You must provide a photo");
-  } else if (!photo.type.match('image.*')) {
-    errors.set("photo", "Photo must be an image")
+  if (error) {
+    return {
+      type: ERROR,
+      form: "upload",
+      field: "title",
+      error: error
+    }
   }
-
-  return errors;
+  return {
+    type: OK,
+    form: "upload",
+    field: "title"
+  }
 }
 
+export function checkPhoto(photo) {
+  let error;
+
+  if (!photo) {
+    error = "You must provide a photo";
+  } else if (!photo.type.match('image.*')) {
+    error = "Photo must be an image";
+  }
+
+  if (error) {
+    return {
+      type: ERROR,
+      form: "upload",
+      field: "photo",
+      previewURL: null,
+      error: error
+    }
+  };
+
+  return {
+    type: OK,
+    form: "upload",
+    previewURL: URL.createObjectURL(photo),
+    field: "photo"
+  };
+}
+
+
 export function resetForm() {
-  return { type: UPLOAD_RESET };
+  return { type: RESET, form: "upload" };
 }
 
 export function upload(title, tags, photo) {
-
-  const errors = validate(title, tags, photo);
-
-  if (errors.size > 0) {
-    return {
-      type: UPLOAD_FORM_INVALID,
-      errors: errors
-    };
-  }
 
   return {
     types: [
@@ -54,18 +81,4 @@ export function upload(title, tags, photo) {
     }
   }
 
-}
-
-export function previewPhoto(file) {
-
-  let url = null;
-
-  if (file.type.match('image.*')) {
-    url = URL.createObjectURL(file);
-  }
-
-  return {
-    type: PHOTO_PREVIEW,
-    url: url
-  }
 }

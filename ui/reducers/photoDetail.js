@@ -1,7 +1,7 @@
 
 import Immutable from 'immutable';
 
-import ActionTypes from '../actionTypes/photoDetail';
+import ActionTypes from '../actionTypes';
 
 const {
   FETCH_PHOTO_DETAIL_PENDING,

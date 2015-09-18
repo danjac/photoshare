@@ -1,5 +1,5 @@
 import * as api from '../api';
-import ActionTypes from '../actionTypes/changePassword';
+import ActionTypes from '../actionTypes';
 
 const {
   CHANGE_PASSWORD_RESET,

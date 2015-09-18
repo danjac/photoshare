@@ -1,4 +1,4 @@
-import ActionTypes from '../actionTypes/messages';
+import ActionTypes from '../actionTypes';
 
 const {
   DELETE_MESSAGE

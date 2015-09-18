@@ -1,5 +1,5 @@
 import * as api from '../api';
-import ActionTypes from '../actionTypes/photos';
+import ActionTypes from '../actionTypes';
 
 const {
   FETCH_PHOTOS_PENDING,

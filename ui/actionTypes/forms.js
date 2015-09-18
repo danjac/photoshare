@@ -1,4 +1,5 @@
 export default {
+  RESET: Symbol("RESET"),
   OK: Symbol("OK"),
   ERROR: Symbol("ERROR"),
   ASYNC_PENDING: Symbol("ASYNC_PENDING"),

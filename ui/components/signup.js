@@ -36,6 +36,10 @@ export default class Signup extends React.Component {
     this.handleCheckEmail = this.handleCheckEmail.bind(this);
   }
 
+  componentDidMount() {
+    this.actions.resetSignupForm();
+  }
+
   shouldComponentUpdate(nextProps) {
     if (nextProps.loggedIn) {
       this.context.router.transitionTo("/upload/");

@@ -1,7 +1,7 @@
 /* jslint ignore:start */
 
 import * as api from '../api';
-import ActionTypes from '../actionTypes/upload';
+import ActionTypes from '../actionTypes';
 
 const {
   PHOTO_PREVIEW,

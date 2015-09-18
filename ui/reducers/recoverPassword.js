@@ -1,6 +1,6 @@
 import Immutable from 'immutable';
 
-import ActionTypes  from '../actionTypes/recoverPassword';
+import ActionTypes  from '../actionTypes';
 
 const  {
   RECOVER_PASSWORD_RESET,

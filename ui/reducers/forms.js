@@ -1,11 +1,12 @@
 import Immutable from 'immutable';
 
-import ActionTypes from '../actionTypes/forms';
+import ActionTypes from '../actionTypes';
 
 const {
   OK,
   ERROR,
   ASYNC_SUCCESS,
+  RESET,
 } = ActionTypes;
 
 const initialState = Immutable.Map();
@@ -19,6 +20,8 @@ export default function(state=initialState, action) {
   let form = defaultForm;
 
   switch(action.type) {
+    case RESET:
+      return state.set(action.form, defaultForm);
     case OK:
       form = (state.get(action.form) || defaultForm)
       .update("errors", errors => errors.delete(action.field))
@@ -28,7 +31,7 @@ export default function(state=initialState, action) {
       form = (state.get(action.form) || defaultForm)
       .update("errors", errors => errors.set(action.field, action.error))
       .update("checked", checked => checked.push(action.field));
-    return state.set(action.form, form);
+      return state.set(action.form, form);
     case ASYNC_SUCCESS:
       let error = action.meta.resolve(action.payload) ? action.meta.error : false;
       form = state.get(action.meta.form) || defaultForm;

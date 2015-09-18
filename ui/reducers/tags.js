@@ -1,6 +1,6 @@
 import Immutable from 'immutable';
 
-import ActionTypes from '../actionTypes/tags';
+import ActionTypes from '../actionTypes';
 
 const {
   FETCH_TAGS_SUCCESS,

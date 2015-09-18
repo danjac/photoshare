@@ -1,9 +1,14 @@
 import Immutable from 'immutable';
 import * as api from '../api';
-import ActionTypes from '../actionTypes/auth';
-import FormActionTypes from '../actionTypes/forms';
+import ActionTypes from '../actionTypes';
 
 const {
+  OK,
+  ERROR,
+  RESET,
+  ASYNC_PENDING,
+  ASYNC_SUCCESS,
+  ASYNC_FAILURE,
   LOGOUT,
   LOGIN_PENDING,
   LOGIN_SUCCESS,
@@ -16,14 +21,12 @@ const {
   FETCH_USER_FAILURE
 } = ActionTypes;
 
-const {
-  OK,
-  ERROR,
-  ASYNC_PENDING,
-  ASYNC_SUCCESS,
-  ASYNC_FAILURE
-} = FormActionTypes;
-
+export function resetSignupForm() {
+  return {
+    type: RESET,
+    form: "signup"
+  }
+}
 
 export function checkName(name) {
   let error = null;
